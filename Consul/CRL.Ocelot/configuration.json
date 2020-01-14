@@ -1,0 +1,43 @@
+{
+  "ReRoutes": [
+    // API01:CAS.ClientService
+    {
+      "UseServiceDiscovery": true, // use Consul service discovery
+      "DownstreamPathTemplate": "/DynamicApi/{url}",
+      "DownstreamScheme": "http",
+      "ServiceName": "apiService1",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin" //LeastConnection : 将请求发往最空闲的那个服务器 RoundRobin ：轮流发送  NoLoadBalance ：不启用负载均衡，总是发往第一个请求或者服务发现的那个服务器
+      },
+      "UpstreamPathTemplate": "/serviceTest/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "ReRoutesCaseSensitive": false // non case sensitive
+    }
+  ],
+  //限流
+  "RateLimitOptions": {
+    "ClientWhitelist": [ "127.0.0.1" ], //白名单
+    "EnableRateLimiting": true, //是否启用
+    "Period": "5s", //限流控制的时间段 1s, 5m, 1h, 1d。
+    "PeriodTimespan": 1, //超过限流限制的次数后,需要等待重置的时间（单位是秒）
+    "Limit": 10 //在限流控制时间段内最大访问数
+  },
+  //熔断
+  "QoSOptions": {
+    "ExceptionsAllowedBeforeBreaking": 3, //允许多少个异常请求
+    "DurationOfBreak": 20, //熔断的时间(秒)
+    "TimeoutValue": 5000 //下游请求的处理时间超过多少则将请求设置为超时
+  },
+  //缓存
+  "FileCacheOptions": {
+    "TtlSeconds": 60, //缓存时间(秒)
+    "Region": "key" //缓存分区名
+  },
+  "GlobalConfiguration": {
+    //"BaseUrl": "https://api.mybusiness.com"
+    "ServiceDiscoveryProvider": {
+      "Host": "127.0.0.1", // Consul Service IP
+      "Port": 8500 // Consul Service Port
+    }
+  }
+}
