@@ -414,11 +414,13 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
 
         public override string StringContainsFormat(string field, string parName)
         {
-            return string.Format("CHARINDEX({1},{0})>0", field, parName);
+            return string.Format("INSTR ({0},{1},1,1)>0", field, parName);
+            //return string.Format("CHARINDEX({1},{0})>0", field, parName);
         }
         public override string StringNotContainsFormat(string field, string parName)
         {
-            return string.Format("CHARINDEX({1},{0})<=0", field, parName);
+            return string.Format("INSTR ({0},{1},1,1)<=0", field, parName);
+            //return string.Format("CHARINDEX({1},{0})<=0", field, parName);
         }
 
         public override string BetweenFormat(string field, string parName, string parName2)
