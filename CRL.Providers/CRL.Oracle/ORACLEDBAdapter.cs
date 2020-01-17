@@ -147,7 +147,7 @@ namespace CRL.Oracle
         /// <returns></returns>
         public override string GetColumnIndexScript(Attribute.FieldInnerAttribute filed)
         {
-            if(filed.IsPrimaryKey)
+            if (filed.IsPrimaryKey)
             {
                 return "";
             }
@@ -253,7 +253,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
             Type type = obj.GetType();
             var helper = dbContext.DBHelper;
             var table = TypeCache.GetTable(type);
-   
+
             var primaryKey = table.PrimaryKey;
             object id;
             if (primaryKey.KeepIdentity)
@@ -267,7 +267,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
                 id = SqlStopWatch.ExecScalar(helper, sqlGetIndex);
                 primaryKey.SetValue(obj, Convert.ChangeType(id, primaryKey.PropertyType));
             }
-            
+
             var sql = GetInsertSql(dbContext, table, obj);
             //helper.SetParam(primaryKey.MapingName, id);
             SqlStopWatch.Execute(helper, sql);
@@ -284,28 +284,38 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
             return "";
         }
         /// <summary>
+        /// 获取where
+        /// </summary>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        public override string GetWhere(string where)
+        {
+            return where.Length == 0 ? " where 1=1 " : " where " + where;
+        }
+        /// <summary>
         /// 获取前几条语句
         /// </summary>
         /// <param name="fields">id,name</param>
         /// <param name="query">from table where 1=1</param>
         /// <param name="top"></param>
         /// <returns></returns>
-        public override void GetSelectTop(StringBuilder sb, string fields, Action<StringBuilder> query,string sort, int top)
+        public override void GetSelectTop(StringBuilder sb, string fields, Action<StringBuilder> query, string sort, int top)
         {
             sb.Append("select ");
             sb.Append(fields);
             query(sb);
-            if (top > 0)
-            {
-                if (sb.ToString().ToLower().Contains("where"))
-                {
-                    sb.Append(" and ROWNUM<=" + top);
-                }
-                else
-                {
-                    sb.Append(" where ROWNUM<=" + top);
-                }
-            }
+            //if (top > 0)
+            //{
+            //    if (sb.ToString().ToLower().Contains("where"))
+            //    {
+            //        sb.Append(" and ROWNUM<=" + top);
+            //    }
+            //    else
+            //    {
+            //        sb.Append(" where ROWNUM<=" + top);
+            //    }
+            //}
+            sb.Append(top == 0 ? "" : " and ROWNUM<=" + top);
             sb.Append(sort);
             //string sql = string.Format("select {0} {1} {2} {3}", fields, query, top == 0 ? "" : " and ROWNUM<=" + top,sort);
             //return sql;

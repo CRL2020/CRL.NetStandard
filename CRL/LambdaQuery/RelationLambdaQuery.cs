@@ -155,7 +155,7 @@ namespace CRL.LambdaQuery
             {
                 join = string.Join(" ", __Relations.Values);
             }
-            part.AppendFormat(" {0}{1}", join, where.Length == 0 ? " " : " where " + where);
+            part.AppendFormat(" {0}{1}", join, __DBAdapter.GetWhere(where));
             #region group判断
             if (__GroupFields!=null)
             {

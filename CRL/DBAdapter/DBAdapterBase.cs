@@ -250,6 +250,15 @@ namespace CRL.DBAdapter
         /// </summary>
         /// <returns></returns>
         public abstract string GetWithNolockFormat(bool v);
+        /// <summary>
+        /// 获取where条件
+        /// </summary>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        public virtual string GetWhere(string where)
+        {
+            return where.Length == 0 ? " " : " where " + where;
+        }
         #endregion
 
         #region  系统查询
