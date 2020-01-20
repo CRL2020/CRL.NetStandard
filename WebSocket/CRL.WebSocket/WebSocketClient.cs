@@ -39,11 +39,11 @@ namespace CRL.WebSocket
             {
                 Service = ServiceName,
                 Method = binder.Name,
-                Token = clientConnect.Token
+                //Token = clientConnect.Token
             };
             var allArgs = method.GetParameters();
             var token = request.Token;
-            request.Token = GetToken(allArgs, args.ToList(), token);
+            request.Token = CreateAccessToken(allArgs, args.ToList(), clientConnect.TokenInfo);
             request.Args = args.ToList();
             ResponseJsonMessage response = null;
             try
@@ -79,7 +79,7 @@ namespace CRL.WebSocket
             }
             if (!string.IsNullOrEmpty(response.Token))
             {
-                clientConnect.Token = response.Token;
+                clientConnect.TokenInfo.Token = response.Token;
             }
             if (returnType == typeof(void))
             {

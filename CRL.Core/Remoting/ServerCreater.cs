@@ -42,6 +42,16 @@ namespace CRL.Core.Remoting
             return this;
         }
         /// <summary>
+        /// 设置jwt认证方法
+        /// </summary>
+        /// <param name="jwtTokenCheck"></param>
+        /// <returns></returns>
+        public ServerCreater UseJWTUseAuthorization(JwtTokenCheckHandler jwtTokenCheck)
+        {
+            Server._jwtTokenCheck = jwtTokenCheck;
+            return this;
+        }
+        /// <summary>
         /// 指定类型注册
         /// </summary>
         /// <typeparam name="IService"></typeparam>
@@ -108,4 +118,6 @@ namespace CRL.Core.Remoting
             Server.Dispose();
         }
     }
+
+    public delegate bool JwtTokenCheckHandler(MessageBase req, out string user, out string error);
 }

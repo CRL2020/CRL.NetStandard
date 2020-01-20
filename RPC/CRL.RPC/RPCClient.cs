@@ -60,7 +60,7 @@ namespace CRL.RPC
                 MsgId = id,
                 Service = ServiceName,
                 Method = binder.Name,
-                Token = clientConnect.Token
+                //Token = clientConnect.Token.Token
             };
             var dic = new List<byte[]>();
             var allArgs = method.GetParameters();
@@ -72,7 +72,7 @@ namespace CRL.RPC
             }
             request.Args = dic;
             var token = request.Token;
-            request.Token = GetToken(allArgs, args.ToList(), token);
+            request.Token = CreateAccessToken(allArgs, args.ToList(), clientConnect.TokenInfo);
 
             channel.WriteAndFlushAsync(request.ToBuffer());
             //等待返回
@@ -99,7 +99,7 @@ namespace CRL.RPC
             }
             if (!string.IsNullOrEmpty(response.Token))
             {
-                clientConnect.Token = response.Token;
+                clientConnect.TokenInfo.Token = response.Token;
             }
             if (returnType == typeof(void))
             {

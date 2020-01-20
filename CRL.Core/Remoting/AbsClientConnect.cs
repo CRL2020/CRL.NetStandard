@@ -8,17 +8,17 @@ namespace CRL.Core.Remoting
 {
     public abstract class AbsClientConnect : IDisposable
     {
-        public string Token = "";
+        public TokenInfo TokenInfo = new TokenInfo();
         public Action<string, string> OnError;
 
-        internal bool __UseSign = false;
+        //internal bool __UseSign = false;
         /// <summary>
         /// 使用签名
         /// 参数都会以ToString计算,注意类型问题
         /// </summary>
         public void UseSign()
         {
-            __UseSign = true;
+            TokenInfo.UseSign = true;
         }
         protected Dictionary<string, object> _services = new Dictionary<string, object>();
         public virtual void Dispose()
@@ -26,6 +26,17 @@ namespace CRL.Core.Remoting
 
         }
         public abstract T GetClient<T>() where T : class;
+
+        //internal bool useJwtToken = false;
+        /// <summary>
+        /// 设置JWT token
+        /// </summary>
+        /// <param name="jwtToken"></param>
+        public void SetJwtToken(string jwtToken)
+        {
+            TokenInfo.Token = jwtToken;
+            TokenInfo.IsJwtToken = true;
+        }
         #region consul
         /// <summary>
         /// 获取服务地址
@@ -107,5 +118,17 @@ namespace CRL.Core.Remoting
         }
 
         #endregion
+    }
+    public class TokenInfo
+    {
+        public string Token = "";
+        /// <summary>
+        /// 使用签名
+        /// </summary>
+        public bool UseSign = false;
+        /// <summary>
+        /// 是否为jwt token
+        /// </summary>
+        public bool IsJwtToken = false;
     }
 }

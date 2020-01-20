@@ -32,8 +32,8 @@ namespace CRL.DynamicWebApi
  
             var request = new ImitateWebRequest(HostAddress.address, Encoding.UTF8);
             request.ContentType = "application/json";
-            var token = clientConnect.Token;
-            token = GetToken(argsName, msg.Args, token);
+            //var token = clientConnect.Token;
+            var token = CreateAccessToken(argsName, msg.Args, clientConnect.TokenInfo);
 
             request.SetHead("token", token);
             var json = msg.Args.ToJson();
@@ -50,7 +50,7 @@ namespace CRL.DynamicWebApi
             {
                 Service = ServiceName,
                 Method = binder.Name,
-                Token = clientConnect.Token
+                //Token = clientConnect.Token.Token
             };
             var allArgs = method.GetParameters();
             request.Args = args.ToList();
@@ -88,7 +88,7 @@ namespace CRL.DynamicWebApi
             }
             if (!string.IsNullOrEmpty(response.Token))
             {
-                clientConnect.Token = response.Token;
+                clientConnect.TokenInfo.Token = response.Token;
             }
             if (returnType == typeof(void))
             {

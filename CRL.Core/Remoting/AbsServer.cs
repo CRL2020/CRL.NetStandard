@@ -103,10 +103,10 @@ namespace CRL.Core.Remoting
                 }
                 i += 1;
             }
-            //if (request.httpPostedFile != null)
-            //{
-            //    service.SetPostFile(request.httpPostedFile);
-            //}
+            if (request.httpPostedFile != null)
+            {
+                service.SetPostFile(request.httpPostedFile);
+            }
 
             if (request.Args.Count != methodParamters.Count())
             {
@@ -120,19 +120,35 @@ namespace CRL.Core.Remoting
                     return new ErrorInfo("请求token为空,请先登录", "401");
                     //throw new Exception("token为空");
                 }
-                var tokenArry = request.Token.Split('@');
-                if (tokenArry.Length < 2)
+                string error;
+                if (_jwtTokenCheck != null)
                 {
-                    return new ErrorInfo("token不合法 user@token", "401");
-                    //throw new Exception("token不合法 user@token");
+                    #region 使用jwt认证
+                    if (!_jwtTokenCheck(request, out string jwtUser, out error))
+                    {
+                        return new ErrorInfo($"jwt认证失败:{error}", "401");
+                    }
+                    service.SetUser(jwtUser);
+                    #endregion
                 }
-                var a2 = CheckSession(tokenArry[0], tokenArry[1], methodParamters, paramters, out string error);
-                if (!a2)
+                else
                 {
-                    return new ErrorInfo(error, "401");
+                    #region 使用简单登录认证
+                    var tokenArry = request.Token.Split('@');
+                    if (tokenArry.Length < 2)
+                    {
+                        return new ErrorInfo("token不合法 user@token", "401");
+                        //throw new Exception("token不合法 user@token");
+                    }
+                    var a2 = CheckSession(tokenArry[0], tokenArry[1], methodParamters, paramters, out error);
+                    if (!a2)
+                    {
+                        return new ErrorInfo(error, "401");
+                    }
+                    //Core.CallContext.SetData("currentUser", tokenArry[0]);
+                    service.SetUser(tokenArry[0]);
+                    #endregion
                 }
-                //Core.CallContext.SetData("currentUser", tokenArry[0]);
-                service.SetUser(tokenArry[0]);
             }
 
             var args3 = paramters?.ToArray();
@@ -170,6 +186,6 @@ namespace CRL.Core.Remoting
             }
             return true;
         }
-
+        internal JwtTokenCheckHandler _jwtTokenCheck;
     }
 }

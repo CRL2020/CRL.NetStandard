@@ -100,15 +100,27 @@ namespace CRL.Core.Remoting
         {
 
         }
-        protected string GetToken(ParameterInfo[] argsName, List<object> args,string token)
+        /// <summary>
+        /// 生成请求的token
+        /// </summary>
+        /// <param name="argsName"></param>
+        /// <param name="args"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected string CreateAccessToken(ParameterInfo[] argsName, List<object> args, TokenInfo token)
         {
-            if (clientConnect.__UseSign && !string.IsNullOrEmpty(token))
+            if (token.IsJwtToken)
             {
-                var arry = token.Split('@');
-                var sign = SignCheck.CreateSign(arry[1], argsName, args);
-                token = string.Format("{0}@{1}", arry[0], sign);
+                //使用jwt token
+                return token.Token;
             }
-            return token;
+            if (token.UseSign && !string.IsNullOrEmpty(token.Token))
+            {
+                var arry = token.Token.Split('@');
+                var sign = SignCheck.CreateSign(arry[1], argsName, args);
+                return string.Format("{0}@{1}", arry[0], sign);
+            }
+            return token.Token;
         }
     }
 }
