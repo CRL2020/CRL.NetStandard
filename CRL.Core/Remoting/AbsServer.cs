@@ -103,10 +103,10 @@ namespace CRL.Core.Remoting
                 }
                 i += 1;
             }
-            if (request.httpPostedFile != null)
-            {
-                service.SetPostFile(request.httpPostedFile);
-            }
+            //if (request.httpPostedFile != null)
+            //{
+            //    service.SetPostFile(request.httpPostedFile);
+            //}
 
             if (request.Args.Count != methodParamters.Count())
             {

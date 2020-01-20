@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("CRL.WebSocket")]
+[assembly: AssemblyTitle("RPCServer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("CRL.WebSocket")]
+[assembly: AssemblyProduct("RPCServer")]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-[assembly: Guid("e417153d-68b1-49f1-9dd5-4c6603334f19")]
+[assembly: Guid("ebf47f2c-9452-49e9-b984-5b6d44c3e608")]
 
 // 程序集的版本信息由下列四个值组成: 
 //
