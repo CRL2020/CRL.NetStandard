@@ -54,14 +54,17 @@ namespace CRL.DynamicWebApi
             };
             var allArgs = method.GetParameters();
             request.Args = args.ToList();
+            var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
             ResponseJsonMessage response = null;
-            try
+            var pollyData = PollyExtension.Invoke(pollyAttr, () =>
             {
-                response = SendRequest(methodParamters, request);
-            }
-            catch (Exception ero)
+                var res = SendRequest(methodParamters, request);
+                return new PollyExtension.PollyData<ResponseJsonMessage>() { Data = res };
+            }, $"{ServiceName}.{method.Name}");
+            response = pollyData.Data;
+            if (!string.IsNullOrEmpty(pollyData.Error))
             {
-                ThrowError(ero.Message, "500");
+                ThrowError(pollyData.Error, "500");
             }
             if (response == null)
             {
@@ -95,8 +98,21 @@ namespace CRL.DynamicWebApi
                 result = null;
                 return true;
             }
-            result = response.GetData(returnType);
-
+            var generType = returnType;
+            bool isTask = false;
+            if (returnType.Name.StartsWith("Task`1"))
+            {
+                generType = returnType.GenericTypeArguments[0];
+                isTask = true;
+            }
+            result = response.GetData(generType);
+            if (isTask)
+            {
+                //返回Task类型
+                var method2 = typeof(Task).GetMethod("FromResult", BindingFlags.Public | BindingFlags.Static);
+                var result2 = method2.MakeGenericMethod(new Type[] { generType }).Invoke(null, new object[] { result });
+                result = result2;
+            }
             return true;
 
         }

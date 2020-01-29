@@ -17,7 +17,7 @@ namespace ApiProxyTest
             clientConnect = new CRL.Core.ApiProxy.ApiClientConnect("https://api.weixin.qq.com");
 
             //clientConnect.UseConsulDiscover("http://127.0.0.1:8500", "serviceName");//使用consul发现服务
-            clientConnect.UseOcelotApiGateway("http://127.0.0.1:3400");//直接使用ocelot网关
+            //clientConnect.UseOcelotApiGateway("http://127.0.0.1:3400");//直接使用ocelot网关
             //clientConnect.UseConsulApiGatewayDiscover("http://127.0.0.1:3400", "serviceName");//使用ocelot网关发现服务
 
             clientConnect.UseBeforRequest((request, members, url) =>

@@ -12,6 +12,8 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
+
 namespace CRL.RPC
 {
     class RPCClient : AbsClient
@@ -73,10 +75,22 @@ namespace CRL.RPC
             request.Args = dic;
             var token = request.Token;
             request.Token = CreateAccessToken(allArgs, args.ToList(), clientConnect.TokenInfo);
+            var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
+            ResponseMessage response = null;
 
-            channel.WriteAndFlushAsync(request.ToBuffer());
-            //等待返回
-            var response = allWaits.Wait(id).Response;
+            var pollyData = PollyExtension.Invoke(pollyAttr, () =>
+            {
+                channel.WriteAndFlushAsync(request.ToBuffer());
+                //等待返回
+                var res = allWaits.Wait(id).Response;
+                return new PollyExtension.PollyData<ResponseMessage>() { Data = res };
+            }, $"{ServiceName}.{method.Name}");
+            response = pollyData.Data;
+            if (!string.IsNullOrEmpty(pollyData.Error))
+            {
+                ThrowError(pollyData.Error, "500");
+            }
+
             if (response == null)
             {
                 ThrowError("请求超时未响应", "500");
@@ -106,7 +120,21 @@ namespace CRL.RPC
                 result = null;
                 return true;
             }
-            result = response.GetData(returnType);
+            var generType = returnType;
+            bool isTask = false;
+            if (returnType.Name.StartsWith("Task`1"))
+            {
+                generType = returnType.GenericTypeArguments[0];
+                isTask = true;
+            }
+            result = response.GetData(generType);
+            if (isTask)
+            {
+                //返回Task类型
+                var method2 = typeof(Task).GetMethod("FromResult", BindingFlags.Public | BindingFlags.Static);
+                var result2 = method2.MakeGenericMethod(new Type[] { generType }).Invoke(null, new object[] { result });
+                result = result2;
+            }
             return true;
         }
         public override void Dispose()

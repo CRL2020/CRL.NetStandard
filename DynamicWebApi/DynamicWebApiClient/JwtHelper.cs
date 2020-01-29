@@ -6,7 +6,7 @@ using System.Text;
 using System.Linq;
 using System.Security.Claims;
 
-namespace ServerTest
+namespace DynamicWebApiClient
 {
     public static class JwtHelper
     {

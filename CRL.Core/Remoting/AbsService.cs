@@ -15,8 +15,11 @@ namespace CRL.Core.Remoting
         public void SetUser(string user)
         {
             var v = ServerCreater.SessionManage.GetSession(user);
-            CurrentUserTag = v.Item2;
-            CurrentUserName= user;
+            if (v != null)
+            {
+                CurrentUserTag = v.Item2;
+            }
+            CurrentUserName = user;
         }
         public string GetToken()
         {

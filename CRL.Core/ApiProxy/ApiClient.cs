@@ -119,30 +119,28 @@ namespace CRL.Core.ApiProxy
             {
                 throw new Exception("设置请求头信息时发生错误:" + ero.Message);
             }
-
-            if (httpMethod == HttpMethod.POST || httpMethod == HttpMethod.PUT)
+            string postArgs = "";
+            if (httpMethod != HttpMethod.GET)
             {
-                string data = "";
                 if (firstArgs != null)
                 {
                     if (contentType == ContentType.JSON)
                     {
-                        data = members.ToJson();
+                        postArgs = members.ToJson();
                     }
                     else if (contentType == ContentType.XML)
                     {
-                        data = Core.SerializeHelper.XmlSerialize(firstArgs, apiClientConnect.Encoding);
+                        postArgs = Core.SerializeHelper.XmlSerialize(firstArgs, apiClientConnect.Encoding);
                     }
                     else if (contentType == ContentType.FORM)
                     {
-                        data = GetFormData(members);
+                        postArgs = GetFormData(members);
                     }
                     else
                     {
-                        data = firstArgs.ToString();
+                        postArgs = firstArgs.ToString();
                     }
                 }
-                result = request.SendData(url, httpMethod.ToString(), data, out string nowUrl);
             }
             else
             {
@@ -152,8 +150,22 @@ namespace CRL.Core.ApiProxy
                     list.Add(string.Format("{0}={1}", kv.Key, kv.Value));
                 }
                 var str = string.Join("&", list);
-                result = request.Get($"{url}?{str}");
+                url = $"{url}?{str}";
+                //result = request.Get($"{url}?{str}");
             }
+
+            var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
+            var pollyData = PollyExtension.Invoke(pollyAttr, () =>
+            {
+                var res = request.SendData(url, httpMethod.ToString(), postArgs, out string nowUrl);
+                return new PollyExtension.PollyData<string>() { Data = res };
+            }, $"{ServiceName}.{method.MethodInfo.Name}");
+            result = pollyData.Data;
+            if (!string.IsNullOrEmpty(pollyData.Error))
+            {
+                ThrowError(pollyData.Error, "500");
+            }
+
             var generType = returnType;
             bool isTask = false;
             if (returnType.Name.StartsWith("Task`1"))
@@ -207,19 +219,7 @@ namespace CRL.Core.ApiProxy
             };
             request.Args = args.ToList();
             object response = null;
-            try
-            {
-                response = SendRequest(serviceInfo, method, args);
-            }
-            catch (Exception ero)
-            {
-                var msg = ero.Message;
-                if(ero is RequestException)
-                {
-                    msg = (ero as RequestException).ToString();
-                }
-                ThrowError(msg, "500");
-            }
+            response = SendRequest(serviceInfo, method, args);
             if (returnType == typeof(void))
             {
                 result = null;

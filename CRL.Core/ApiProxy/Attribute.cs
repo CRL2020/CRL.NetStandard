@@ -72,7 +72,7 @@ namespace CRL.Core.ApiProxy
     }
     public enum HttpMethod
     {
-        POST,GET,PUT
+        POST,GET,PUT,DELETE
     }
     public enum ContentType
     {

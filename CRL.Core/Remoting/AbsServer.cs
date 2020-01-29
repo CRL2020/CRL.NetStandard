@@ -73,6 +73,10 @@ namespace CRL.Core.Remoting
             {
                 checkToken = false;
             }
+            if(_jwtTokenCheck!=null)
+            {
+                checkToken = true;
+            }
             var paramters = request.Args;
             var method = methodInfo.MethodInfo;
             var methodParamters = methodInfo.Parameters;
@@ -153,12 +157,18 @@ namespace CRL.Core.Remoting
 
             var args3 = paramters?.ToArray();
             result = method.Invoke(service, args3);
+            if (method.ReturnType.Name.StartsWith("Task`1"))
+            {
+                var pro = method.ReturnType.GetProperty("Result");
+                result = pro.GetValue(result);
+            }
+
             foreach (var kv in new Dictionary<int, object>(outs))
             {
                 var value = args3[kv.Key];
                 outs[kv.Key] = value;
             }
-            if (loginAttr != null)//登录方法后返回新TOKEN
+            if (loginAttr != null && _jwtTokenCheck == null)//登录方法后返回新TOKEN
             {
                 token = service.GetToken();
             }

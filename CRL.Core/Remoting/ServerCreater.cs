@@ -9,6 +9,11 @@ namespace CRL.Core.Remoting
 {
     public class ServerCreater
     {
+        public static ServerCreater Instance;
+        public ServerCreater()
+        {
+            Instance = this;
+        }
         AbsServer Server;
         /// <summary>
         /// 验证签名
