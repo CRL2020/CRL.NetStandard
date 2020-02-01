@@ -102,11 +102,11 @@ namespace CRL.WebSocket
         {
             bootstrapChannel.CloseAsync().Wait();
         }
-        public override object InvokeResult(object rq)
+        public override object InvokeResult(object rq, Func<Type, object> getArgs)
         {
-            return InvokeResult2(null, rq);
+            return InvokeResult2(null, rq, getArgs);
         }
-        public object InvokeResult2(IChannelHandlerContext ctx, object rq)
+        public object InvokeResult2(IChannelHandlerContext ctx, object rq, Func<Type, object> getArgs = null)
         {
             var request = rq as RequestJsonMessage;
             var response = new ResponseJsonMessage();
@@ -114,7 +114,7 @@ namespace CRL.WebSocket
             try
             {
                 var msgBase = new Core.Remoting.MessageBase() { Args = request.Args, Method = request.Method, Service = request.Service, Token = request.Token };
-                var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs, out string token);
+                var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs, out string token, getArgs);
                 if (errorInfo != null)
                 {
                     return ResponseJsonMessage.CreateError(errorInfo.msg, errorInfo.code);

@@ -62,7 +62,7 @@ namespace CRL.Core.Remoting
         /// <typeparam name="IService"></typeparam>
         /// <typeparam name="Service"></typeparam>
         /// <returns></returns>
-        public ServerCreater Register<IService, Service>() where Service : AbsService, IService, new() where IService : class
+        public ServerCreater Register<IService, Service>() where Service : AbsService, IService where IService : class
         {
             Server.Register<IService, Service>();
             return this;

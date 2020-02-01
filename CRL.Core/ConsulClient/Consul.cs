@@ -9,6 +9,13 @@ using System.Threading.Tasks;
 using CRL.Core.Extension;
 namespace CRL.Core.ConsulClient
 {
+    public interface IConsulService
+    {
+        bool RegisterService(ServiceRegistrationInfo service);
+        bool DeregisterService(string serviceId);
+        Dictionary<string, ServiceInfo> GetAllServices();
+        bool Login(string name,string pass);
+    }
     public class Consul
     {
         private static Random rng = new Random();

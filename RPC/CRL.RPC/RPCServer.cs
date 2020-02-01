@@ -40,7 +40,7 @@ namespace CRL.RPC
         }
 
 
-        public override object InvokeResult(object rq)
+        public override object InvokeResult(object rq, Func<Type, object> getArgs = null)
         {
             var request = rq as RequestMessage;
             var response = new ResponseMessage();
@@ -75,7 +75,7 @@ namespace CRL.RPC
                 }
 
                 var msgBase = new Core.Remoting.MessageBase() { Args = args.ToList(), Method = request.Method, Service = request.Service, Token = request.Token };
-                var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs2, out string token);
+                var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs2, out string token, getArgs);
                 if (errorInfo != null)
                 {
                     return ResponseMessage.CreateError(errorInfo.msg, errorInfo.code);

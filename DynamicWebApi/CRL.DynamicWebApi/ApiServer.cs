@@ -25,7 +25,7 @@ namespace CRL.DynamicWebApi
                 return instance;
             }
         }
-        public override object InvokeResult(object rq)
+        public override object InvokeResult(object rq, Func<Type, object> getArgs)
         {
             var request = rq as RequestJsonMessage;
             var response = new ResponseJsonMessage();
@@ -33,7 +33,7 @@ namespace CRL.DynamicWebApi
             try
             {
                 var msgBase = new Core.Remoting.MessageBase() { Args = request.Args, Method = request.Method, Service = request.Service, Token = request.Token };
-                var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs, out string token);
+                var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs, out string token, getArgs);
                 if (errorInfo != null)
                 {
                     return ResponseJsonMessage.CreateError(errorInfo.msg, errorInfo.code);

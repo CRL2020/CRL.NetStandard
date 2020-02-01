@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CRL.Core.Remoting;
+using CRL.DynamicWebApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,12 +27,9 @@ namespace CRL.Ocelot
         {
             Configuration = configuration;
         }
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<CRL.Core.ConsulClient.Client>();
-            //services.AddOcelot(Configuration);
             #region jwt
             var config = Configuration.GetSection("JwtAuthorize");
             var keyByteArray = Encoding.ASCII.GetBytes(config["Secret"]);
@@ -59,8 +58,10 @@ namespace CRL.Ocelot
              });
             #endregion
             services.AddOcelot(Configuration).AddConsul();
-            //services.AddConsulProxy();
             services.AddControllers();
+            //注册动态API
+            var server = new ServerCreater().CreatetApi();
+            server.Register<Core.ConsulClient.IConsulService, ConsulService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,7 +76,8 @@ namespace CRL.Ocelot
             //使用JWT认证调用权限
             app.UseAuthorization();
             app.UseMiddleware<JwtAuthorizeMiddleware>();
-
+            //动态API中间件
+            app.UseMiddleware<DynamicApiMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

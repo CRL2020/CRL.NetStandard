@@ -12,7 +12,7 @@ namespace CRL.Core.Remoting
     public abstract class AbsServer: IDisposable
     {
         protected static Dictionary<string, serviceInfo> serviceHandle = new Dictionary<string, serviceInfo>();
-        internal void Register<IService, Service>() where Service : AbsService, IService, new() where IService : class
+        internal void Register<IService, Service>() where Service : AbsService, IService where IService : class
         {
             var type = typeof(Service);
             var info = serviceInfo.GetServiceInfo(type);
@@ -33,7 +33,7 @@ namespace CRL.Core.Remoting
         {
 
         }
-        public abstract object InvokeResult(object rq);
+        public abstract object InvokeResult(object rq, Func<Type, object> getArgs = null);
         protected class ErrorInfo
         {
             public string msg;
@@ -44,7 +44,7 @@ namespace CRL.Core.Remoting
                 code = c;
             }
         }
-        protected ErrorInfo InvokeMessage(MessageBase request, out object result, out Dictionary<int, object> outs,out string token)
+        protected ErrorInfo InvokeMessage(MessageBase request, out object result, out Dictionary<int, object> outs,out string token, Func<Type,object> getArgs = null)
         {
             result = null;
             token = "";
@@ -55,7 +55,21 @@ namespace CRL.Core.Remoting
                 return new ErrorInfo("未找到该服务", "404");
             }
             var serviceType = serviceInfo.ServiceType;
-            var service = System.Activator.CreateInstance(serviceType) as AbsService;
+            var constructor = serviceType.GetConstructors().Last();
+            var cArgs = new List<object>();
+            if (getArgs != null)
+            {
+                foreach (var p in constructor.GetParameters())
+                {
+                    var v = getArgs(p.ParameterType);
+                    if (v != null)
+                    {
+                        cArgs.Add(v);
+                    }
+                }
+            }
+            var service = constructor.Invoke(cArgs.ToArray()) as AbsService;
+
             var methodInfo = serviceInfo.GetMethod(request.Method);
             if (methodInfo == null)
             {
