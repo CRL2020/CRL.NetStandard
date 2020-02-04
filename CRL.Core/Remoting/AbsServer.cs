@@ -62,10 +62,7 @@ namespace CRL.Core.Remoting
                 foreach (var p in constructor.GetParameters())
                 {
                     var v = getArgs(p.ParameterType);
-                    if (v != null)
-                    {
-                        cArgs.Add(v);
-                    }
+                    cArgs.Add(v);
                 }
             }
             var service = constructor.Invoke(cArgs.ToArray()) as AbsService;
