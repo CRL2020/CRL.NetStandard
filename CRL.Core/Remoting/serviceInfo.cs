@@ -21,7 +21,8 @@ namespace CRL.Core.Remoting
                 {
                     Attributes = m.GetCustomAttributes().ToList(),
                     MethodInfo = m,
-                    Parameters = m.GetParameters()
+                    Parameters = m.GetParameters(),
+                    MethodInvoker = DynamicMethodHelper.BuilderMethodInvoker(m)
                 };
                 methodInfoList.Add(mInfo);
             }
@@ -29,6 +30,7 @@ namespace CRL.Core.Remoting
             return info;
         }
         public Type ServiceType;
+        public Type InterfaceType;
         public List<methodInfo> Methods = new List<methodInfo>();
         public List<Attribute> Attributes = new List<Attribute>();
         public T GetAttribute<T>() where T : Attribute
@@ -49,6 +51,7 @@ namespace CRL.Core.Remoting
     }
     public class methodInfo
     {
+        public Func<object, object[], object> MethodInvoker;
         public MethodInfo MethodInfo;
         public List<Attribute> Attributes = new List<Attribute>();
         public ParameterInfo[] Parameters;

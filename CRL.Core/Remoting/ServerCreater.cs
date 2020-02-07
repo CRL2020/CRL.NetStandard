@@ -67,6 +67,11 @@ namespace CRL.Core.Remoting
             Server.Register<IService, Service>();
             return this;
         }
+        public ServerCreater Register(Type interfaceType, Type serviceType)
+        {
+            Server.Register(interfaceType, serviceType);
+            return this;
+        }
         /// <summary>
         /// 按类型所在程序集注册所有
         /// </summary>
@@ -89,9 +94,10 @@ namespace CRL.Core.Remoting
                             continue;
                         }
                         //实现注册
-                        var mainType = this.GetType();
-                        var method = mainType.GetMethod(nameof(Register), BindingFlags.Public | BindingFlags.Instance);
-                        method.MakeGenericMethod(new Type[] { implementedInterfaces, type }).Invoke(this, new object[] { });
+                        Server.Register(implementedInterfaces, type);
+                        //var mainType = this.GetType();
+                        //var method = mainType.GetMethod(nameof(Register), BindingFlags.Public | BindingFlags.Instance);
+                        //method.MakeGenericMethod(new Type[] { implementedInterfaces, type }).Invoke(this, new object[] { });
                     }
                 }
             }

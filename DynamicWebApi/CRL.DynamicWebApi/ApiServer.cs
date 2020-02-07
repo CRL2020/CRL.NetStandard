@@ -49,10 +49,10 @@ namespace CRL.DynamicWebApi
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Msg = ex.InnerException?.Message;
+                response.Msg = ex.Message;
                 Console.WriteLine(ex.ToString());
                 CRL.Core.EventLog.Log(ex.ToString(), request.Service);
-                return ResponseJsonMessage.CreateError(ex.InnerException?.Message + $" 在{request.Service}/{request.Method}", "500");
+                return ResponseJsonMessage.CreateError(ex.Message + $" 在{request.Service}/{request.Method}", "500");
             }
  
             return response;

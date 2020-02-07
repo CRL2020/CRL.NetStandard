@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRL.Ocelot.Controllers
 {
-    [Authorize()]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ValuesController : Controller

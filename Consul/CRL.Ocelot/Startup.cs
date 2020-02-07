@@ -60,8 +60,7 @@ namespace CRL.Ocelot
             services.AddOcelot(Configuration).AddConsul();
             services.AddControllers();
             //ע�ᶯ̬API
-            var server = new ServerCreater().CreatetApi();
-            server.Register<Core.ConsulClient.IConsulService, ConsulService>();
+            services.AddDynamicApi(typeof(ConsulService));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

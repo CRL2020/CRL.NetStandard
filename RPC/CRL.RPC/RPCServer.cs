@@ -100,9 +100,9 @@ namespace CRL.RPC
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Msg = ex.InnerException?.Message;
+                response.Msg = ex.Message;
                 Console.WriteLine(ex.ToString());
-                return ResponseMessage.CreateError(ex.InnerException?.Message + $" 在{request.Service}/{request.Method}", "500");
+                return ResponseMessage.CreateError(ex.Message + $" 在{request.Service}/{request.Method}", "500");
             }
 
             return response;

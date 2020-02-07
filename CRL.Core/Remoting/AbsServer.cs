@@ -14,9 +14,13 @@ namespace CRL.Core.Remoting
         protected static Dictionary<string, serviceInfo> serviceHandle = new Dictionary<string, serviceInfo>();
         internal void Register<IService, Service>() where Service : AbsService, IService where IService : class
         {
-            var type = typeof(Service);
-            var info = serviceInfo.GetServiceInfo(type);
-            serviceHandle.Add(typeof(IService).Name, info);
+            Register(typeof(IService), typeof(Service));
+        }
+        internal void Register(Type interfaceType, Type serviceType)
+        {
+            var info = serviceInfo.GetServiceInfo(serviceType);
+            info.InterfaceType = interfaceType;
+            serviceHandle.Add(interfaceType.Name, info);
         }
         protected ISessionManage sessionManage
         {
@@ -33,7 +37,7 @@ namespace CRL.Core.Remoting
         {
 
         }
-        public abstract object InvokeResult(object rq, Func<Type, object> getArgs = null);
+        public abstract object InvokeResult(object rq, Func<Type, object> objectCtor = null);
         protected class ErrorInfo
         {
             public string msg;
@@ -44,7 +48,7 @@ namespace CRL.Core.Remoting
                 code = c;
             }
         }
-        protected ErrorInfo InvokeMessage(MessageBase request, out object result, out Dictionary<int, object> outs,out string token, Func<Type,object> getArgs = null)
+        protected ErrorInfo InvokeMessage(MessageBase request, out object result, out Dictionary<int, object> outs,out string token, Func<Type,object> objectCtor = null)
         {
             result = null;
             token = "";
@@ -57,16 +61,19 @@ namespace CRL.Core.Remoting
             var serviceType = serviceInfo.ServiceType;
             var constructor = serviceType.GetConstructors().Last();
             var cArgs = new List<object>();
-            if (getArgs != null)
+            AbsService service;
+            if (objectCtor != null)
             {
-                foreach (var p in constructor.GetParameters())
+                service = objectCtor(serviceInfo.InterfaceType) as AbsService;
+                if (service == null)
                 {
-                    var v = getArgs(p.ParameterType);
-                    cArgs.Add(v);
+                    return new ErrorInfo("未找到注入类型" + serviceInfo.InterfaceType, "500");
                 }
             }
-            var service = constructor.Invoke(cArgs.ToArray()) as AbsService;
-
+            else
+            {
+                service = System.Activator.CreateInstance(serviceType) as AbsService;
+            }
             var methodInfo = serviceInfo.GetMethod(request.Method);
             if (methodInfo == null)
             {
@@ -167,7 +174,8 @@ namespace CRL.Core.Remoting
             }
 
             var args3 = paramters?.ToArray();
-            result = method.Invoke(service, args3);
+            //result = method.Invoke(service, args3);
+            result = methodInfo.MethodInvoker.Invoke(service, args3);
             if (method.ReturnType.Name.StartsWith("Task`1"))
             {
                 var pro = method.ReturnType.GetProperty("Result");
