@@ -7,6 +7,7 @@ using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types; 
 using System.Data;
 using CRL.DBAccess;
+using System.Text.RegularExpressions;
 
 namespace CRL.Oracle
 {
@@ -24,10 +25,32 @@ namespace CRL.Oracle
         }
         protected override void fillCmdParams_(DbCommand cmd)
         {
-            foreach (KeyValuePair<string, object> kv in _params)
+            if (cmd.CommandType == CommandType.Text)
             {
-                DbParameter p = new OracleParameter(kv.Key, kv.Value);
-                cmd.Parameters.Add(p);
+                if (_params.Count > 0)
+                {
+                    string sql = cmd.CommandText;
+                    MatchCollection matches = Regex.Matches(sql, @":\w+", RegexOptions.ECMAScript);
+                    for (int i = 0; i < matches.Count; i++)
+                    {
+                        string k = matches[i].Value;
+                        if (_params.ContainsKey(k))
+                        {
+                            var kv = _params[k];
+                            DbParameter p = new OracleParameter(k, kv);
+                            cmd.Parameters.Add(p);
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, object> kv in _params)
+                {
+                    DbParameter p = new OracleParameter(kv.Key, kv.Value);
+                    cmd.Parameters.Add(p);
+                }
             }
             if (OutParams != null)
             {
