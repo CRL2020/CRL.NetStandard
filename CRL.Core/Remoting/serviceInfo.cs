@@ -10,9 +10,18 @@ namespace CRL.Core.Remoting
     #region obj
     public class serviceInfo
     {
-        public static serviceInfo GetServiceInfo(Type type)
+        public static serviceInfo GetServiceInfo(Type type, bool initObjCtor=false)
         {
-            var info = new serviceInfo() { ServiceType = type, Attributes = type.GetCustomAttributes().ToList() };
+            var info = new serviceInfo()
+            {
+                ServiceType = type,
+                Attributes = type.GetCustomAttributes().ToList(),
+               
+            };
+            if (initObjCtor)
+            {
+                info.InstaceCtor = DynamicMethodHelper.BuildConstructorInvoker(type.GetConstructor(Type.EmptyTypes));
+            }
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
             var methodInfoList = new List<methodInfo>();
             foreach (var m in methods)
@@ -22,17 +31,25 @@ namespace CRL.Core.Remoting
                     Attributes = m.GetCustomAttributes().ToList(),
                     MethodInfo = m,
                     Parameters = m.GetParameters(),
-                    MethodInvoker = DynamicMethodHelper.BuilderMethodInvoker(m)
+                    MethodInvoker = DynamicMethodHelper.GetMethodInvoker(m)
                 };
+                mInfo.IsAsync = m.ReturnType.Name.StartsWith("Task`1");
+                if ( mInfo.IsAsync)//总是返回同步结果
+                {
+                    mInfo.TaskInvoker = DynamicMethodHelper.BuildContinueTaskInvoker<object>(m.ReturnType);
+                    var taskType = typeof(AsyncResult<>).MakeGenericType(m.ReturnType.GetGenericArguments()[0]);
+                    mInfo.TaskCreater = DynamicMethodHelper.CreateCtorFunc<Func<AsyncResult>>(taskType, new Type[0]);
+                }
                 methodInfoList.Add(mInfo);
             }
             info.Methods = methodInfoList;
             return info;
         }
-        public Type ServiceType;
-        public Type InterfaceType;
-        public List<methodInfo> Methods = new List<methodInfo>();
-        public List<Attribute> Attributes = new List<Attribute>();
+        internal Type ServiceType;
+        internal Func<object> InstaceCtor;
+        internal Type InterfaceType;
+        internal List<methodInfo> Methods = new List<methodInfo>();
+        internal List<Attribute> Attributes = new List<Attribute>();
         public T GetAttribute<T>() where T : Attribute
         {
             foreach (var item in Attributes)
@@ -51,7 +68,24 @@ namespace CRL.Core.Remoting
     }
     public class methodInfo
     {
+        /// <summary>
+        /// 方法调用
+        /// </summary>
         public Func<object, object[], object> MethodInvoker;
+        /// <summary>
+        /// Task访问
+        /// </summary>
+        public Func<object, Task<object>> TaskInvoker;
+
+        /// <summary>
+        /// Task创建
+        /// </summary>
+        public Func<AsyncResult> TaskCreater;
+
+        /// <summary>
+        /// 是否为异步方法
+        /// </summary>
+        public bool IsAsync;
         public MethodInfo MethodInfo;
         public List<Attribute> Attributes = new List<Attribute>();
         public ParameterInfo[] Parameters;

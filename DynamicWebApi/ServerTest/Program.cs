@@ -20,7 +20,7 @@ namespace ServerTest
             var listener = new ServerListener();
             listener.Start("http://localhost:809/");
             label1:
-            PollyTest();
+            //PollyTest();
             Console.ReadLine();
             goto label1;
         }

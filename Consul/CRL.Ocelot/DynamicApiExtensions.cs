@@ -1,5 +1,6 @@
 ﻿using CRL.Core.Remoting;
 using CRL.DynamicWebApi;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -54,6 +55,11 @@ namespace CRL.Ocelot
             }
 
             return true;
+        }
+
+        public static void UseDynamicApi(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<DynamicApiMiddleware>();
         }
     }
 }

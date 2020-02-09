@@ -18,7 +18,7 @@ namespace CRL.Core.Remoting
         }
         internal void Register(Type interfaceType, Type serviceType)
         {
-            var info = serviceInfo.GetServiceInfo(serviceType);
+            var info = serviceInfo.GetServiceInfo(serviceType,true);
             info.InterfaceType = interfaceType;
             serviceHandle.Add(interfaceType.Name, info);
         }
@@ -72,7 +72,7 @@ namespace CRL.Core.Remoting
             }
             else
             {
-                service = System.Activator.CreateInstance(serviceType) as AbsService;
+                service = serviceInfo.InstaceCtor() as AbsService;
             }
             var methodInfo = serviceInfo.GetMethod(request.Method);
             if (methodInfo == null)
@@ -175,13 +175,12 @@ namespace CRL.Core.Remoting
 
             var args3 = paramters?.ToArray();
             //result = method.Invoke(service, args3);
-            result = methodInfo.MethodInvoker.Invoke(service, args3);
-            if (method.ReturnType.Name.StartsWith("Task`1"))
+            result = methodInfo.MethodInvoker(service, args3);
+            //总是返回同步结果
+            if (methodInfo.IsAsync)
             {
-                var pro = method.ReturnType.GetProperty("Result");
-                result = pro.GetValue(result);
+                result = methodInfo.TaskInvoker(result).Result;
             }
-
             foreach (var kv in new Dictionary<int, object>(outs))
             {
                 var value = args3[kv.Key];

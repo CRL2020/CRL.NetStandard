@@ -76,7 +76,7 @@ namespace CRL.Ocelot
             app.UseAuthorization();
             app.UseMiddleware<JwtAuthorizeMiddleware>();
             //动态API中间件
-            app.UseMiddleware<DynamicApiMiddleware>();
+            app.UseDynamicApi();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

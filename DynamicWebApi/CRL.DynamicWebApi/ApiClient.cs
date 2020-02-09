@@ -42,6 +42,7 @@ namespace CRL.DynamicWebApi
         }
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
+            var methodInfo = serviceInfo.GetMethod(binder.Name);
             var id = Guid.NewGuid().ToString();
             var method = ServiceType.GetMethod(binder.Name);
             var methodParamters = method.GetParameters();
@@ -108,10 +109,18 @@ namespace CRL.DynamicWebApi
             result = response.GetData(generType);
             if (isTask)
             {
-                //返回Task类型
-                var method2 = typeof(Task).GetMethod("FromResult", BindingFlags.Public | BindingFlags.Static);
-                var result2 = method2.MakeGenericMethod(new Type[] { generType }).Invoke(null, new object[] { result });
-                result = result2;
+                //返回Task类型,伪异步
+                var task = methodInfo.TaskCreater();
+                var result2 = result;
+                task.ResultCreater = async () =>
+                {
+                    return await Task.FromResult(result2);
+                };
+                result = task.InvokeAsync();
+                //var method2 = typeof(Task).GetMethod("FromResult", BindingFlags.Public | BindingFlags.Static);
+                //var method3 = method2.MakeGenericMethod(new Type[] { generType });
+                //var result2 = method3.Invoke(null, new object[] { result });
+                //result = result2;
             }
             return true;
 

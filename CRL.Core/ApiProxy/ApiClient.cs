@@ -167,11 +167,10 @@ namespace CRL.Core.ApiProxy
             }
 
             var generType = returnType;
-            bool isTask = false;
-            if (returnType.Name.StartsWith("Task`1"))
+            bool isTask = method.IsAsync;
+            if (isTask)
             {
                 generType = returnType.GenericTypeArguments[0];
-                isTask = true;
             }
             object returnObj;
             try
