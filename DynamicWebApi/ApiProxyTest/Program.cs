@@ -6,15 +6,18 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CRL.Core.ApiProxy;
 using CRL.Core.Extension;
+using HttpMethod = CRL.Core.ApiProxy.HttpMethod;
+
 namespace ApiProxyTest
 {
     class Program
     {
-        static CRL.Core.ApiProxy.ApiClientConnect clientConnect;
+        static ApiClientConnect clientConnect;
         static void Main(string[] args)
         {
-            clientConnect = new CRL.Core.ApiProxy.ApiClientConnect("https://api.weixin.qq.com");
+            clientConnect = new ApiClientConnect("https://api.weixin.qq.com");
 
             //clientConnect.UseConsulDiscover("http://127.0.0.1:8500", "serviceName");//使用consul发现服务
             //clientConnect.UseOcelotApiGateway("http://127.0.0.1:3400");//直接使用ocelot网关
@@ -57,13 +60,13 @@ namespace ApiProxyTest
     /// <summary>
     /// 微信获取token
     /// </summary>
-    [CRL.Core.ApiProxy.Service(ContentType = CRL.Core.ApiProxy.ContentType.JSON, GatewayPrefix = "clientservice")]
+    [Service(ContentType = ContentType.JSON, GatewayPrefix = "clientservice")]
     public interface IToken
     {
-        [CRL.Core.ApiProxy.Method(Path = "cgi-bin/token", Method = CRL.Core.ApiProxy.HttpMethod.GET)]
+        [Method(Path = "cgi-bin/token", Method = HttpMethod.GET)]
         Dictionary<string,string> token(string grant_type, string appid, string secret);
 
-        [CRL.Core.ApiProxy.Method(Path = "cgi-bin/token/test", Method = CRL.Core.ApiProxy.HttpMethod.POST, ContentType = CRL.Core.ApiProxy.ContentType.FORM)]
+        [Method(Path = "cgi-bin/token/test", Method = HttpMethod.POST, ContentType = ContentType.FORM)]
         void Test(args args);
     }
 
@@ -72,7 +75,7 @@ namespace ApiProxyTest
     /// </summary>
     public interface IUser
     {
-        [CRL.Core.ApiProxy.Method(Path = "cgi-bin/user/info", Method = CRL.Core.ApiProxy.HttpMethod.GET)]
+        [Method(Path = "cgi-bin/user/info", Method = HttpMethod.GET)]
         Task<userInfo> info(string access_token, string openid, string lang = "zh_CN");
     }
     #region obj

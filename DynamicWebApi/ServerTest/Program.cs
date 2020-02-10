@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CRL.Core.Extension;
 namespace ServerTest
 {
     class Program
@@ -20,7 +21,7 @@ namespace ServerTest
             var listener = new ServerListener();
             listener.Start("http://localhost:809/");
             label1:
-            //PollyTest();
+            PollyTest().Wait();
             Console.ReadLine();
             goto label1;
         }
@@ -32,19 +33,32 @@ namespace ServerTest
             var a = tuple.Item1.TryGetValue("name", out user);
             return a;
         }
-        static void PollyTest()
+        static async Task PollyTest()
         {
             var atr = new CRL.Core.Remoting.PollyAttribute();
             //atr.TimeOutTime = TimeSpan.FromMilliseconds(100);
-            //atr.CircuitBreakerCount = 2;
+            atr.CircuitBreakerCount = 2;
             atr.RetryCount = 1;
-            var str = PollyExtension.Invoke(atr, () =>
-             {
+            var pollyCtx = new Polly.Context();
+            var response = await PollyExtension.InvokeAsync<string>(atr, async () =>
+            {
+                //await Task.Delay(200);
                 throw new Exception("has error");
-                //System.Threading.Thread.Sleep(200);
-                 return new PollyExtension.PollyData<string>() { Error = "ok" };
-             }, "test");
-            Console.WriteLine(str.Error);
+                return await Task.FromResult(new CRL.Core.Remoting.PollyExtension.PollyData<string>() {
+                Data="ok"});
+            }, "");
+            if (pollyCtx.ContainsKey("msg"))
+            {
+                Console.WriteLine(pollyCtx["msg"]);
+            }
+
+            //var str = PollyExtension.Invoke(atr, () =>
+            // {
+            //    throw new Exception("has error");
+            //    //System.Threading.Thread.Sleep(200);
+            //     return new PollyExtension.PollyData<string>() { Error = "ok" };
+            // }, "test");
+            Console.WriteLine(response.ToJson());
         }
     }
 }

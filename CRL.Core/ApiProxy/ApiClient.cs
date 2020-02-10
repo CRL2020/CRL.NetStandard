@@ -26,13 +26,13 @@ namespace CRL.Core.ApiProxy
             { ContentType.FORM, "application/x-www-form-urlencoded" },
             { ContentType.NONE, "text/plain" },
         };
-        object SendRequest(serviceInfo serviceInfo, methodInfo method, object[] args)
+        object SendRequest(serviceInfo serviceInfo, methodInfo methodInfo, object[] args)
         {
             //var method = serviceInfo.GetMethod(methodName);
             var serviceAttribute = serviceInfo.GetAttribute<ServiceAttribute>();
-            var methodAttribute = method.GetAttribute<MethodAttribute>();
-            var argsName = method.MethodInfo.GetParameters();
-            var returnType = method.MethodInfo.ReturnType;
+            var methodAttribute = methodInfo.GetAttribute<MethodAttribute>();
+            var argsName = methodInfo.MethodInfo.GetParameters();
+            var returnType = methodInfo.MethodInfo.ReturnType;
             var contentType = ContentType.JSON;
             var serviceName = serviceInfo.ServiceType.Name;
             var hostAddress = HostAddress;
@@ -51,7 +51,7 @@ namespace CRL.Core.ApiProxy
             var apiClientConnect = clientConnect as ApiClientConnect;
             var httpMethod = HttpMethod.POST;
             var responseContentType = contentType;
-            var requestPath = $"/{apiClientConnect.Apiprefix}/{serviceName}/{method.MethodInfo.Name}";
+            var requestPath = $"/{apiClientConnect.Apiprefix}/{serviceName}/{methodInfo.MethodInfo.Name}";
             if (methodAttribute != null)
             {
                 httpMethod = methodAttribute.Method;
@@ -77,7 +77,7 @@ namespace CRL.Core.ApiProxy
             var url = hostAddress.GetHttpAddress() + requestPath;
             var request = new ImitateWebRequest(ServiceName, apiClientConnect.Encoding);
             request.ContentType = ContentTypeDic[contentType];
-            string result;
+            //string result;
             var firstArgs = args.FirstOrDefault();
             var members = new Dictionary<string, object>();
             #region 提交前参数回调处理
@@ -153,55 +153,94 @@ namespace CRL.Core.ApiProxy
                 url = $"{url}?{str}";
                 //result = request.Get($"{url}?{str}");
             }
-
-            var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
-            var pollyData = PollyExtension.Invoke(pollyAttr, () =>
-            {
-                var res = request.SendData(url, httpMethod.ToString(), postArgs, out string nowUrl);
-                return new PollyExtension.PollyData<string>() { Data = res };
-            }, $"{ServiceName}.{method.MethodInfo.Name}");
-            result = pollyData.Data;
-            if (!string.IsNullOrEmpty(pollyData.Error))
-            {
-                ThrowError(pollyData.Error, "500");
-            }
-
+            bool isTask = methodInfo.IsAsync;
             var generType = returnType;
-            bool isTask = method.IsAsync;
             if (isTask)
             {
                 generType = returnType.GenericTypeArguments[0];
             }
-            object returnObj;
-            try
+            var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
+            //var pollyData = PollyExtension.Invoke(pollyAttr, () =>
+            //{
+            //    var res = request.SendData(url, httpMethod.ToString(), postArgs, out string nowUrl);
+            //    return new PollyExtension.PollyData<string>() { Data = res };
+            //}, $"{ServiceName}.{methodInfo.MethodInfo.Name}");
+            //result = pollyData.Data;
+            //if (!string.IsNullOrEmpty(pollyData.Error))
+            //{
+            //    ThrowError(pollyData.Error, "500");
+            //}
+            var asynResult = SendRequestAsync(pollyAttr, request, url, httpMethod.ToString(), postArgs, $"{ServiceName}.{methodInfo.MethodInfo.Name}", (msg) =>
             {
-                if (responseContentType == ContentType.JSON)
+                object returnObj;
+                try
                 {
-                    returnObj = SerializeHelper.DeserializeFromJson(result, generType);
+                    if (responseContentType == ContentType.JSON)
+                    {
+                        returnObj = SerializeHelper.DeserializeFromJson(msg, generType);
+                    }
+                    else if (responseContentType == ContentType.XML)
+                    {
+                        returnObj = SerializeHelper.XmlDeserialize(generType, msg, apiClientConnect.Encoding);
+                    }
+                    else
+                    {
+                        returnObj = msg;
+                    }
                 }
-                else if (responseContentType == ContentType.XML)
+                catch (Exception ero)
                 {
-                    returnObj = SerializeHelper.XmlDeserialize(generType, result, apiClientConnect.Encoding);
+                    var eroMsg = $"反序列化为{generType.Name}时出错:" + ero.Message;
+                    Core.EventLog.Error(eroMsg + " " + msg);
+                    throw new Exception(eroMsg);
                 }
-                else
-                {
-                    returnObj = result;
-                }
-            }
-            catch (Exception ero)
+                //转换为实际的数据类型
+                return returnObj;
+            });
+            if (methodInfo.IsAsync)
             {
-                var eroMsg = $"反序列化为{generType.Name}时出错:" + ero.Message;
-                Core.EventLog.Error(eroMsg + " " + result);
-                throw new Exception(eroMsg);
+                var task = methodInfo.TaskCreater();
+                task.ResultCreater = async () =>
+                {
+                    return await asynResult;
+                };
+                return task.InvokeAsync();
             }
-            if (isTask)
-            {
-                //返回Task类型
-                var method2 = typeof(Task).GetMethod("FromResult", BindingFlags.Public | BindingFlags.Static);
-                var result2 = method2.MakeGenericMethod(new Type[] { generType }).Invoke(null, new object[] { returnObj });
-                return result2;
-            }
-            return returnObj;
+            return asynResult.Result;
+            //object returnObj;
+            //try
+            //{
+            //    if (responseContentType == ContentType.JSON)
+            //    {
+            //        returnObj = SerializeHelper.DeserializeFromJson(result, generType);
+            //    }
+            //    else if (responseContentType == ContentType.XML)
+            //    {
+            //        returnObj = SerializeHelper.XmlDeserialize(generType, result, apiClientConnect.Encoding);
+            //    }
+            //    else
+            //    {
+            //        returnObj = result;
+            //    }
+            //}
+            //catch (Exception ero)
+            //{
+            //    var eroMsg = $"反序列化为{generType.Name}时出错:" + ero.Message;
+            //    Core.EventLog.Error(eroMsg + " " + result);
+            //    throw new Exception(eroMsg);
+            //}
+            //if (isTask)
+            //{
+            //    //返回Task类型,伪异步
+            //    var task = methodInfo.TaskCreater();
+            //    var result2 = returnObj;
+            //    task.ResultCreater = async () =>
+            //    {
+            //        return await Task.FromResult(result2);
+            //    };
+            //    return task.InvokeAsync();
+            //}
+            //return returnObj;
         }
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {

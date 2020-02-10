@@ -122,5 +122,22 @@ namespace CRL.Core.Remoting
             }
             return token.Token;
         }
+
+        protected async Task<T> SendRequestAsync<T>(PollyAttribute pollyAttr, Request.ImitateWebRequest request, string url, string httpMethod, string postArgs, string pollyKey, Func<string, T> dataCall)
+        {
+            var pollyCtx = new Polly.Context();
+            //var response = await request.SendDataAsync(url, httpMethod.ToString(), postArgs);
+            var pollyData = await PollyExtension.InvokeAsync(pollyAttr, async () =>
+            {
+                var res = await request.SendDataAsync(url, httpMethod.ToString(), postArgs);
+                return new PollyExtension.PollyData<string>() { Data = res };
+            }, pollyKey);
+            if (!string.IsNullOrEmpty(pollyData.Error))
+            {
+                ThrowError(pollyData.Error, "500");
+            }
+            //转换为指定的类型
+            return dataCall(pollyData.Data);
+        }
     }
 }

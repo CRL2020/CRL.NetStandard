@@ -17,29 +17,29 @@ namespace CRL.DynamicWebApi
         {
 
         }
-        ResponseJsonMessage SendRequest(ParameterInfo[] argsName, RequestJsonMessage msg)
-        {
-            var hostAddress = HostAddress;
-            string url;
-            if(!string.IsNullOrEmpty(hostAddress.serviceNamePrefix))
-            {
-                url = hostAddress.GetHttpAddress() + $"/{msg.Service}/{msg.Method}";
-            }
-            else
-            {
-                url = hostAddress.GetHttpAddress() + $"/DynamicApi/{msg.Service}/{msg.Method}";
-            }
+        //ResponseJsonMessage SendRequest(ParameterInfo[] argsName, RequestJsonMessage msg)
+        //{
+        //    var hostAddress = HostAddress;
+        //    string url;
+        //    if(!string.IsNullOrEmpty(hostAddress.serviceNamePrefix))
+        //    {
+        //        url = hostAddress.GetHttpAddress() + $"/{msg.Service}/{msg.Method}";
+        //    }
+        //    else
+        //    {
+        //        url = hostAddress.GetHttpAddress() + $"/DynamicApi/{msg.Service}/{msg.Method}";
+        //    }
  
-            var request = new ImitateWebRequest(HostAddress.address, Encoding.UTF8);
-            request.ContentType = "application/json";
-            //var token = clientConnect.Token;
-            var token = CreateAccessToken(argsName, msg.Args, clientConnect.TokenInfo);
+        //    var request = new ImitateWebRequest(HostAddress.address, Encoding.UTF8);
+        //    request.ContentType = "application/json";
+        //    //var token = clientConnect.Token;
+        //    var token = CreateAccessToken(argsName, msg.Args, clientConnect.TokenInfo);
 
-            request.SetHead("token", token);
-            var json = msg.Args.ToJson();
-            var result = request.Post(url, json);
-            return result.ToObject<ResponseJsonMessage>();
-        }
+        //    request.SetHead("token", token);
+        //    var json = msg.Args.ToJson();
+        //    var result = request.Post(url, json);
+        //    return result.ToObject<ResponseJsonMessage>();
+        //}
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
             var methodInfo = serviceInfo.GetMethod(binder.Name);
@@ -51,77 +51,142 @@ namespace CRL.DynamicWebApi
             {
                 Service = ServiceName,
                 Method = binder.Name,
-                //Token = clientConnect.Token.Token
             };
             var allArgs = method.GetParameters();
             request.Args = args.ToList();
             var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
-            ResponseJsonMessage response = null;
-            var pollyData = PollyExtension.Invoke(pollyAttr, () =>
+            //ResponseJsonMessage response = null;
+            #region send
+            var hostAddress = HostAddress;
+            string url;
+            if (!string.IsNullOrEmpty(hostAddress.serviceNamePrefix))
             {
-                var res = SendRequest(methodParamters, request);
-                return new PollyExtension.PollyData<ResponseJsonMessage>() { Data = res };
-            }, $"{ServiceName}.{method.Name}");
-            response = pollyData.Data;
-            if (!string.IsNullOrEmpty(pollyData.Error))
-            {
-                ThrowError(pollyData.Error, "500");
+                url = hostAddress.GetHttpAddress() + $"/{request.Service}/{request.Method}";
             }
-            if (response == null)
+            else
             {
-                ThrowError("请求超时未响应", "500");
+                url = hostAddress.GetHttpAddress() + $"/DynamicApi/{request.Service}/{request.Method}";
             }
-            if (!response.Success)
-            {
-                ThrowError($"服务端处理错误：{response.Msg}", response.Data);
-            }
-            if (response.Outs != null && response.Outs.Count > 0)
-            {
-                foreach (var kv in response.Outs)
-                {
-                    var p = allArgs[kv.Key];
-                    var value = kv.Value;
-                    if (p.Name.EndsWith("&"))
-                    {
-                        var name = p.Name.Replace("&", "");
-                        var type2 = Type.GetType(name);
-                        value = value.ToString().ToObject(type2);
-                    }
-                    args[kv.Key] = value;
-                }
-            }
-            if (!string.IsNullOrEmpty(response.Token))
-            {
-                clientConnect.TokenInfo.Token = response.Token;
-            }
+
+            var httpRequest = new ImitateWebRequest(HostAddress.address, Encoding.UTF8);
+            httpRequest.ContentType = "application/json";
+            var token = CreateAccessToken(methodParamters, request.Args, clientConnect.TokenInfo);
+            httpRequest.SetHead("token", token);
+
+            #endregion
+            var json = request.Args.ToJson();
+            var asynResult = SendRequestAsync(pollyAttr, httpRequest, url, "POST", json, $"{ServiceName}.{method.Name}", (msg) =>
+               {
+                   var resMsg = msg.ToObject<ResponseJsonMessage>();
+                   if (!resMsg.Success)
+                   {
+                       ThrowError($"服务端处理错误：{resMsg.Msg}", resMsg.Data);
+                   }
+                   if (resMsg.Outs != null && resMsg.Outs.Count > 0)
+                   {
+                       foreach (var kv in resMsg.Outs)
+                       {
+                           var p = allArgs[kv.Key];
+                           var value = kv.Value;
+                           if (p.Name.EndsWith("&"))
+                           {
+                               var name = p.Name.Replace("&", "");
+                               var type2 = Type.GetType(name);
+                               value = value.ToString().ToObject(type2);
+                           }
+                           args[kv.Key] = value;
+                       }
+                   }
+                   if (!string.IsNullOrEmpty(resMsg.Token))
+                   {
+                       clientConnect.TokenInfo.Token = resMsg.Token;
+                   }
+                   var generType = returnType;
+                   if (methodInfo.IsAsync)
+                   {
+                       generType = returnType.GenericTypeArguments[0];
+                   }
+                   //转换为实际的数据类型
+                   return resMsg.GetData(generType);
+               });
             if (returnType == typeof(void))
             {
                 result = null;
                 return true;
             }
-            var generType = returnType;
-            bool isTask = false;
-            if (returnType.Name.StartsWith("Task`1"))
+            if (methodInfo.IsAsync)
             {
-                generType = returnType.GenericTypeArguments[0];
-                isTask = true;
-            }
-            result = response.GetData(generType);
-            if (isTask)
-            {
-                //返回Task类型,伪异步
                 var task = methodInfo.TaskCreater();
-                var result2 = result;
                 task.ResultCreater = async () =>
                 {
-                    return await Task.FromResult(result2);
+                    return await asynResult;
                 };
                 result = task.InvokeAsync();
-                //var method2 = typeof(Task).GetMethod("FromResult", BindingFlags.Public | BindingFlags.Static);
-                //var method3 = method2.MakeGenericMethod(new Type[] { generType });
-                //var result2 = method3.Invoke(null, new object[] { result });
-                //result = result2;
             }
+            else
+            {
+                result = asynResult.Result;
+            }
+            //var pollyData = PollyExtension.Invoke(pollyAttr, () =>
+            //{
+            //    var res = SendRequest(methodParamters, request);
+            //    return new PollyExtension.PollyData<ResponseJsonMessage>() { Data = res };
+            //}, $"{ServiceName}.{method.Name}");
+            //response = pollyData.Data;
+            //if (!string.IsNullOrEmpty(pollyData.Error))
+            //{
+            //    ThrowError(pollyData.Error, "500");
+            //}
+            //if (response == null)
+            //{
+            //    ThrowError("请求超时未响应", "500");
+            //}
+            //if (!response.Success)
+            //{
+            //    ThrowError($"服务端处理错误：{response.Msg}", response.Data);
+            //}
+            //if (response.Outs != null && response.Outs.Count > 0)
+            //{
+            //    foreach (var kv in response.Outs)
+            //    {
+            //        var p = allArgs[kv.Key];
+            //        var value = kv.Value;
+            //        if (p.Name.EndsWith("&"))
+            //        {
+            //            var name = p.Name.Replace("&", "");
+            //            var type2 = Type.GetType(name);
+            //            value = value.ToString().ToObject(type2);
+            //        }
+            //        args[kv.Key] = value;
+            //    }
+            //}
+            //if (!string.IsNullOrEmpty(response.Token))
+            //{
+            //    clientConnect.TokenInfo.Token = response.Token;
+            //}
+            //if (returnType == typeof(void))
+            //{
+            //    result = null;
+            //    return true;
+            //}
+            //var generType = returnType;
+            //bool isTask = methodInfo.IsAsync;
+            //if (isTask)
+            //{
+            //    generType = returnType.GenericTypeArguments[0];
+            //}
+            //result = response.GetData(generType);
+            //if (isTask)
+            //{
+            //    //返回Task类型,伪异步
+            //    var task = methodInfo.TaskCreater();
+            //    var result2 = result;
+            //    task.ResultCreater = async () =>
+            //    {
+            //        return await Task.FromResult(result2);
+            //    };
+            //    result = task.InvokeAsync();
+            //}
             return true;
 
         }
