@@ -28,7 +28,7 @@ namespace CRL.Core.BinaryFormat
         }
         public static object UnPack(Type type, byte[] datas)
         {
-            var obj = System.Activator.CreateInstance(type);
+            var obj = DynamicMethodHelper.CreateCtorFunc(type)();
             var method = type.GetMethod("Add");
             var innerType = type.GenericTypeArguments[0];
             int dataIndex = 0;

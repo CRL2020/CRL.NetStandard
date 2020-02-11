@@ -21,6 +21,7 @@ namespace CRL.Mongo
             {
                 return new MongoDBEx.MongoDBExt(context);
             });
+            builder.RegisterLambdaQueryType(DBAccess.DBType.MongoDB, typeof(MongoDBLambdaQuery<>));
             return builder;
         }
     }

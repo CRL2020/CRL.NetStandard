@@ -74,7 +74,7 @@ namespace CRLTest.Code
         public void GroupTest(int page = 1)
         {
             //Delete(b=>b.Numbrer>0);
-            //GetInitData();
+            GetInitData();
             var query = GetLambdaQuery();
             query.Page(4, page);
             var result = query.GroupBy(b => new { b.name, b.OrderId }).Select(b => new

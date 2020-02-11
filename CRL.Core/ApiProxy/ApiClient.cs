@@ -160,16 +160,6 @@ namespace CRL.Core.ApiProxy
                 generType = returnType.GenericTypeArguments[0];
             }
             var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
-            //var pollyData = PollyExtension.Invoke(pollyAttr, () =>
-            //{
-            //    var res = request.SendData(url, httpMethod.ToString(), postArgs, out string nowUrl);
-            //    return new PollyExtension.PollyData<string>() { Data = res };
-            //}, $"{ServiceName}.{methodInfo.MethodInfo.Name}");
-            //result = pollyData.Data;
-            //if (!string.IsNullOrEmpty(pollyData.Error))
-            //{
-            //    ThrowError(pollyData.Error, "500");
-            //}
             var asynResult = SendRequestAsync(pollyAttr, request, url, httpMethod.ToString(), postArgs, $"{ServiceName}.{methodInfo.MethodInfo.Name}", (msg) =>
             {
                 object returnObj;
@@ -207,40 +197,6 @@ namespace CRL.Core.ApiProxy
                 return task.InvokeAsync();
             }
             return asynResult.Result;
-            //object returnObj;
-            //try
-            //{
-            //    if (responseContentType == ContentType.JSON)
-            //    {
-            //        returnObj = SerializeHelper.DeserializeFromJson(result, generType);
-            //    }
-            //    else if (responseContentType == ContentType.XML)
-            //    {
-            //        returnObj = SerializeHelper.XmlDeserialize(generType, result, apiClientConnect.Encoding);
-            //    }
-            //    else
-            //    {
-            //        returnObj = result;
-            //    }
-            //}
-            //catch (Exception ero)
-            //{
-            //    var eroMsg = $"反序列化为{generType.Name}时出错:" + ero.Message;
-            //    Core.EventLog.Error(eroMsg + " " + result);
-            //    throw new Exception(eroMsg);
-            //}
-            //if (isTask)
-            //{
-            //    //返回Task类型,伪异步
-            //    var task = methodInfo.TaskCreater();
-            //    var result2 = returnObj;
-            //    task.ResultCreater = async () =>
-            //    {
-            //        return await Task.FromResult(result2);
-            //    };
-            //    return task.InvokeAsync();
-            //}
-            //return returnObj;
         }
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {

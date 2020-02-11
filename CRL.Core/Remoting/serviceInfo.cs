@@ -20,7 +20,7 @@ namespace CRL.Core.Remoting
             };
             if (initObjCtor)
             {
-                info.InstaceCtor = DynamicMethodHelper.BuildConstructorInvoker(type.GetConstructor(Type.EmptyTypes));
+                info.InstaceCtor = DynamicMethodHelper.CreateCtorFunc<Func<object>>(type, Type.EmptyTypes);
             }
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
             var methodInfoList = new List<methodInfo>();
@@ -31,12 +31,12 @@ namespace CRL.Core.Remoting
                     Attributes = m.GetCustomAttributes().ToList(),
                     MethodInfo = m,
                     Parameters = m.GetParameters(),
-                    MethodInvoker = DynamicMethodHelper.GetMethodInvoker(m)
+                    MethodInvoker = DynamicMethodHelper.CreateMethodInvoker(m)
                 };
                 mInfo.IsAsync = m.ReturnType.Name.StartsWith("Task`1");
                 if ( mInfo.IsAsync)//总是返回同步结果
                 {
-                    mInfo.TaskInvoker = DynamicMethodHelper.BuildContinueTaskInvoker<object>(m.ReturnType);
+                    mInfo.TaskInvoker = DynamicMethodHelper.CreateContinueTaskInvoker<object>(m.ReturnType);
                     var taskType = typeof(AsyncResult<>).MakeGenericType(m.ReturnType.GetGenericArguments()[0]);
                     mInfo.TaskCreater = DynamicMethodHelper.CreateCtorFunc<Func<AsyncResult>>(taskType, new Type[0]);
                 }

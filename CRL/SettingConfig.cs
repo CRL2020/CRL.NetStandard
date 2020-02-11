@@ -80,6 +80,7 @@ namespace CRL
              {
                  return new DBExtend.RelationDB.DBExtend(context);
              });
+            configBuilder.RegisterLambdaQueryType(DBType.MSSQL, typeof(RelationLambdaQuery<>));
             #endregion
         }
         #region 委托
@@ -192,6 +193,8 @@ namespace CRL
 
         internal List<Func<DBLocation, DBAccessBuild>> DbAccessCreaterCache = new List<Func<DBLocation, DBAccessBuild>>();
 
+        internal Dictionary<DBType, Type> LambdaQueryTypeCache = new Dictionary<DBType,Type>();
+
         internal Dictionary<Type, object> LocationRegister = new Dictionary<Type, object>();
 
         public SettingConfigBuilder()
@@ -218,6 +221,15 @@ namespace CRL
             if (!AbsDBExtendRegister.ContainsKey(dBType))
             {
                 AbsDBExtendRegister.Add(dBType, func);
+            }
+            return this;
+        }
+
+        public SettingConfigBuilder RegisterLambdaQueryType(DBType dBType, Type type) 
+        {
+            if (!LambdaQueryTypeCache.ContainsKey(dBType))
+            {
+                LambdaQueryTypeCache.Add(dBType, type);
             }
             return this;
         }
