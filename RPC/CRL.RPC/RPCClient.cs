@@ -47,7 +47,8 @@ namespace CRL.RPC
             {
                 if (channel == null || !channel.Open)
                 {
-                    channel = Core.AsyncInvoke.RunSync(() => bootstrap.ConnectAsync(new IPEndPoint(IPAddress.Parse(HostAddress.address), HostAddress.port)));
+                    //channel = Core.AsyncInvoke.RunSync(() => bootstrap.ConnectAsync(new IPEndPoint(IPAddress.Parse(HostAddress.address), HostAddress.port)));
+                    channel = bootstrap.ConnectAsync(new IPEndPoint(IPAddress.Parse(HostAddress.address), HostAddress.port)).Result;
                 }
             }
             catch(Exception ero)
