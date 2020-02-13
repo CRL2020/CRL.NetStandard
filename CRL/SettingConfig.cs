@@ -17,8 +17,7 @@ using System.Threading.Tasks;
 
 namespace CRL
 {
-  
-
+    #region delegate
     /// <summary>
     /// 表示CacheServer处理数据的方法委托
     /// </summary>
@@ -32,6 +31,7 @@ namespace CRL
     /// <param name="error"></param>
     /// <returns></returns>
     public delegate bool TransMethod(out string error);
+    #endregion
 
     public class DBAccessBuild
     {
@@ -184,8 +184,22 @@ namespace CRL
         #endregion
     }
 
-
-    public class SettingConfigBuilder
+    public interface ISettingConfigBuilder
+    {
+        /// <summary>
+        /// 注册数据访问实现
+        /// 按优先顺序添加,不成立则返回null
+        /// </summary>
+        /// <param name="func"></param>
+        void RegisterDBAccessBuild(Func<DBLocation, DBAccessBuild> func);
+        /// <summary>
+        /// 注册定位
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="func"></param>
+        void RegisterLocation<T>(Func<Attribute.TableInnerAttribute, T, Location> func);
+    }
+    public class SettingConfigBuilder: ISettingConfigBuilder
     {
         internal Dictionary<DBType, Func<string, DBHelper>> DBHelperRegister = new Dictionary<DBType, Func<string, DBHelper>>();
         internal Dictionary<DBType, Func<DbContext, DBAdapter.DBAdapterBase>> DBAdapterBaseRegister = new Dictionary<DBType, Func<DbContext, DBAdapter.DBAdapterBase>>();
@@ -196,8 +210,8 @@ namespace CRL
         internal Dictionary<DBType, Type> LambdaQueryTypeCache = new Dictionary<DBType,Type>();
 
         internal Dictionary<Type, object> LocationRegister = new Dictionary<Type, object>();
-
-        public SettingConfigBuilder()
+        internal static SettingConfigBuilder current;
+        SettingConfigBuilder()
         {
             current = this;
         }
@@ -205,8 +219,12 @@ namespace CRL
         {
             current = new SettingConfigBuilder();
         }
-        internal static SettingConfigBuilder current;
+        public static ISettingConfigBuilder CreateInstance()
+        {
+            return current as ISettingConfigBuilder;
+        }
 
+        #region inner
         public SettingConfigBuilder RegisterDBType(DBType dBType, Func<string, DBHelper> funcDb, Func<DbContext, DBAdapter.DBAdapterBase> funcDBAdapter)
         {
             if (!DBHelperRegister.ContainsKey(dBType))
@@ -233,17 +251,7 @@ namespace CRL
             }
             return this;
         }
-
-        /// <summary>
-        /// 获取数据连接
-        /// </summary>
-        public Func<DBLocation, DBAccessBuild> GetDbAccess
-        {
-            set
-            {
-                DbAccessCreaterCache.Add(value);
-            }
-        }
+        #endregion
         /// <summary>
         /// 注册数据访问实现
         /// 按优先顺序添加,不成立则返回null

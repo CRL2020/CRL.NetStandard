@@ -8,8 +8,9 @@ namespace CRL.Oracle
 {
     public static class Extension
     {
-        public static SettingConfigBuilder UseOracle(this SettingConfigBuilder builder)
+        public static ISettingConfigBuilder UseOracle(this ISettingConfigBuilder iBuilder)
         {
+            var builder = iBuilder as SettingConfigBuilder;
             builder.RegisterDBType(DBAccess.DBType.ORACLE, (conn) =>
             {
                 return new OracleHelper(conn);

@@ -37,7 +37,13 @@ namespace CRL.Core.RabbitMQ
             };
             CreateConnect();
         }
-        public Action OnDisconnect;
+        /// <summary>
+        /// 断时开
+        /// </summary>
+        public Action OnDisconnect
+        {
+            get;set;
+        }
 
         void CreateConnect()
         {
