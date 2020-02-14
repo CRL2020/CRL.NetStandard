@@ -34,7 +34,7 @@ namespace CRL.Core.BinaryFormat
         }
         public static object UnPack(Type type, byte[] datas)
         {
-            var dic = (System.Collections.IDictionary)DynamicMethodHelper.CreateCtorFunc(type)();
+            var dic = (System.Collections.IDictionary)DynamicMethodHelper.CreateCtorFuncFromCache(type)();
             var allArgs = type.GenericTypeArguments;
             var innerType = allArgs[0];
             var innerType2 = allArgs[1];

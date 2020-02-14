@@ -121,6 +121,7 @@ namespace CRL.Core.BinaryFormat
         /// 保存长度的字节长度
         /// </summary>
         static int lenSaveLength = 3;
+        static System.Collections.Concurrent.ConcurrentDictionary<Type, Type> refTypeCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, Type>();
         static Type ReturnType(Type type)
         {
             if (Nullable.GetUnderlyingType(type) != null)
@@ -128,11 +129,17 @@ namespace CRL.Core.BinaryFormat
                 //Nullable<T> 可空属性
                 return type.GenericTypeArguments[0];
             }
-            //else if (type.IsByRef)
-            //{
-            //    var name = type.FullName.Substring(0, type.FullName.Length - 1);
-            //    return Type.GetType(name);//引用类型
-            //}
+            else if (type.IsByRef)
+            {
+                var a = refTypeCache.TryGetValue(type, out Type type2);
+                if (!a)
+                {
+                    var name = type.FullName.Substring(0, type.FullName.Length - 1);
+                    type2 = Type.GetType(name);//引用类型
+                    refTypeCache.TryAdd(type, type2);
+                }
+                return type2;
+            }
             return type;
         }
         public static byte[] Pack(Type type, object param)

@@ -36,7 +36,7 @@ namespace CRL.Core.Remoting
                 mInfo.IsAsync = m.ReturnType.Name.StartsWith("Task`1");
                 if ( mInfo.IsAsync)//总是返回同步结果
                 {
-                    mInfo.TaskInvoker = DynamicMethodHelper.CreateContinueTaskInvoker<object>(m.ReturnType);
+                    mInfo.TaskInvoker = DynamicMethodHelper.TaskResultInvoker<object>(m.ReturnType);
                     var taskType = typeof(AsyncResult<>).MakeGenericType(m.ReturnType.GetGenericArguments()[0]);
                     mInfo.TaskCreater = DynamicMethodHelper.CreateCtorFunc<Func<AsyncResult>>(taskType, new Type[0]);
                 }
@@ -75,7 +75,7 @@ namespace CRL.Core.Remoting
         /// <summary>
         /// Task访问
         /// </summary>
-        public Func<object, Task<object>> TaskInvoker;
+        public Func<object, object> TaskInvoker;
 
         /// <summary>
         /// Task创建

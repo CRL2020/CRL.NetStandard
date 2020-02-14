@@ -179,7 +179,7 @@ namespace CRL.Core.Remoting
             //总是返回同步结果
             if (methodInfo.IsAsync)
             {
-                result = methodInfo.TaskInvoker(result).Result;
+                result = methodInfo.TaskInvoker(result);
             }
             foreach (var kv in new Dictionary<int, object>(outs))
             {

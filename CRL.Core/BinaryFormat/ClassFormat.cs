@@ -50,7 +50,7 @@ namespace CRL.Core.BinaryFormat
         //}
         public static object UnPack(Type type, byte[] datas)
         {
-            var obj = DynamicMethodHelper.CreateCtorFunc(type)();
+            var obj = DynamicMethodHelper.CreateCtorFuncFromCache(type)();
             var typeInfo = type.GetReflectionInfo();
             int dataIndex = 0;
             foreach (var p in typeInfo.Properties)

@@ -11,21 +11,17 @@ namespace CRL.Core
     public class DynamicMethodHelper
     {
         /// <summary>
-        /// 编译Task<TResult>的调用委托
+        /// Task<TResult>的调用委托
         /// </summary>
         /// <param name="taskType"></param>
         /// <returns></returns>
-        public static Func<object, Task<T>> CreateContinueTaskInvoker<T>(Type taskType)
+        public static Func<object, object> TaskResultInvoker<T>(Type taskType)
         {
             var resultMethod = CreateMethodInvoker(taskType.GetProperty("Result").GetGetMethod(true));
-            return new Func<object, Task<T>>(obj =>
+            return new Func<object, object>(obj =>
             {
                 var task = (Task)obj;
-                return task.ContinueWith(t =>
-                {
-                    var result = (T)resultMethod(t, null);
-                    return result;
-                });
+                return resultMethod(task,null);
             });
         }
 
@@ -201,7 +197,7 @@ namespace CRL.Core
         }
 
         static System.Collections.Concurrent.ConcurrentDictionary<Type, Func<object>> objectCtorCreaters = new System.Collections.Concurrent.ConcurrentDictionary<Type, Func<object>>();
-        public static Func<object> CreateCtorFunc(Type type)
+        public static Func<object> CreateCtorFuncFromCache(Type type)
         {
             var a = objectCtorCreaters.TryGetValue(type, out Func<object> func);
             if (!a)

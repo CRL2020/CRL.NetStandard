@@ -32,6 +32,7 @@ namespace CRL.WebSocket
 
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
+            var methodInfo = serviceInfo.GetMethod(binder.Name);
             var id = Guid.NewGuid().ToString();
             var method = ServiceType.GetMethod(binder.Name);
             var returnType = method.ReturnType;
@@ -86,8 +87,22 @@ namespace CRL.WebSocket
                 result = null;
                 return true;
             }
-            result = response.GetData(returnType);
-
+            var generType = returnType;
+            if (methodInfo.IsAsync)
+            {
+                generType = returnType.GenericTypeArguments[0];
+            }
+            result = response.GetData(generType);
+            if (methodInfo.IsAsync)
+            {
+                var result2 = result;
+                var task = methodInfo.TaskCreater();
+                task.ResultCreater = async () =>
+                {
+                    return await Task.FromResult(result2);
+                };
+                result = task.InvokeAsync();
+            }
             return true;
 
         }

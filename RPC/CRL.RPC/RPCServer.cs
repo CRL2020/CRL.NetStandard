@@ -80,7 +80,13 @@ namespace CRL.RPC
                 {
                     return ResponseMessage.CreateError(errorInfo.msg, errorInfo.code);
                 }
-                response.SetData(method.ReturnType, result);
+                var generType = method.ReturnType;
+                if (methodInfo.IsAsync)
+                {
+                    generType = method.ReturnType.GenericTypeArguments[0];
+                }
+
+                response.SetData(generType, result);
                 response.Success = true;
 
                 var outs = new Dictionary<int, byte[]>();

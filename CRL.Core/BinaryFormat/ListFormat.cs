@@ -18,7 +18,7 @@ namespace CRL.Core.BinaryFormat
             var len = 0;
             foreach (var obj in list)
             {
-                var data = FieldFormat.Pack(innerType,obj);
+                var data = FieldFormat.Pack(innerType, obj);
                 //body.AddRange(data);
                 arry.Add(data);
                 len += data.Length;
@@ -26,16 +26,21 @@ namespace CRL.Core.BinaryFormat
             //return body.ToArray();
             return arry.JoinData(len);
         }
+        static Func<object, object[], object> addInvoker = null;
         public static object UnPack(Type type, byte[] datas)
         {
-            var obj = DynamicMethodHelper.CreateCtorFunc(type)();
-            var method = type.GetMethod("Add");
+            if (addInvoker == null)
+            {
+                var method = type.GetMethod("Add");
+                addInvoker = DynamicMethodHelper.CreateMethodInvoker(method);
+            }
+            var obj = DynamicMethodHelper.CreateCtorFuncFromCache(type)();
             var innerType = type.GenericTypeArguments[0];
             int dataIndex = 0;
             while (dataIndex < datas.Length)
             {
-                var value = FieldFormat.UnPack(innerType, datas,ref dataIndex);
-                method.Invoke(obj,new object[] { value});
+                var value = FieldFormat.UnPack(innerType, datas, ref dataIndex);
+                addInvoker.Invoke(obj, new object[] { value });
             }
             return obj;
         }
