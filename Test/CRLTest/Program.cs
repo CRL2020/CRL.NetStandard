@@ -103,7 +103,7 @@ namespace CRLTest
             var client = new CRL.Core.RedisProvider.RedisClient(4);
 
         label1:
-            //testFormat();
+            testFormat();
             //MongoDBTestManage.Instance.GroupTest();
             TestAll();
             //testCallContext("data3");

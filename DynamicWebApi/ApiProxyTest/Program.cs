@@ -28,6 +28,10 @@ namespace ApiProxyTest
                 //如果需要设置发送头信息
                 request.SetHead("token", "test");
             });
+            clientConnect.UseAfterRequest((url, content) =>
+            {
+                Console.WriteLine($"response is {content}");
+            });
             //https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
             var client = clientConnect.GetClient<IToken>();
             client.Test(new args()

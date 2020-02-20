@@ -134,8 +134,7 @@ namespace CRL.Core.BinaryFormat
                 var a = refTypeCache.TryGetValue(type, out Type type2);
                 if (!a)
                 {
-                    var name = type.FullName.Substring(0, type.FullName.Length - 1);
-                    type2 = Type.GetType(name);//引用类型
+                    type2 = type.GetElementType();
                     refTypeCache.TryAdd(type, type2);
                 }
                 return type2;

@@ -12,7 +12,7 @@ namespace CRL.Core.RabbitMQ
     /// 广播队列
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FanoutRabbitMQ<T> : AbsRabbitMQ<T>
+    public class FanoutRabbitMQ: AbsRabbitMQ
     {
         public FanoutRabbitMQ(string host, string user, string pass, string exchangeName) : base(host, user, pass)
         {
@@ -20,14 +20,14 @@ namespace CRL.Core.RabbitMQ
             channel.ExchangeDeclare(exchangeName, ExchangeType.Fanout, false, false, null);
             Log($"Fanout队列:初始化");
         }
-        public virtual void Publish(T msg)
+        public virtual void Publish(object msg)
         {
             var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());
             //发布消息
             channel.BasicPublish(__exchangeName, "", __basicProperties, sendBytes);
         }
 
-        public void BeginReceive(Action<T> onReceive)
+        public void BeginReceive<T>(Action<T> onReceive)
         {
             var queuename = channel.QueueDeclare().QueueName;
             //绑定队列到指定fanout类型exchange，无需指定路由键

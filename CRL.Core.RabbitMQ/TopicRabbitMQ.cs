@@ -13,7 +13,7 @@ namespace CRL.Core.RabbitMQ
     /// 主题队列
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class TopicRabbitMQ<T> : AbsRabbitMQ<T>
+    public class TopicRabbitMQ : AbsRabbitMQ
     {
         public TopicRabbitMQ(string host, string user, string pass, string exchangeName) : base(host, user, pass)
         {
@@ -22,13 +22,13 @@ namespace CRL.Core.RabbitMQ
             //channel.QueueDeclare("topicQueue", true, false, false, null);
             Log($"Topic队列: 初始化");
         }
-        public void Publish(T msg, string routeKey)
+        public void Publish(object msg, string routeKey)
         {
             var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());
             //发布消息
             channel.BasicPublish(__exchangeName, routeKey, __basicProperties, sendBytes);
         }
-        public void BeginReceive(Action<T> onReceive, string routingKey)
+        public void BeginReceive<T>(Action<T> onReceive, string routingKey)
         {
             var queueName = channel.QueueDeclare().QueueName;
             //绑定队列到topic类型exchange，需指定路由键routingKey

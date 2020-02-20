@@ -162,6 +162,7 @@ namespace CRL.Core.ApiProxy
             var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
             var asynResult = SendRequestAsync(pollyAttr, request, url, httpMethod.ToString(), postArgs, $"{ServiceName}.{methodInfo.MethodInfo.Name}", (msg) =>
             {
+                apiClientConnect.OnAfterRequest?.Invoke(url, msg);
                 object returnObj;
                 try
                 {

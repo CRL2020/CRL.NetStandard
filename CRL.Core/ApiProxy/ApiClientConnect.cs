@@ -15,6 +15,7 @@ namespace CRL.Core.ApiProxy
         string host;
 
         internal Action<ImitateWebRequest, Dictionary<string, object>,string> OnBeforRequest;
+        internal Action<string,string> OnAfterRequest;
         internal string Apiprefix = "api";
         internal Encoding Encoding = Encoding.UTF8;
         /// <summary>
@@ -25,7 +26,16 @@ namespace CRL.Core.ApiProxy
             OnBeforRequest = action;
             return this;
         }
-
+        /// <summary>
+        /// 发送后回调
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public ApiClientConnect UseAfterRequest(Action<string, string> action)
+        {
+            OnAfterRequest = action;
+            return this;
+        }
         public ApiClientConnect(string _host)
         {
             host = _host;
