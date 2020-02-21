@@ -16,8 +16,13 @@ namespace CRL.Core.EventBus
             {
                 key = typeof(T).Name;
             }
-            var client = QueueFactory.GetQueueClient(key, true);
-            client.Publish(msg);
+            var ed = SubscribeService.GetEventDeclare(key);
+            if (ed == null)
+            {
+                return;
+            }
+            var client = QueueFactory.GetQueueClient();
+            client.Publish(key, msg);
         }
     }
 }

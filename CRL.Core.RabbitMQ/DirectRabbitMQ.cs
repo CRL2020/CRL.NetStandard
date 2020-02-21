@@ -37,38 +37,38 @@ namespace CRL.Core.RabbitMQ
             }
         }
 
-        public void BeginReceive<T>(string queueName, string routingKey, Action<T> onReceive)
+        public void BeginReceive<T>(string queueName, string routingKey, Action<T,string> onReceive)
         {
             consumerChannel = CreateConsumerChannel((channel) =>
             {
                 channel.QueueDeclare(queueName, true, false, false, null);
-                Log($"队列:{queueName} 开始订阅");
+                Log($"队列:{queueName} 开始订阅 {routingKey}");
                 //var routingKey = queueName;
                 channel.QueueBind(queueName, __exchangeName, routingKey);
                 base.BaseBeginReceive(channel, queueName, onReceive);
             });
         }
 
-        public void BeginReceive(string queueName, string routingKey, Type type, Action<object> onReceive)
+        public void BeginReceiveString(string queueName, string routingKey, Action<string, string> onReceive)
         {
             consumerChannel = CreateConsumerChannel((channel) =>
             {
                 channel.QueueDeclare(queueName, true, false, false, null);
-                Log($"队列:{queueName} 开始订阅");
+                Log($"队列:{queueName} 开始订阅 {routingKey}");
                 //var routingKey = queueName;
                 channel.QueueBind(queueName, __exchangeName, routingKey);
-                base.BaseBeginReceive(channel, type, queueName, onReceive);
+                base.BaseBeginReceiveString(channel, queueName, onReceive);
             });
         }
-        public void BeginReceiveAsync(string queueName, string routingKey, Type type, Func<object, Task> onReceive)
+        public void BeginReceiveAsync(string queueName, string routingKey, Func<string, string, Task> onReceive)
         {
             consumerChannel = CreateConsumerChannel((channel) =>
             {
                 channel.QueueDeclare(queueName, true, false, false, null);
-                Log($"队列:{queueName} 开始订阅");
+                Log($"队列:{queueName} 开始订阅 {routingKey}");
                 //var routingKey = queueName;
                 channel.QueueBind(queueName, __exchangeName, routingKey);
-                base.BaseBeginReceiveAsync(channel, type, queueName, onReceive);
+                base.BaseBeginReceiveAsync(channel, queueName, onReceive);
             });
             //var channel = connection.CreateModel();
 

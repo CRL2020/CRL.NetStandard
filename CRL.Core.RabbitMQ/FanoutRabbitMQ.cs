@@ -35,7 +35,7 @@ namespace CRL.Core.RabbitMQ
             }
         }
 
-        public void BeginReceive<T>(Action<T> onReceive)
+        public void BeginReceive<T>(Action<T, string> onReceive)
         {
             consumerChannel = CreateConsumerChannel((channel) =>
             {

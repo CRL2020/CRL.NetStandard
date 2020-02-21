@@ -18,9 +18,9 @@ namespace CRL.Core.EventBus
         {
             get; set;
         }
-        public int Take
+        public int ListTake
         {
             get; set;
-        } = 50;
+        } = 10;
     }
 }

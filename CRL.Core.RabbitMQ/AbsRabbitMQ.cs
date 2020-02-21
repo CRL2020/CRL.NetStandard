@@ -87,31 +87,31 @@ namespace CRL.Core.RabbitMQ
             CRL.Core.EventLog.Log(msg, "RabbitMQ");
         }
 
-        protected void BaseBeginReceive<T>(IModel channel, string queueName, Action<T> onReceive)
+        protected void BaseBeginReceive<T>(IModel channel, string queueName, Action<T,string> onReceive)
         {
-            BaseBeginReceive(channel,typeof(T), queueName, msg =>
+            BaseBeginReceiveString(channel, queueName, (msg,key) =>
               {
-                  var obj = (T)msg;
-                  onReceive(obj);
+                  var obj = msg.ToObject<T>();
+                  onReceive(obj, key);
               });
         }
 
-        protected void BaseBeginReceive(IModel channel, Type type, string queueName, Action<object> onReceive)
+        protected void BaseBeginReceiveString(IModel channel, string queueName, Action<string,string> onReceive)
         {
             var consumer = new EventingBasicConsumer(channel);
             //6. 绑定消息接收后的事件委托
             consumer.Received += (model, ea) =>
             {
                 var message = Encoding.UTF8.GetString(ea.Body);
-                var obj = message.ToObject(type);
+                //var obj = message.ToObject(type);
                 try
                 {
-                    onReceive(obj);
+                    onReceive(message,ea.RoutingKey);
                 }
                 catch (Exception ero)
                 {
                     Log($"{queueName}订阅消息时发生错误{ero}");
-                    throw ero;
+                    //throw ero;
                 }
 
                 //确认该消息已被消费
@@ -120,17 +120,17 @@ namespace CRL.Core.RabbitMQ
             //7. 启动消费者
             channel.BasicConsume(queueName, false, consumer);
         }
-        protected void BaseBeginReceiveAsync(IModel channel, Type type, string queueName, Func<object, Task> onReceive)
+        protected void BaseBeginReceiveAsync(IModel channel,string queueName, Func<string,string, Task> onReceive)
         {
             var consumer = new AsyncEventingBasicConsumer(channel);
             //6. 绑定消息接收后的事件委托
             consumer.Received += async (model, ea) =>
             {
                 var message = Encoding.UTF8.GetString(ea.Body);
-                var obj = message.ToObject(type);
+                //var obj = message.ToObject(type);
                 try
                 {
-                    await onReceive.Invoke(obj);
+                    await onReceive.Invoke(message,ea.RoutingKey);
                 }
                 catch (Exception ero)
                 {

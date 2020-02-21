@@ -9,22 +9,22 @@ namespace CRL.Core.EventBus
     class QueueFactory
     {
         static ConcurrentDictionary<string, IQueue> clients = new ConcurrentDictionary<string, IQueue>();
-        public static IQueue GetQueueClient(string queueName, bool publisher)
+        public static IQueue GetQueueClient()
         {
             var config = QueueConfig.GetConfig();
-            var key = $"{queueName}_{1}";
+            var key = $"CRL_{config.QueueName}";
             var a = clients.TryGetValue(key, out IQueue client);
             if (!a)
             {
-                client = CreateClient(config, queueName);
+                client = CreateClient(config);
                 clients.TryAdd(key, client);
             }
             return client;
         }
-        static IQueue CreateClient(QueueConfig config, string queueName)
+        static IQueue CreateClient(QueueConfig config)
         {
-            queueName = $"CRL_EVB_{queueName}";
-            return new Queue.RabbitMQ(config, queueName);
+            //queueName = $"CRL_EVB_{queueName}";
+            return new Queue.RabbitMQ(config);
         }
         public void DisposeAll()
         {

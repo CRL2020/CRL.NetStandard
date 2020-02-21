@@ -35,7 +35,7 @@ namespace CRL.Core.RabbitMQ
                 channel.BasicPublish(__exchangeName, routeKey, __basicProperties, sendBytes);
             }
         }
-        public void BeginReceive<T>(Action<T> onReceive, string routingKey)
+        public void BeginReceive<T>(Action<T, string> onReceive, string routingKey)
         {
             consumerChannel = CreateConsumerChannel((channel) =>
             {

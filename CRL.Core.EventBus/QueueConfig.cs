@@ -14,6 +14,7 @@ namespace CRL.Core.EventBus
         public string Host;
         public string User;
         public string Pass;
+        public string QueueName= "EventBusQueue";
         internal static QueueConfig GetConfig()
         {
             return Instance;
