@@ -11,14 +11,25 @@ namespace MqTest
     public class SubscribeTest
     {
         //[Subscribe("testQueueTime")]
-        public void Test(DateTime time)
+        //public void Test(DateTime time)
+        //{
+        //    Console.WriteLine($"receive {time}");
+        //}
+        [Subscribe("testQueueTime2")]
+        public void Test2(int a)
         {
-            Console.WriteLine($"receive {time}");
+            Console.WriteLine($"receive2 {a}");
         }
         [Subscribe("testQueueTime")]
         public void Test(List<DateTime> time)
         {
             Console.WriteLine($"receive {time.Count}");
         }
+        //[Subscribe("testQueueTime")]
+        //public async Task Test2(DateTime time)
+        //{
+        //    Console.WriteLine($"receive {time}");
+        //    await Task.Delay(100);
+        //}
     }
 }

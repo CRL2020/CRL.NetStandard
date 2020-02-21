@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Linq;
+using System.Threading.Tasks;
+
 namespace CRL.Core.EventBus
 {
     public class SubscribeService
@@ -22,7 +24,7 @@ namespace CRL.Core.EventBus
                     }
                     var methods = type.GetMethods();
                     var instance = System.Activator.CreateInstance(type);
-                    foreach(var m in methods)
+                    foreach (var m in methods)
                     {
                         var atr2 = m.GetCustomAttribute(typeof(SubscribeAttribute));
                         if (atr2 == null)
@@ -36,7 +38,7 @@ namespace CRL.Core.EventBus
         }
         static void Subscribe(object serviceInstance, SubscribeAttribute attr, MethodInfo method)
         {
-            var queueName = attr?.Name;
+            var key = attr?.Name;
 
             var func = Core.DynamicMethodHelper.CreateMethodInvoker(method);
             var args1 = method.GetParameters().FirstOrDefault();
@@ -44,18 +46,28 @@ namespace CRL.Core.EventBus
             {
                 throw new Exception("至少一个参数");
             }
-            if (string.IsNullOrEmpty(queueName))
+            if (string.IsNullOrEmpty(key))
             {
-                queueName = args1.ParameterType.Name;
+                key = args1.ParameterType.Name;
             }
-            var client = QueueFactory.GetQueueClient(queueName,false);
+            var client = QueueFactory.GetQueueClient(key, false);
             var isArry = typeof(System.Collections.IEnumerable).IsAssignableFrom(args1.ParameterType);
+            var isAsync = method.ReturnType == typeof(Task);
+            if (isAsync)
+            {
+                client.OnSubscribeAsync(args1.ParameterType, msg =>
+                  {
+                      var task = (Task)func.Invoke(serviceInstance, new object[] { msg });
+                      return task;
+                  });
+                return;
+            }
             if (isArry)
             {
                 client.OnSubscribe(args1.ParameterType, attr.Take, msg =>
-                 {
-                     func.Invoke(serviceInstance, new object[] { msg });
-                 });
+                  {
+                      func.Invoke(serviceInstance, new object[] { msg });
+                  });
             }
             else
             {

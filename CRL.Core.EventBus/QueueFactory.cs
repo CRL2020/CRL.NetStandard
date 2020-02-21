@@ -23,6 +23,7 @@ namespace CRL.Core.EventBus
         }
         static IQueue CreateClient(QueueConfig config, string queueName)
         {
+            queueName = $"CRL_EVB_{queueName}";
             return new Queue.RabbitMQ(config, queueName);
         }
         public void DisposeAll()

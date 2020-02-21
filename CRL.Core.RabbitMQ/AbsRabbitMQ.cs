@@ -13,7 +13,7 @@ namespace CRL.Core.RabbitMQ
     public abstract class AbsRabbitMQ : IDisposable
     {
         protected IConnection connection;
-        protected IModel channel;
+        protected IModel consumerChannel;
         protected string __exchangeName = "";
         protected IBasicProperties __basicProperties;
 
@@ -21,7 +21,7 @@ namespace CRL.Core.RabbitMQ
         {
             get
             {
-                return connection.IsOpen;
+                return connection != null && connection.IsOpen;
             }
         }
         ConnectionFactory factory;
@@ -37,14 +37,26 @@ namespace CRL.Core.RabbitMQ
             };
             CreateConnect();
         }
-        /// <summary>
-        /// 断时开
-        /// </summary>
-        public Action OnDisconnect
+        object sync_root = new object();
+        public void TryConnect()
         {
-            get;set;
+            lock (sync_root)
+            {
+                int i = 0;
+                while (!IsOpen && i < 5)
+                {
+                    try
+                    {
+                        CreateConnect();
+                    }
+                    catch (Exception ero) {
+                        Log("Connection eror" + ero.Message);
+                    }
+                    i++;
+                    System.Threading.Thread.Sleep(1000);
+                }
+            }
         }
-
         void CreateConnect()
         {
             //创建连接
@@ -52,11 +64,21 @@ namespace CRL.Core.RabbitMQ
 
             connection.ConnectionShutdown += (s, e) =>
             {
-                Log("RabbitMQ断开");
-                OnDisconnect?.Invoke();
+                Log("RabbitMQ ConnectionShutdown");
+                TryConnect();
+            };
+            connection.CallbackException += (s, e) =>
+            {
+                Log("RabbitMQ CallbackException");
+                TryConnect();
+            };
+            connection.ConnectionBlocked += (s, e) =>
+            {
+                Log("RabbitMQ ConnectionBlocked");
+                TryConnect();
             };
             //创建通道
-            channel = connection.CreateModel();
+            //channel = connection.CreateModel();
             Log($"{factory.HostName} 连接成功");
         }
         protected void Log(string msg)
@@ -65,17 +87,16 @@ namespace CRL.Core.RabbitMQ
             CRL.Core.EventLog.Log(msg, "RabbitMQ");
         }
 
-        protected void BaseBeginReceive<T>(string queueName, Action<T> onReceive)
+        protected void BaseBeginReceive<T>(IModel channel, string queueName, Action<T> onReceive)
         {
-            BaseBeginReceive(typeof(T), queueName, msg =>
+            BaseBeginReceive(channel,typeof(T), queueName, msg =>
               {
                   var obj = (T)msg;
                   onReceive(obj);
               });
-            var consumer = new EventingBasicConsumer(channel);
         }
 
-        public void BaseBeginReceive(Type type, string queueName, Action<object> onReceive)
+        protected void BaseBeginReceive(IModel channel, Type type, string queueName, Action<object> onReceive)
         {
             var consumer = new EventingBasicConsumer(channel);
             //6. 绑定消息接收后的事件委托
@@ -86,7 +107,6 @@ namespace CRL.Core.RabbitMQ
                 try
                 {
                     onReceive(obj);
-
                 }
                 catch (Exception ero)
                 {
@@ -100,11 +120,54 @@ namespace CRL.Core.RabbitMQ
             //7. 启动消费者
             channel.BasicConsume(queueName, false, consumer);
         }
+        protected void BaseBeginReceiveAsync(IModel channel, Type type, string queueName, Func<object, Task> onReceive)
+        {
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            //6. 绑定消息接收后的事件委托
+            consumer.Received += async (model, ea) =>
+            {
+                var message = Encoding.UTF8.GetString(ea.Body);
+                var obj = message.ToObject(type);
+                try
+                {
+                    await onReceive.Invoke(obj);
+                }
+                catch (Exception ero)
+                {
+                    Log($"{queueName}订阅消息时发生错误{ero}");
+                    throw ero;
+                }
 
+                //确认该消息已被消费
+                channel.BasicAck(ea.DeliveryTag, false);
+            };
+            //7. 启动消费者
+            channel.BasicConsume(queueName, false, consumer);
+        }
+        protected IModel CreateConsumerChannel(Action<IModel> func)
+        {
+            if (!connection.IsOpen)
+            {
+                TryConnect();
+            }
+
+            Log("Creating RabbitMQ consumer channel");
+
+            var channel = connection.CreateModel();
+            func(channel);
+            channel.CallbackException += (sender, ea) =>
+            {
+                Log(ea.Exception.Message + " Recreating RabbitMQ consumer channel");
+
+                //consumerChannel.Dispose();
+                //consumerChannel = CreateConsumerChannel(func);
+            };
+            return channel;
+        }
         public void Dispose()
         {
-            channel.Dispose();
-            connection.Dispose();
+            consumerChannel?.Dispose();
+            connection?.Dispose();
         }
     }
 }

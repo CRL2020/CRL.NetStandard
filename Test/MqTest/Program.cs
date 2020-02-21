@@ -13,11 +13,13 @@ namespace MqTest
         {
             var config = new QueueConfig() { Host = "47.105.149.240", Pass = "henanhaiwang", User = "henanhaiwang" };
             QueueConfig.SetConfig(config);
-            SubscribeService.StartSubscribe(typeof(SubscribeTest));
+
             var client = new Publisher();
+            client.Publish("testQueueTime", DateTime.Now);
+            SubscribeService.StartSubscribe(typeof(SubscribeTest));
         label1:
             client.Publish("testQueueTime", DateTime.Now);
-
+            client.Publish("testQueueTime2", DateTime.Now.Second);
             Console.WriteLine("send ok");
             Console.ReadLine();
             goto label1;

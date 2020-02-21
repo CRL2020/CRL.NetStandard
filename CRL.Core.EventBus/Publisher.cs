@@ -10,13 +10,13 @@ namespace CRL.Core.EventBus
     }
     public class Publisher: IPublisher
     {
-        public void Publish<T>(string queueName, T msg)
+        public void Publish<T>(string key, T msg)
         {
-            if (string.IsNullOrEmpty(queueName))
+            if (string.IsNullOrEmpty(key))
             {
-                queueName = typeof(T).Name;
+                key = typeof(T).Name;
             }
-            var client = QueueFactory.GetQueueClient(queueName, true);
+            var client = QueueFactory.GetQueueClient(key, true);
             client.Publish(msg);
         }
     }
