@@ -22,5 +22,12 @@ namespace CRL.Core.EventBus
         {
             get; set;
         } = 10;
+        /// <summary>
+        /// 自定义队列名
+        /// </summary>
+        public string QueueName
+        {
+            get;set;
+        }
     }
 }

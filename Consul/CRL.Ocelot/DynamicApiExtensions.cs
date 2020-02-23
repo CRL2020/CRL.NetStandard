@@ -34,6 +34,7 @@ namespace CRL.Ocelot
                         }
                         //实现注册
                         server.Register(implementedInterfaces, type);
+                        //注册服务
                         services.AddTransient(implementedInterfaces, type);
                     }
                 }

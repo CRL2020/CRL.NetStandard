@@ -61,6 +61,7 @@ namespace CRL.Ocelot
             var server = instance.GetServer();
             var result = server.InvokeResult(requestMsg, type =>
              {
+                 //获取服务实例
                  return _serviceProvider.GetService(type);
              });
             await response.WriteAsync(result.ToJson());

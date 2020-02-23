@@ -9,24 +9,27 @@ namespace CRL.Core.EventBus
     class QueueFactory
     {
         static ConcurrentDictionary<string, IQueue> clients = new ConcurrentDictionary<string, IQueue>();
-        public static IQueue GetQueueClient()
+        public static IQueue GetQueueClient(QueueConfig config, EventDeclare eventDeclare)
         {
-            var config = QueueConfig.GetConfig();
-            var key = $"CRL_{config.QueueName}";
+            var _queueName = config.QueueName;
+            if (!string.IsNullOrEmpty(eventDeclare.QueueName))//每个队列一个客户端
+            {
+                _queueName = eventDeclare.QueueName;
+            }
+            var key = $"CRL_{_queueName}_{eventDeclare.IsAsync}";
             var a = clients.TryGetValue(key, out IQueue client);
             if (!a)
             {
-                client = CreateClient(config);
+                client = CreateClient(config, eventDeclare.IsAsync);
                 clients.TryAdd(key, client);
             }
             return client;
         }
-        static IQueue CreateClient(QueueConfig config)
+        public static IQueue CreateClient(QueueConfig config, bool async)
         {
-            //queueName = $"CRL_EVB_{queueName}";
-            return new Queue.RabbitMQ(config);
+            return new Queue.RabbitMQ(config, async);
         }
-        public void DisposeAll()
+        public static void DisposeAll()
         {
             foreach (var kv in clients)
             {

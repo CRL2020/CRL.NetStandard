@@ -10,25 +10,43 @@ namespace MqTest
     [Subscribe]
     public class SubscribeTest
     {
-        //[Subscribe("testQueueTime")]
+        //[Subscribe("timeTest")]
         //public void Test(DateTime time)
         //{
         //    Console.WriteLine($"receive {time}");
         //}
-        [Subscribe("testQueueTime2")]
-        public void Test2(int a)
+        [Subscribe("intTest")]
+        public void Test2(List<int> a)
         {
-            Console.WriteLine($"receive2 {a}");
+            Console.WriteLine($"List<int> receive {a.First()}");
         }
-        [Subscribe("testQueueTime")]
-        public void Test(List<DateTime> time)
-        {
-            Console.WriteLine($"receive {time.Count}");
-        }
-        //[Subscribe("testQueueTime")]
+        //[Subscribe("timeTest")]
+        //public void Test(List<DateTime> time)
+        //{
+        //    Console.WriteLine($"List<DateTime> receive {time.First()}");
+        //}
+        //[Subscribe("timeTest")]
         //public async Task Test2(DateTime time)
         //{
-        //    Console.WriteLine($"receive {time}");
+        //    Console.WriteLine($"DateTime receive {time}");
+        //    await Task.Delay(100);
+        //}
+        //[Subscribe("intTest")]
+        //public async Task Test2(int a)
+        //{
+        //    Console.WriteLine($"int receive {a}");
+        //    await Task.Delay(100);
+        //}
+        [Subscribe("timeTest")]
+        public async Task Test2(List<DateTime> time)
+        {
+            Console.WriteLine($"async List<DateTime> receive {time.First()}");
+            await Task.Delay(100);
+        }
+        //[Subscribe("intTest")]
+        //public async Task Test2(List<int> a)
+        //{
+        //    Console.WriteLine($"async List<int> receive {a.First()}");
         //    await Task.Delay(100);
         //}
     }

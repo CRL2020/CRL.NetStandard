@@ -25,7 +25,7 @@ namespace CRL.Core.RabbitMQ
             }
         }
         ConnectionFactory factory;
-        public AbsRabbitMQ(string host, string user, string pass)
+        public AbsRabbitMQ(string host, string user, string pass, bool consumersAsync = false)
         {
             factory = new ConnectionFactory
             {
@@ -34,6 +34,7 @@ namespace CRL.Core.RabbitMQ
                 HostName = host,//rabbitmq ip
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
+                DispatchConsumersAsync = consumersAsync
             };
             CreateConnect();
         }
@@ -104,15 +105,7 @@ namespace CRL.Core.RabbitMQ
             {
                 var message = Encoding.UTF8.GetString(ea.Body);
                 //var obj = message.ToObject(type);
-                try
-                {
-                    onReceive(message,ea.RoutingKey);
-                }
-                catch (Exception ero)
-                {
-                    Log($"{queueName}订阅消息时发生错误{ero}");
-                    //throw ero;
-                }
+                onReceive(message, ea.RoutingKey);
 
                 //确认该消息已被消费
                 channel.BasicAck(ea.DeliveryTag, false);
@@ -128,15 +121,7 @@ namespace CRL.Core.RabbitMQ
             {
                 var message = Encoding.UTF8.GetString(ea.Body);
                 //var obj = message.ToObject(type);
-                try
-                {
-                    await onReceive.Invoke(message,ea.RoutingKey);
-                }
-                catch (Exception ero)
-                {
-                    Log($"{queueName}订阅消息时发生错误{ero}");
-                    throw ero;
-                }
+                await onReceive.Invoke(message, ea.RoutingKey);
 
                 //确认该消息已被消费
                 channel.BasicAck(ea.DeliveryTag, false);
@@ -144,7 +129,7 @@ namespace CRL.Core.RabbitMQ
             //7. 启动消费者
             channel.BasicConsume(queueName, false, consumer);
         }
-        protected IModel CreateConsumerChannel(Action<IModel> func)
+        protected IModel CreateConsumerChannel()
         {
             if (!connection.IsOpen)
             {
@@ -154,14 +139,14 @@ namespace CRL.Core.RabbitMQ
             Log("Creating RabbitMQ consumer channel");
 
             var channel = connection.CreateModel();
-            func(channel);
-            channel.CallbackException += (sender, ea) =>
-            {
-                Log(ea.Exception.Message + " Recreating RabbitMQ consumer channel");
+            //func(channel);
+            //channel.CallbackException += (sender, ea) =>
+            //{
+            //    Log(ea.Exception + " CallbackException");
 
-                //consumerChannel.Dispose();
-                //consumerChannel = CreateConsumerChannel(func);
-            };
+            //    //consumerChannel.Dispose();
+            //    //consumerChannel = CreateConsumerChannel(func);
+            //};
             return channel;
         }
         public void Dispose()

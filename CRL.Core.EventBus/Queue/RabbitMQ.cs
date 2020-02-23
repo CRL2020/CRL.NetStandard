@@ -9,118 +9,132 @@ namespace CRL.Core.EventBus.Queue
     class RabbitMQ : IQueue
     {
         Core.RabbitMQ.DirectRabbitMQ client;
-        //Core.RabbitMQ.DirectRabbitMQ client2;
-        string _host, _user, _pass, _queueName;
+        QueueConfig _queueConfig;
         string exchangeName = "CRLEventBusExc";
-        //string routingKey => _queueName;
-        public RabbitMQ(QueueConfig queueConfig)
+        public string Name
         {
-            //var queueName = "CRLEventBusQueue";
-            _host = queueConfig.Host;
-            _user = queueConfig.User;
-            _pass = queueConfig.Pass;
-            _queueName = queueConfig.QueueName;
-            client = new Core.RabbitMQ.DirectRabbitMQ(_host, _user, _pass, exchangeName);
+            get;
+        }
+        public RabbitMQ(QueueConfig queueConfig, bool async)
+        {
+            Name = $"{Guid.NewGuid().ToString()}_{async}";
+            _queueConfig = queueConfig;
+            client = new Core.RabbitMQ.DirectRabbitMQ(queueConfig.Host, queueConfig.User, queueConfig.Pass, exchangeName, async);
         }
         public void Publish(string routingKey, object msg)
         {
+            if (string.IsNullOrEmpty(routingKey))
+            {
+                routingKey = msg.GetType().Name;
+            }
             client.Publish(routingKey, msg);
         }
-        //Queue<Tuple<string,object>> localQueue = new Queue<Tuple<string, object>>();
-        //Core.ThreadWork threadWork;
-        //DateTime publishTime = DateTime.Now;
-
-        ///// <summary>
-        ///// 批量订阅处理
-        ///// </summary>
-        //public void OnSubscribe(string routingKey, Type objType, int take, Action<System.Collections.IEnumerable> onReceive)
-        //{
-        //    client2 = new Core.RabbitMQ.DirectRabbitMQ(_host, _user, _pass, exchangeName);
-        //    threadWork = new ThreadWork();
-        //    threadWork.Start("OnSubscribeIEnumerable<T>", () =>
-        //     {
-        //         var ts = DateTime.Now - publishTime;
-        //         if (ts.TotalSeconds > 1)
-        //         {
-        //             rePublish(routingKey, take);
-        //         }
-        //         return true;
-        //     }, 0.5);
-        //    var typeInner = objType.GetGenericArguments()[0];
-        //    client.BeginReceive(_queueName, routingKey, typeInner, msg =>
-        //      {
-        //          localQueue.Enqueue(msg);
-        //          publishTime = DateTime.Now;
-        //         //转成集合
-        //         if (localQueue.Count >= take)
-        //          {
-        //              rePublish(routingKey, take);
-        //          }
-        //      });
-
-        //    client2.BeginReceive(_queueName + "_L", routingKey + "_L", objType, msgs =>
-        //     {
-        //         var list = msgs as System.Collections.IEnumerable;
-        //         onReceive(list);
-        //     });
-        //}
-        //void rePublish(EventDeclare ed)
-        //{
-        //    int i = 0;
-        //    var list = new List<object>();
-        //    while (i <= ed.ListTake && ed.CacheData.Count > 0)
-        //    {
-        //        var obj = ed.CacheData.Dequeue();
-        //        list.Add(obj);
-        //        i += 1;
-        //    }
-        //    ed.CacheDataTime = DateTime.Now;
-        //    if (list.Count > 0)
-        //    {
-        //        client.Publish(ed.Name, list);
-        //    }
-        //}
-
+  
         public void Subscribe(EventDeclare eventDeclare)
         {
-            client.BeginReceiveString(_queueName, eventDeclare.Name, (msg, key) =>
+            var queueName = _queueConfig.QueueName;
+            if (!string.IsNullOrEmpty(eventDeclare.QueueName))
             {
-                var ed = SubscribeService.GetEventDeclare(key);
-                if (ed == null)
+                queueName = eventDeclare.QueueName;
+            }
+            var routingKey = eventDeclare.Name;
+            if(eventDeclare.IsCopy)
+            {
+                routingKey = eventDeclare.GetArrayName();
+            }
+            //同步订阅
+            client.BeginReceiveString(queueName, routingKey, OnReceiveString);
+        }
+
+        public void SubscribeAsync(EventDeclare eventDeclare)
+        {
+            var queueName = _queueConfig.QueueName;
+            if (!string.IsNullOrEmpty(eventDeclare.QueueName))
+            {
+                queueName = eventDeclare.QueueName;
+            }
+            var routingKey = eventDeclare.Name;
+            if (eventDeclare.IsCopy)
+            {
+                routingKey = eventDeclare.GetArrayName();
+            }
+            //异步订阅
+            client.BeginReceiveAsync(queueName, routingKey, OnReceiveAsync);
+        }
+        #region inner
+        void OnReceiveString(string msg, string key)
+        {
+            var ed = SubscribeService.GetEventDeclare(key);
+            if (ed == null)
+            {
+                return;
+            }
+
+            if (ed.IsArray && !ed.IsCopy)
+            {
+                var obj = msg.ToObject(ed.EventDataType.GenericTypeArguments[0]);
+                var ed2 = SubscribeService.GetEventDeclare(ed.GetArrayName());
+                ed2.setCache(obj);
+                //转成集合
+                if (ed2.CacheData.Count >= ed2.ListTake)
                 {
-                    return;
+                    ed2.rePublish();
+                }
+            }
+            else
+            {
+                var obj = msg.ToObject(ed.EventDataType);
+                try
+                {
+                    ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { obj });
+                }
+                catch (Exception ero)
+                {
+                    Console.WriteLine($"{key}订阅消息时发生错误{ero}");
+                    throw ero;
+                }
+    
+            }
+        }
+        Task OnReceiveAsync(string msg, string key)
+        {
+            var ed = SubscribeService.GetEventDeclare(key);
+            if (ed == null)
+            {
+                return Task.FromResult<string>(null);
+            }
+            if (ed.IsArray && !ed.IsCopy)
+            {
+
+                var obj = msg.ToObject(ed.EventDataType.GenericTypeArguments[0]);
+                var ed2 = SubscribeService.GetEventDeclare(ed.GetArrayName());
+                ed2.setCache(obj);
+                //转成集合
+                if (ed2.CacheData.Count >= ed2.ListTake)
+                {
+                    ed2.rePublish();
+                }
+                return Task.FromResult<string>(null);
+            }
+            else
+            {
+                var obj = msg.ToObject(ed.EventDataType);
+                try
+                {
+                    return (Task)ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { obj });
+                }
+                catch (Exception ero)
+                {
+                    Console.WriteLine($"{key}订阅消息时发生错误{ero}");
+                    throw ero;
                 }
 
-                if (ed.IsArry)
-                {
-                    var obj = msg.ToObject(ed.DataType.GenericTypeArguments[0]);
-                    ed.CacheData.Enqueue(obj);
-                    ed.CacheDataTime = DateTime.Now;
-                    //转成集合
-                    if (ed.CacheData.Count >= ed.ListTake)
-                    {
-                        ed.rePublish(key + "_L");
-                    }
-                }
-                else
-                {
-                    var obj = msg.ToObject(ed.DataType);
-                    ed.MethodInvoke.Invoke(ed.InstanceInvoke(), new object[] { obj });
-                }
-            });
+            }
         }
-        //public void OnSubscribeAsync(string routingKey, Type objType, Func<object, Task> onReceive)
-        //{
-        //    client.BeginReceiveAsync(_queueName, routingKey, objType, msg =>
-        //    {
-        //        var obj = msg.ToObject(objType);
-        //        return onReceive(obj);
-        //    });
-        //}
+        #endregion
         public void Dispose()
         {
             client?.Dispose();
-            //client2?.Dispose();
         }
     }
 }

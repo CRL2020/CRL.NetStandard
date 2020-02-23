@@ -15,11 +15,11 @@ namespace MqTest
             QueueConfig.SetConfig(config);
 
             var client = new Publisher();
-            client.Publish("testQueueTime", DateTime.Now);
-            SubscribeService.StartSubscribe(typeof(SubscribeTest));
+            SubscribeService.RegisterAll(typeof(SubscribeTest));
+            SubscribeService.StartSubscribe();
         label1:
-            client.Publish("testQueueTime", DateTime.Now);
-            client.Publish("testQueueTime2", DateTime.Now.Second);
+            client.Publish("timeTest", DateTime.Now);
+            client.Publish("intTest", DateTime.Now.Second);
             Console.WriteLine("send ok");
             Console.ReadLine();
             goto label1;

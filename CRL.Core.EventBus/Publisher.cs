@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CRL.Core.EventBus.Queue;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,21 +9,22 @@ namespace CRL.Core.EventBus
     {
         void Publish<T>(string queueName, T msg);
     }
-    public class Publisher: IPublisher
+    public class Publisher: IPublisher, IDisposable
     {
-        public void Publish<T>(string key, T msg)
+        IQueue queue;
+        public Publisher()
         {
-            if (string.IsNullOrEmpty(key))
-            {
-                key = typeof(T).Name;
-            }
-            var ed = SubscribeService.GetEventDeclare(key);
-            if (ed == null)
-            {
-                return;
-            }
-            var client = QueueFactory.GetQueueClient();
-            client.Publish(key, msg);
+            queue = QueueFactory.CreateClient(QueueConfig.GetConfig(),false);
+        }
+
+        public void Dispose()
+        {
+            queue.Dispose();
+        }
+
+        public void Publish<T>(string name, T msg)
+        {
+            queue.Publish(name, msg);
         }
     }
 }

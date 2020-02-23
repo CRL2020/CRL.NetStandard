@@ -37,13 +37,12 @@ namespace CRL.Core.RabbitMQ
 
         public void BeginReceive<T>(Action<T, string> onReceive)
         {
-            consumerChannel = CreateConsumerChannel((channel) =>
-            {
-                var queuename = channel.QueueDeclare().QueueName;
-                //绑定队列到指定fanout类型exchange，无需指定路由键
-                channel.QueueBind(queue: queuename, exchange: __exchangeName, routingKey: "");
-                base.BaseBeginReceive(channel, queuename, onReceive);
-            });
+            var channel = CreateConsumerChannel();
+            consumerChannel = channel;
+            var queuename = channel.QueueDeclare().QueueName;
+            //绑定队列到指定fanout类型exchange，无需指定路由键
+            channel.QueueBind(queue: queuename, exchange: __exchangeName, routingKey: "");
+            base.BaseBeginReceive(channel, queuename, onReceive);
 
         }
     }
