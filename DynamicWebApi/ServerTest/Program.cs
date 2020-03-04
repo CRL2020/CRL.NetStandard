@@ -17,7 +17,7 @@ namespace ServerTest
             server.UseJWTUseAuthorization(tokenCheck);
             server.SetSessionManage(new SessionManage());
             //server.Register<ITestService, TestService>();
-            server.RegisterAll(typeof(TestService));
+            server.RegisterAll(System.Reflection.Assembly.GetAssembly(typeof(TestService)));
             var listener = new ServerListener();
             listener.Start("http://localhost:809/");
             label1:

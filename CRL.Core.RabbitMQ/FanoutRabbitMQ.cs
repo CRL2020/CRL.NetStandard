@@ -14,10 +14,9 @@ namespace CRL.Core.RabbitMQ
     /// <typeparam name="T"></typeparam>
     public class FanoutRabbitMQ: AbsRabbitMQ
     {
-        public FanoutRabbitMQ(string host, string user, string pass, string exchangeName) : base(host, user, pass)
+        public FanoutRabbitMQ(string host, string user, string pass, string exchangeName, bool consumersAsync = false) : base(host, user, pass, consumersAsync)
         {
             __exchangeName = exchangeName;
-            //channel.ExchangeDeclare(exchangeName, ExchangeType.Fanout, false, false, null);
             Log($"Fanout队列:初始化");
         }
         public virtual void Publish(object msg)
@@ -38,11 +37,12 @@ namespace CRL.Core.RabbitMQ
         public void BeginReceive<T>(Action<T, string> onReceive)
         {
             var channel = CreateConsumerChannel();
-            consumerChannel = channel;
-            var queuename = channel.QueueDeclare().QueueName;
+    
+            var queueName = channel.QueueDeclare().QueueName;
             //绑定队列到指定fanout类型exchange，无需指定路由键
-            channel.QueueBind(queue: queuename, exchange: __exchangeName, routingKey: "");
-            base.BaseBeginReceive(channel, queuename, onReceive);
+            channel.QueueBind(queue: queueName, exchange: __exchangeName, routingKey: "");
+            Log($"开始消费,类型: Fanout 队列:{queueName} Key:");
+            base.BaseBeginReceive(channel, queueName, onReceive);
 
         }
     }

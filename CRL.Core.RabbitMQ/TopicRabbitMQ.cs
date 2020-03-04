@@ -15,10 +15,9 @@ namespace CRL.Core.RabbitMQ
     /// <typeparam name="T"></typeparam>
     public class TopicRabbitMQ : AbsRabbitMQ
     {
-        public TopicRabbitMQ(string host, string user, string pass, string exchangeName) : base(host, user, pass)
+        public TopicRabbitMQ(string host, string user, string pass, string exchangeName, bool consumersAsync = false) : base(host, user, pass,consumersAsync)
         {
             __exchangeName = exchangeName;
-            //channel.ExchangeDeclare(exchangeName, ExchangeType.Topic, false, false, null);
             Log($"Topic队列: 初始化");
         }
         public void Publish(object msg, string routeKey)
@@ -38,11 +37,11 @@ namespace CRL.Core.RabbitMQ
         public void BeginReceive<T>(Action<T, string> onReceive, string routingKey)
         {
             var channel = CreateConsumerChannel();
-            consumerChannel = channel;
+
             var queueName = channel.QueueDeclare().QueueName;
             //绑定队列到topic类型exchange，需指定路由键routingKey
             channel.QueueBind(queueName, __exchangeName, routingKey);
-            Log($"消费队列名为:{queueName}");
+            Log($"开始消费,类型:Topic 队列:{queueName} Key:{routingKey}");
             base.BaseBeginReceive(channel, queueName, onReceive);
         }
     }

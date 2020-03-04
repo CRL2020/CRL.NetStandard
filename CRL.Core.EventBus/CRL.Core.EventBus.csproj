@@ -5,7 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CRL.Core.RabbitMQ\CRL.Core.RabbitMQ.csproj" />
+    <ProjectReference Include="..\CRL.Core.RedisProvider\CRL.Core.RedisProvider.csproj" />
     <ProjectReference Include="..\CRL.Core\CRL.Core.csproj" />
   </ItemGroup>
 

@@ -328,21 +328,36 @@ namespace CRL.Core.RedisProvider
         /// </summary>
         /// <param name="channelFrom"></param>
         /// <returns></returns>
-        public void Subscribe<T>(string channelFrom, Action<T> callBack)
+        public void Subscribe(string channelFrom, Action<string,string> callBack)
         {
-            ISubscriber sub = Instance.GetSubscriber();
+            var sub = Instance.GetSubscriber();
             sub.Subscribe(channelFrom, (channel, message) =>
             {
                 try
                 {
-                    var obj = Deserialize<T>(message);
-                    callBack(obj);
+                    callBack(message, channel);
                 }
                 catch (Exception ero)
                 {
                     EventLog.Log(ero.ToString(), "RedisOnSubscribe");
                 }
             });
+        }
+        public Task SubscribeAsync(string channelFrom, Action<string, string> callBack)
+        {
+            var sub = Instance.GetSubscriber();
+            var task = sub.SubscribeAsync(channelFrom, (channel, message) =>
+              {
+                  try
+                  {
+                      callBack(message, channel);
+                  }
+                  catch (Exception ero)
+                  {
+                      EventLog.Log(ero.ToString(), "RedisOnSubscribe");
+                  }
+              });
+            return task;
         }
         #endregion
 

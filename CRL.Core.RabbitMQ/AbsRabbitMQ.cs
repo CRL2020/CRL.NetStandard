@@ -13,7 +13,7 @@ namespace CRL.Core.RabbitMQ
     public abstract class AbsRabbitMQ : IDisposable
     {
         protected IConnection connection;
-        protected IModel consumerChannel;
+        protected List<IModel> consumerChannels = new List<IModel>();
         protected string __exchangeName = "";
         protected IBasicProperties __basicProperties;
 
@@ -135,23 +135,25 @@ namespace CRL.Core.RabbitMQ
             {
                 TryConnect();
             }
-
-            Log("Creating RabbitMQ consumer channel");
-
             var channel = connection.CreateModel();
             //func(channel);
-            //channel.CallbackException += (sender, ea) =>
-            //{
-            //    Log(ea.Exception + " CallbackException");
+            channel.CallbackException += (sender, ea) =>
+            {
+                Log("CallbackException " + ea.Exception);
 
-            //    //consumerChannel.Dispose();
-            //    //consumerChannel = CreateConsumerChannel(func);
-            //};
+                //consumerChannel.Dispose();
+                //consumerChannel = CreateConsumerChannel(func);
+            };
+            consumerChannels.Add(channel);
             return channel;
         }
         public void Dispose()
         {
-            consumerChannel?.Dispose();
+            foreach(var c in consumerChannels)
+            {
+                c?.Dispose();
+            }
+ 
             connection?.Dispose();
         }
     }

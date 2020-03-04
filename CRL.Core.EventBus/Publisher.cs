@@ -8,13 +8,14 @@ namespace CRL.Core.EventBus
     public interface IPublisher
     {
         void Publish<T>(string queueName, T msg);
+        void Publish<T>(string queueName, IEnumerable<T> msgs);
     }
-    public class Publisher: IPublisher, IDisposable
+    public class Publisher : IPublisher, IDisposable
     {
-        IQueue queue;
+        AbsQueue queue;
         public Publisher()
         {
-            queue = QueueFactory.CreateClient(QueueConfig.GetConfig(),false);
+            queue = QueueFactory.CreateClient(QueueConfig.GetConfig(), false);
         }
 
         public void Dispose()
@@ -25,6 +26,11 @@ namespace CRL.Core.EventBus
         public void Publish<T>(string name, T msg)
         {
             queue.Publish(name, msg);
+        }
+
+        public void Publish<T>(string queueName, IEnumerable<T> msgs)
+        {
+            queue.Publish(queueName, msgs);
         }
     }
 }

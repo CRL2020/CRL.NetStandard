@@ -1,30 +1,27 @@
-﻿using System;
+﻿using CRL.Core.RedisProvider;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using CRL.Core.Extension;
 namespace CRL.Core.EventBus.Queue
 {
-    class RabbitMQ : AbsQueue
+    class Redis : AbsQueue
     {
-        Core.RabbitMQ.DirectRabbitMQ client;
+        StackExchangeRedisHelper client;
         QueueConfig _queueConfig;
-        string exchangeName = "CRLEventBusExc";
-
-        public RabbitMQ(QueueConfig queueConfig, bool async)
+        public Redis(QueueConfig queueConfig)
         {
-            Name = $"{Guid.NewGuid().ToString()}_{async}";
+            client = new StackExchangeRedisHelper();
             _queueConfig = queueConfig;
-            client = new Core.RabbitMQ.DirectRabbitMQ(queueConfig.Host, queueConfig.User, queueConfig.Pass, exchangeName, async);
         }
+        public override void Dispose()
+        {
+     
+        }
+
         public override void Publish(string routingKey, object msg)
         {
-            if (string.IsNullOrEmpty(routingKey))
-            {
-                routingKey = msg.GetType().Name;
-            }
-            client.Publish(routingKey, msg);
+            client.Publish(routingKey, msg.ToJson());
         }
         public override void Publish(string routingKey, IEnumerable<object> msgs)
         {
@@ -33,7 +30,6 @@ namespace CRL.Core.EventBus.Queue
                 Publish(routingKey, msg);
             }
         }
-
         public override void Subscribe(EventDeclare eventDeclare)
         {
             var queueName = _queueConfig.QueueName;
@@ -42,12 +38,11 @@ namespace CRL.Core.EventBus.Queue
                 queueName = eventDeclare.QueueName;
             }
             var routingKey = eventDeclare.Name;
-            if(eventDeclare.IsCopy)
+            if (eventDeclare.IsCopy)
             {
                 routingKey = eventDeclare.GetArrayName();
             }
-            //同步订阅
-            client.BeginReceiveString(queueName, routingKey, OnReceiveString);
+            client.Subscribe(routingKey, OnReceiveString);
         }
 
         public override void SubscribeAsync(EventDeclare eventDeclare)
@@ -62,13 +57,8 @@ namespace CRL.Core.EventBus.Queue
             {
                 routingKey = eventDeclare.GetArrayName();
             }
-            //异步订阅
-            client.BeginReceiveAsync(queueName, routingKey, OnReceiveAsync);
-        }
-        
-        public override void Dispose()
-        {
-            client?.Dispose();
+            var task = client.SubscribeAsync(routingKey, OnReceiveString);
+            task.Wait();
         }
     }
 }

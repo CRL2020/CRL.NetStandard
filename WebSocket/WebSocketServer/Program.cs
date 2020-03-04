@@ -22,7 +22,7 @@ namespace WebSocketServer
             server.CheckSign();
             server.SetSessionManage(new SessionManage());
             //server.Register<ITestService, TestService>();
-            server.RegisterAll(typeof(TestService));
+            server.RegisterAll(System.Reflection.Assembly.GetAssembly(typeof(TestService)));
             server.Start();
             new CRL.Core.ThreadWork().Start("send", () =>
             {

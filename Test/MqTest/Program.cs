@@ -11,11 +11,11 @@ namespace MqTest
     {
         static void Main(string[] args)
         {
-            var config = new QueueConfig() { Host = "47.105.149.240", Pass = "henanhaiwang", User = "henanhaiwang" };
-            QueueConfig.SetConfig(config);
-
+            //QueueConfig.UseRabbitMQ("127.0.0.1", "test", "test");
+            //QueueConfig.UseRedis("Server_204@127.0.0.1:6389");
+            QueueConfig.UseMongoDb("mongodb://test:test@127.0.0.1:27017/test");
             var client = new Publisher();
-            SubscribeService.RegisterAll(typeof(SubscribeTest));
+            SubscribeService.Register(System.Reflection.Assembly.GetAssembly(typeof(SubscribeTest)));
             SubscribeService.StartSubscribe();
         label1:
             client.Publish("timeTest", DateTime.Now);

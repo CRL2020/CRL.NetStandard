@@ -10,13 +10,19 @@ namespace CRL.Core
     {
         Thread thread;
         static List<Thread> threads = new List<Thread>();
-        //public void Start(string name, Func<bool> action, int second)
-        //{
-        //    Start(name, action, second);
-        //}
+        public object Args;
+
         public void Start(string name, Func<bool> action, double second)
         {
-            if(second==0)
+            Start(name, (args) =>
+             {
+                 return action();
+             }, second);
+        }
+
+        public void Start(string name, Func<object,bool> action, double second)
+        {
+            if (second == 0)
             {
                 throw new Exception("second不能为0");
             }
@@ -28,7 +34,7 @@ namespace CRL.Core
                     {
                         try
                         {
-                            action();
+                            action(Args);
                         }
                         catch (Exception ero)
                         {
@@ -44,6 +50,7 @@ namespace CRL.Core
                 CRL.Core.EventLog.Log(name + "启动", "ThreadWork");
             }
         }
+
         public void Stop()
         {
             if (thread != null)

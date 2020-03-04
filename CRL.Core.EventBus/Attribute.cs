@@ -29,5 +29,9 @@ namespace CRL.Core.EventBus
         {
             get;set;
         }
+        /// <summary>
+        /// 轮循线程间隔时间
+        /// </summary>
+        public double ThreadSleepSecond { get; set; } = 1;
     }
 }

@@ -8,7 +8,7 @@ namespace CRL.Core.EventBus
 {
     public class EventDeclare
     {
-        internal IQueue IQueue;
+        internal AbsQueue IQueue;
         internal string Name;
         internal Type EventDataType;
         internal MethodInfo Method;
@@ -23,6 +23,8 @@ namespace CRL.Core.EventBus
         DateTime CacheDataTime = DateTime.Now;
         internal string QueueName;
         internal bool IsCopy;
+
+        internal double ThreadSleepSecond = 1;
 
         internal object Clone()
         {

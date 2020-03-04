@@ -15,7 +15,7 @@ namespace RPCServerTest
             server.CheckSign();
             server.SetSessionManage(new SessionManage());
             //server.Register<ITestService, TestService>();
-            server.RegisterAll(typeof(TestService));
+            server.RegisterAll(System.Reflection.Assembly.GetAssembly(typeof(TestService)));
             server.Start();
             Console.ReadLine();
         }

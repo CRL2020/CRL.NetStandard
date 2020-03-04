@@ -75,13 +75,12 @@ namespace CRL.Core.Remoting
         /// <summary>
         /// 按类型所在程序集注册所有
         /// </summary>
-        /// <param name="currentTypes"></param>
+        /// <param name="assemblies"></param>
         /// <returns></returns>
-        public ServerCreater RegisterAll(params Type[] currentTypes)
+        public ServerCreater RegisterAll(params Assembly[] assemblies)
         {
-            foreach (var currentType in currentTypes)
+            foreach (var assembyle in assemblies)
             {
-                var assembyle = System.Reflection.Assembly.GetAssembly(currentType);
                 var types = assembyle.GetTypes();
                 foreach(var type in types)
                 {

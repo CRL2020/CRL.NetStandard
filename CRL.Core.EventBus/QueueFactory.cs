@@ -8,16 +8,12 @@ namespace CRL.Core.EventBus
 {
     class QueueFactory
     {
-        static ConcurrentDictionary<string, IQueue> clients = new ConcurrentDictionary<string, IQueue>();
-        public static IQueue GetQueueClient(QueueConfig config, EventDeclare eventDeclare)
+        static ConcurrentDictionary<string, AbsQueue> clients = new ConcurrentDictionary<string, AbsQueue>();
+        public static AbsQueue GetQueueClient(QueueConfig config, EventDeclare eventDeclare)
         {
             var _queueName = config.QueueName;
-            if (!string.IsNullOrEmpty(eventDeclare.QueueName))//每个队列一个客户端
-            {
-                _queueName = eventDeclare.QueueName;
-            }
             var key = $"CRL_{_queueName}_{eventDeclare.IsAsync}";
-            var a = clients.TryGetValue(key, out IQueue client);
+            var a = clients.TryGetValue(key, out AbsQueue client);
             if (!a)
             {
                 client = CreateClient(config, eventDeclare.IsAsync);
@@ -25,9 +21,22 @@ namespace CRL.Core.EventBus
             }
             return client;
         }
-        public static IQueue CreateClient(QueueConfig config, bool async)
+        public static AbsQueue CreateClient(QueueConfig config, bool async)
         {
-            return new Queue.RabbitMQ(config, async);
+            AbsQueue instance = null;
+            switch (config.MQType)
+            {
+                case MQType.RabbitMQ:
+                    instance = new Queue.RabbitMQ(config, async);
+                    break;
+                case MQType.Redis:
+                    instance = new Queue.Redis(config);
+                    break;
+                case MQType.MongoDb:
+                    instance = new Queue.MongoDb(config);
+                    break;
+            }
+            return instance;
         }
         public static void DisposeAll()
         {

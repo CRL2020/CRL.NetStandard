@@ -17,11 +17,10 @@ namespace CRL.Core.EventBus
             eventRegister.TryGetValue(name,out EventDeclare ed);
             return ed;
         }
-        public static void RegisterAll(params Type[] currentTypes)
+        public static void Register(params Assembly[] assemblies)
         {
-            foreach (var currentType in currentTypes)
+            foreach (var assembyle in assemblies)
             {
-                var assembyle = System.Reflection.Assembly.GetAssembly(currentType);
                 var types = assembyle.GetTypes();
                 foreach (var type in types)
                 {
@@ -29,7 +28,7 @@ namespace CRL.Core.EventBus
                 }
             }  
         }
-        static void Register(Type type)
+        public static void Register(Type type)
         {
             var atr = type.GetCustomAttribute(typeof(SubscribeAttribute));
             if (atr == null)
@@ -47,6 +46,10 @@ namespace CRL.Core.EventBus
                 var ed = CreateEventDeclare(atr2 as SubscribeAttribute, m);
                 ed.ServiceInstanceType = type;
                 ed.ServiceInstanceCtor2 = DynamicMethodHelper.CreateCtorFunc<Func<object>>(type, Type.EmptyTypes);
+                if (eventRegister.ContainsKey(ed.Name))
+                {
+                    throw new Exception($"已注册过相同的事件名 {ed.Name}");
+                }
                 eventRegister.Add(ed.Name, ed);
 
                 if (ed.IsArray)//集合重新创建一个事件定义
@@ -108,7 +111,8 @@ namespace CRL.Core.EventBus
                 IsAsync = isAsync,
                 IsArray = isArry,
                 ListTake = attr.ListTake,
-                QueueName = attr.QueueName
+                QueueName = attr.QueueName,
+                ThreadSleepSecond = attr.ThreadSleepSecond
             };
             return ed;
         }

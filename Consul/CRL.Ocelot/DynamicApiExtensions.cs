@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CRL.Ocelot
@@ -16,11 +17,10 @@ namespace CRL.Ocelot
         {
             server = new ServerCreater().CreatetApi();
         }
-        public static void AddDynamicApi(this IServiceCollection services,params Type[] currentTypes)
+        public static void AddDynamicApi(this IServiceCollection services, params Assembly[] assemblies)
         {
-            foreach (var currentType in currentTypes)
+            foreach (var assembyle in assemblies)
             {
-                var assembyle = System.Reflection.Assembly.GetAssembly(currentType);
                 var types = assembyle.GetTypes();
                 foreach (var type in types)
                 {

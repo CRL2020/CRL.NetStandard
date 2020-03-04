@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Threading;
 using CRL.Core;
-//using CRL.Core.Session;
+using CRL.Core.Extension;
 
 namespace CRL.Core.RedisProvider
 {
@@ -160,7 +160,11 @@ namespace CRL.Core.RedisProvider
             //只限当前进程
             var process = System.Diagnostics.Process.GetCurrentProcess().Id;
             var channelName = string.Format("{0}_{1}", process, typeof(T).Name);
-            new StackExchangeRedisHelper(_id).Subscribe(channelName, callBack);
+            new StackExchangeRedisHelper(_id).Subscribe(channelName, (msg, channel) =>
+            {
+                var obj = msg.ToObject<T>();
+                callBack(obj);
+            });
             EventLog.Info($"RedisMessage 启动 {channelName}");
         }
         #endregion
