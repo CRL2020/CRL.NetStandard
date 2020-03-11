@@ -148,12 +148,12 @@ namespace CRL.Core.RedisProvider
         }
 
         #region 消息订阅发布
-        public long Pubblish<T>(T obj)
+        public void Pubblish<T>(T obj)
         {       //只限当前进程
             var process = System.Diagnostics.Process.GetCurrentProcess().Id;
             var channelName = string.Format("{0}_{1}", process, typeof(T).Name);
             string ser = SerializeHelper.SerializerToJson(obj);
-            return new StackExchangeRedisHelper(_id).Publish(channelName, ser);
+            new StackExchangeRedisHelper(_id).Publish(channelName, ser);
         }
         public void Subscribe<T>(Action<T> callBack)
         {

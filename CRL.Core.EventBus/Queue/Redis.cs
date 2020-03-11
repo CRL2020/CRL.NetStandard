@@ -1,5 +1,6 @@
 ﻿using CRL.Core.RedisProvider;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using CRL.Core.Extension;
@@ -19,16 +20,9 @@ namespace CRL.Core.EventBus.Queue
      
         }
 
-        public override void Publish(string routingKey, object msg)
+        public override void Publish<T>(string routingKey, params T[] msgs)
         {
-            client.Publish(routingKey, msg.ToJson());
-        }
-        public override void Publish(string routingKey, IEnumerable<object> msgs)
-        {
-            foreach (var msg in msgs)
-            {
-                Publish(routingKey, msg);
-            }
+            client.Publish(routingKey, msgs.Select(b => b.ToJson()).ToArray());
         }
         public override void Subscribe(EventDeclare eventDeclare)
         {

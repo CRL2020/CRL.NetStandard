@@ -20,19 +20,10 @@ namespace CRL.Core.RabbitMQ
             __exchangeName = exchangeName;
             Log($"Topic队列: 初始化");
         }
-        public void Publish(object msg, string routeKey)
+
+        public void Publish<T>(string routingKey, params T[] msgs)
         {
-            if (!connection.IsOpen)
-            {
-                TryConnect();
-            }
-            using (var channel = connection.CreateModel())
-            {
-                channel.ExchangeDeclare(__exchangeName, ExchangeType.Topic, false, false, null);
-                var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());
-                //发布消息
-                channel.BasicPublish(__exchangeName, routeKey, __basicProperties, sendBytes);
-            }
+            BasePublish(ExchangeType.Topic, routingKey, msgs);
         }
         public void BeginReceive<T>(Action<T, string> onReceive, string routingKey)
         {

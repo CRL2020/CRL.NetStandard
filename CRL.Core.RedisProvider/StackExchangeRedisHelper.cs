@@ -304,9 +304,9 @@ namespace CRL.Core.RedisProvider
             }
             return SerializeHelper.DeserializeFromJson<T>(data);
         }
-       
 
-      
+
+
 
         #region  消息发布
         /// <summary>
@@ -316,11 +316,14 @@ namespace CRL.Core.RedisProvider
         /// <param name="channel"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public long Publish(string channel, string message)
+        public void Publish(string channel, params string[] messages)
         {
             ISubscriber sub = Instance.GetSubscriber();
             //return sub.Publish("messages", "hello");
-            return sub.Publish(channel, message);
+            foreach (var message in messages)
+            {
+                sub.Publish(channel, message);
+            }
         }
 
         /// <summary>

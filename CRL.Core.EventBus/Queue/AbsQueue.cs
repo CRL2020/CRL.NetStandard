@@ -11,8 +11,7 @@ namespace CRL.Core.EventBus.Queue
 
         public abstract void Dispose();
 
-        public abstract void Publish(string routingKey, object msg);
-        public abstract void Publish(string routingKey, IEnumerable<object> msgs);
+        public abstract void Publish<T>(string routingKey, params T[] msg);
         public abstract void Subscribe(EventDeclare eventDeclare);
         public abstract void SubscribeAsync(EventDeclare eventDeclare);
 

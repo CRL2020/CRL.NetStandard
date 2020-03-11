@@ -30,16 +30,15 @@ namespace CRL.Core.EventBus.Queue
             }
         }
 
-        public override void Publish(string routingKey, object msg)
+        public override void Publish<T>(string routingKey, params T[] msgs)
         {
             var name = $"CRL_QUEUE_{routingKey}";
             var coll = database.GetCollection<MongoData>(name);
-            coll.InsertOne(new MongoData { Data = msg.ToJson() });
-        }
-        public override void Publish(string routingKey, IEnumerable<object> msgs)
-        {
-            var name = $"CRL_QUEUE_{routingKey}";
-            var coll = database.GetCollection<MongoData>(name);
+            if (msgs.Length == 1)
+            {
+                coll.InsertOne(new MongoData() { Data = msgs.First().ToJson() });
+                return;
+            }
             var list = msgs.Select(b => new MongoData { Data = b.ToJson() });
             coll.InsertMany(list);
         }

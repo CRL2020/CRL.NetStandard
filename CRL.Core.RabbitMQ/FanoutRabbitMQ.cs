@@ -19,21 +19,12 @@ namespace CRL.Core.RabbitMQ
             __exchangeName = exchangeName;
             Log($"Fanout队列:初始化");
         }
-        public virtual void Publish(object msg)
-        {
-            if (!connection.IsOpen)
-            {
-                TryConnect();
-            }
-            using (var channel = connection.CreateModel())
-            {
-                channel.ExchangeDeclare(__exchangeName, ExchangeType.Fanout, false, false, null);
-                var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());
-                //发布消息
-                channel.BasicPublish(__exchangeName, "", __basicProperties, sendBytes);
-            }
-        }
 
+        public void Publish<T>(params T[] msgs)
+        {
+            BasePublish(ExchangeType.Fanout, "", msgs);
+
+        }
         public void BeginReceive<T>(Action<T, string> onReceive)
         {
             var channel = CreateConsumerChannel();

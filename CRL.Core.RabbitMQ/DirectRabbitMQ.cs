@@ -21,18 +21,9 @@ namespace CRL.Core.RabbitMQ
             __exchangeName = exchangeName;
             Log($"Direct队列:初始化");
         }
-        public void Publish(string routingKey, object msg)
+        public void Publish<T>(string routingKey, params T[] msgs)
         {
-            if (!connection.IsOpen)
-            {
-                TryConnect();
-            }
-            using (var channel = connection.CreateModel())
-            {
-                channel.ExchangeDeclare(__exchangeName, ExchangeType.Direct, false, false, null);
-                var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());
-                channel.BasicPublish(__exchangeName, routingKey, __basicProperties, sendBytes);
-            }
+            BasePublish(ExchangeType.Direct, routingKey, msgs);
         }
 
         public void BeginReceive<T>(string queueName, string routingKey, Action<T,string> onReceive)

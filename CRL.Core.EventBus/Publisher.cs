@@ -2,13 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CRL.Core.EventBus
 {
     public interface IPublisher
     {
-        void Publish<T>(string queueName, T msg);
-        void Publish<T>(string queueName, IEnumerable<T> msgs);
+        void Publish<T>(string name, params T[] msgs);
+        Task PublishAsync<T>(string name, params T[] msgs);
     }
     public class Publisher : IPublisher, IDisposable
     {
@@ -23,14 +24,14 @@ namespace CRL.Core.EventBus
             queue.Dispose();
         }
 
-        public void Publish<T>(string name, T msg)
+        public void Publish<T>(string name, params T[] msgs)
         {
-            queue.Publish(name, msg);
+            queue.Publish(name, msgs);
         }
-
-        public void Publish<T>(string queueName, IEnumerable<T> msgs)
+        public Task PublishAsync<T>(string name, params T[] msgs)
         {
-            queue.Publish(queueName, msgs);
+            Publish(name, msgs);
+            return Task.FromResult(true);
         }
     }
 }

@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CRL.Core.Extension;
+using System.Threading;
+using System.Collections.Concurrent;
+
 namespace CRL.Core.RabbitMQ
 {
     //https://www.cnblogs.com/sheng-jie/p/7192690.html
@@ -88,6 +91,29 @@ namespace CRL.Core.RabbitMQ
             CRL.Core.EventLog.Log(msg, "RabbitMQ");
         }
 
+        protected void BasePublish<T>(string exchangeType, string routingKey, params T[] msgs)
+        {
+            var channel = RentChannel();
+            try
+            {
+                channel.ExchangeDeclare(__exchangeName, exchangeType, false, false, null);
+                foreach (var msg in msgs)
+                {
+                    var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());
+                    channel.BasicPublish(__exchangeName, routingKey, __basicProperties, sendBytes);
+                }
+            }
+            catch (Exception ero)
+            {
+                throw ero;
+            }
+            finally
+            {
+                ReturnChannel(channel);
+            }
+        }
+
+
         protected void BaseBeginReceive<T>(IModel channel, string queueName, Action<T,string> onReceive)
         {
             BaseBeginReceiveString(channel, queueName, (msg,key) =>
@@ -147,13 +173,70 @@ namespace CRL.Core.RabbitMQ
             consumerChannels.Add(channel);
             return channel;
         }
+        #region pool
+        static readonly object SLock = new object();
+        ConcurrentQueue<IModel> _pool = new ConcurrentQueue<IModel>();
+        int _count;
+        int _maxSize = 20;
+        IModel RentChannel()
+        {
+            lock (SLock)
+            {
+                while (_count > _maxSize)
+                {
+                    Thread.SpinWait(1);
+                }
+                return RentBaseChannel();
+            }
+        }
+        IModel RentBaseChannel()
+        {
+            if (_pool.TryDequeue(out var model))
+            {
+                Interlocked.Decrement(ref _count);
+
+                return model;
+            }
+            if (!connection.IsOpen)
+            {
+                TryConnect();
+            }
+            try
+            {
+                model = connection.CreateModel();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("connection.CreateModel时发生错误:" + e.Message);
+            }
+
+            return model;
+        }
+        bool ReturnChannel(IModel connection)
+        {
+            if (Interlocked.Increment(ref _count) <= _maxSize)
+            {
+                _pool.Enqueue(connection);
+
+                return true;
+            }
+
+            Interlocked.Decrement(ref _count);
+            return false;
+        }
+        #endregion
         public void Dispose()
         {
             foreach(var c in consumerChannels)
             {
                 c?.Dispose();
             }
- 
+            _maxSize = 0;
+
+            while (_pool.TryDequeue(out var channel))
+            {
+                channel.Dispose();
+            }
             connection?.Dispose();
         }
     }

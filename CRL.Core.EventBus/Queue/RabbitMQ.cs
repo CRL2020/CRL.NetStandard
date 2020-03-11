@@ -18,20 +18,13 @@ namespace CRL.Core.EventBus.Queue
             _queueConfig = queueConfig;
             client = new Core.RabbitMQ.DirectRabbitMQ(queueConfig.Host, queueConfig.User, queueConfig.Pass, exchangeName, async);
         }
-        public override void Publish(string routingKey, object msg)
+        public override void Publish<T>(string routingKey, params T[] msgs)
         {
             if (string.IsNullOrEmpty(routingKey))
             {
-                routingKey = msg.GetType().Name;
+                routingKey = msgs.First().GetType().Name;
             }
-            client.Publish(routingKey, msg);
-        }
-        public override void Publish(string routingKey, IEnumerable<object> msgs)
-        {
-            foreach (var msg in msgs)
-            {
-                Publish(routingKey, msg);
-            }
+            client.Publish(routingKey, msgs);
         }
 
         public override void Subscribe(EventDeclare eventDeclare)
