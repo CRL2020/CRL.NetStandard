@@ -1,78 +1,38 @@
-/**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
-*/
-using CRL.LambdaQuery;
+﻿using CRL.LambdaQuery;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CRL.Set
 {
-    public interface IDbSet
+    public abstract class IDbSet
     {
-        void Save();
+        internal abstract void Save();
+        internal abstract bool PackageTrans(TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted);
     }
+
     /// <summary>
-    /// DbSet结构,增强对象关联性
+    /// DbSet
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DbSet<T>: IDbSet where T : IModel, new()
+    public sealed class DbSet<T> : IDbSet where T : IModel, new()
     {
         #region inner
-        class DbSetProvider: BaseProvider<T>
+        class DbSetProvider : BaseProvider<T>
         {
-            //重写了GetLambdaQuery,与关联条件保持一致
-            Expression<Func<T, bool>> relationExpression;
-            public DbSetProvider(Expression<Func<T, bool>> expression)
+            public override string ManageName => _manageName;
+            string _manageName;
+            public DbSetProvider(string manageName)
             {
-                relationExpression = expression;
-            }
-            public override ILambdaQuery<T> GetLambdaQuery()
-            {
-                return base.GetLambdaQuery().Where(relationExpression);
+                _manageName = manageName;
             }
         }
         #endregion
-        internal object mainValue = null;
-
-        Expression<Func<T, bool>> _relationExp;
-        string memberName;
-        internal DbSet(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null)
+        public DbSet(string manageName)
         {
-            mainValue = key;
-            MemberExpression relationExpression;
-            var parameterExpression = member.Parameters.ToArray();
-            if (member.Body is UnaryExpression)
-            {
-                relationExpression = ((UnaryExpression)member.Body).Operand as MemberExpression;
-            }
-            else
-            {
-                relationExpression = member.Body as MemberExpression;
-            }
-            if (relationExpression == null)
-            {
-                throw new CRLException("member 不为 MemberExpression");
-            }
-            memberName = relationExpression.Member.Name;
-            var constant = Expression.Constant(mainValue);
-            var body = Expression.Equal(relationExpression, constant);
-            _relationExp = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
-            if (expression != null)
-            {
-                _relationExp = _relationExp.AndAlso(expression);
-            }
-            _BaseProvider = new DbSetProvider(_relationExp);
+            _BaseProvider = new DbSetProvider(manageName);
         }
-
         BaseProvider<T> _BaseProvider;
         /// <summary>
         /// 返回BaseProvider
@@ -92,16 +52,6 @@ namespace CRL.Set
             return _BaseProvider.GetLambdaQuery();
         }
         /// <summary>
-        /// 分页
-        /// </summary>
-        /// <param name="pageSize"></param>
-        /// <param name="pageIndex"></param>
-        /// <returns></returns>
-        public LambdaQuery<T> Page(int pageSize, int pageIndex)
-        {
-            return GetQuery().Page(pageSize, pageIndex);
-        }
-        /// <summary>
         /// 返回所有
         /// </summary>
         /// <returns></returns>
@@ -114,7 +64,7 @@ namespace CRL.Set
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public List<T> Where(Expression<Func<T, bool>> expression)
+        public List<T> FindAll(Expression<Func<T, bool>> expression)
         {
             return GetQuery().Where(expression).ToList();
         }
@@ -153,28 +103,21 @@ namespace CRL.Set
         /// <summary>
         /// 保存更改
         /// </summary>
-        public void Save()
+        internal override void Save()
         {
             _BaseProvider.Add(addObjs);
-            foreach(var item in removeObjs)
+            foreach (var item in removeObjs)
             {
                 _BaseProvider.Delete(item);
             }
-            foreach (var item in updateObjs)
-            {
-                _BaseProvider.Update(item);
-            }
+            _BaseProvider.Update(updateObjs);
             addObjs.Clear();
             removeObjs.Clear();
             updateObjs.Clear();
         }
-        /// <summary>
-        /// 删除所有
-        /// </summary>
-        /// <returns></returns>
-        public int RemoveAll()
+        internal override bool PackageTrans(TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted)
         {
-            return _BaseProvider.Delete(_relationExp);
+            return _BaseProvider.PackageTrans(method, out error, isolationLevel);
         }
         /// <summary>
         /// 更改
@@ -189,11 +132,11 @@ namespace CRL.Set
         #region 函数
         public TType Sum<TType>(Expression<Func<T, bool>> expression, Expression<Func<T, TType>> field, bool compileSp = false)
         {
-            return _BaseProvider.Sum(expression,field,compileSp);
+            return _BaseProvider.Sum(expression, field, compileSp);
         }
         public int Count(Expression<Func<T, bool>> expression, bool compileSp = false)
         {
-            return _BaseProvider.Count(expression, compileSp);    
+            return _BaseProvider.Count(expression, compileSp);
         }
         #endregion
     }

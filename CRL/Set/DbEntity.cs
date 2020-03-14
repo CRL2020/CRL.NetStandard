@@ -15,13 +15,19 @@ using System.Threading.Tasks;
 
 namespace CRL.Set
 {
-    public class EntityRelation<T> where T : IModel, new()
+    /// <summary>
+    /// 对象关联
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class DbEntity<T> where T : IModel, new()
     {
         internal object mainValue = null;
 
         Expression<Func<T, bool>> _relationExp;
-        internal EntityRelation(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null)
+        string _manageName;
+        internal DbEntity(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null,string manageName = "")
         {
+            _manageName = manageName;
             mainValue = key;
             Expression relationExpression;
             var parameterExpression = member.Parameters.ToArray();
@@ -41,12 +47,13 @@ namespace CRL.Set
                 _relationExp = _relationExp.AndAlso(expression);
             }
         }
-        DbContext getDbContext()
+        AbsDBExtend getAbsDBExtend()
         {
-            var dbLocation = new CRL.DBLocation() { DataAccessType = DataAccessType.Read, ManageType = typeof(T) };
+            var dbLocation = new CRL.DBLocation() { DataAccessType = DataAccessType.Default, ManageType = typeof(T), ManageName = _manageName };
             var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
             var dbContext = new DbContext(helper, dbLocation);
-            return dbContext;
+            var db = DBExtendFactory.CreateDBExtend(dbContext);
+            return db;
         }
         /// <summary>
         /// 获取当前值
@@ -56,8 +63,7 @@ namespace CRL.Set
         {
             get
             {
-                var dbContext = getDbContext();
-                var db = DBExtendFactory.CreateDBExtend(dbContext);
+                var db = getAbsDBExtend();
                 var item = db.QueryItem(_relationExp);
                 return item;
             } 

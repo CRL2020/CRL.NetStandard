@@ -14,6 +14,7 @@ using System.Dynamic;
 using CRL.Set;
 using System.Runtime.Serialization;
 using CRL.Core;
+using System.Linq.Expressions;
 
 namespace CRL
 {
@@ -57,7 +58,7 @@ namespace CRL
         }
         internal bool FromCache;
         #region 外关联
-        internal Dictionary<Type, object> _DbSets;
+        internal Dictionary<Type, object> _DbSets = new Dictionary<Type, object>();
         /// <summary>
         /// 创建一对多关联
         /// </summary>
@@ -66,22 +67,18 @@ namespace CRL
         /// <param name="key">member=key</param>
         /// <param name="expression">补充条件</param>
         /// <returns></returns>
-        protected DbSet<T> GetDbSet<T>(System.Linq.Expressions.Expression<Func<T, object>> member, object key, System.Linq.Expressions.Expression<Func<T, bool>> expression = null) where T : IModel, new()
+        protected DbEntities<T> IncludeMany<T>(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null) where T : IModel, new()
         {
             if (FromCache)//当是缓存时
             {
-                return new DbSet<T>(member, key);
+                return new DbEntities<T>(member, key, expression);
             }
             var type = typeof(T);
-            if (_DbSets == null)
-            {
-                _DbSets = new Dictionary<Type, object>();
-            }
             if (_DbSets.ContainsKey(type))//当expression不为空时,会产生冲突
             {
-                return _DbSets[type] as DbSet<T>;
+                return _DbSets[type] as DbEntities<T>;
             }
-            var set = new DbSet<T>(member, key);
+            var set = new DbEntities<T>(member, key, expression, ManageName);
             _DbSets.Add(type, set);
             return set;
         }
@@ -94,22 +91,10 @@ namespace CRL
         /// <param name="key">member=key</param>
         /// <param name="expression">补充条件</param>
         /// <returns></returns>
-        protected EntityRelation<T> GetEntityRelation<T>(System.Linq.Expressions.Expression<Func<T, object>> member, object key, System.Linq.Expressions.Expression<Func<T, bool>> expression = null) where T : IModel, new()
+        protected DbEntity<T> IncludeOne<T>(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null) where T : IModel, new()
         {
-            return new EntityRelation<T>(member, key, expression);
+            return new DbEntity<T>(member, key, expression,ManageName);
         }
-        //public void SaveChanges()
-        //{
-        //    if (_DbSets == null)
-        //    {
-        //        return;
-        //    }
-        //    foreach(var kv in _DbSets)
-        //    {
-        //        var set = kv.Value as IDbSet;
-        //        set.Save();
-        //    }
-        //}
         #endregion
         #region 方法重写
         /// <summary>
