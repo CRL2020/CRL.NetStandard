@@ -21,52 +21,31 @@ namespace CRL.Set
     /// <typeparam name="T"></typeparam>
     public class DbEntity<T> where T : IModel, new()
     {
-        internal object mainValue = null;
-
         Expression<Func<T, bool>> _relationExp;
-        string _manageName;
-        internal DbEntity(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null,string manageName = "")
+        DbContext _dbContext;
+        internal DbEntity(DbContext dbContext, Expression<Func<T, bool>> relationExp)
         {
-            _manageName = manageName;
-            mainValue = key;
-            Expression relationExpression;
-            var parameterExpression = member.Parameters.ToArray();
-            if (member.Body is UnaryExpression)
-            {
-                relationExpression = ((UnaryExpression)member.Body).Operand;
-            }
-            else
-            {
-                relationExpression = member.Body;
-            }
-            var constant = Expression.Constant(mainValue);
-            var body = Expression.Equal(relationExpression, constant);
-            _relationExp = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
-            if (expression != null)
-            {
-                _relationExp = _relationExp.AndAlso(expression);
-            }
+            _dbContext = dbContext;
+            _relationExp = relationExp;
         }
         AbsDBExtend getAbsDBExtend()
         {
-            var dbLocation = new CRL.DBLocation() { DataAccessType = DataAccessType.Default, ManageType = typeof(T), ManageName = _manageName };
-            var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
-            var dbContext = new DbContext(helper, dbLocation);
-            var db = DBExtendFactory.CreateDBExtend(dbContext);
+            if (_dbContext == null)
+            {
+                CRLException.Throw("_dbContext为空");
+            }
+            var db = DBExtendFactory.CreateDBExtend(_dbContext);
             return db;
         }
         /// <summary>
         /// 获取当前值
         /// </summary>
         /// <returns></returns>
-        public T Value
+        public T GetValue()
         {
-            get
-            {
-                var db = getAbsDBExtend();
-                var item = db.QueryItem(_relationExp);
-                return item;
-            } 
+            var db = getAbsDBExtend();
+            var item = db.QueryItem(_relationExp);
+            return item;
         }
     }
 }

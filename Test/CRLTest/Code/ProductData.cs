@@ -77,6 +77,11 @@ namespace CRLTest.Code
             get;
             set;
         }
+        public string OrderId
+        {
+            get;
+            set;
+        }
         public DateTime? Date2
         {
             get;

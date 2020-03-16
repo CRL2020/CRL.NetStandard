@@ -753,7 +753,7 @@ namespace CRL
             var list = QueryOrFromCache<TModel>(query, out key);
             list.ForEach(b =>
             {
-                b.ManageName = dbContext.DBLocation.ManageName;
+                b.DbContext = dbContext;
             });
             return list;
         }

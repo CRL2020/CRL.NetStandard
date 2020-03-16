@@ -58,42 +58,72 @@ namespace CRL
         }
         internal bool FromCache;
         #region 外关联
-        internal Dictionary<Type, object> _DbSets = new Dictionary<Type, object>();
+
         /// <summary>
         /// 创建一对多关联
         /// </summary>
-        /// <typeparam name="T">关联对象</typeparam>
-        /// <param name="member"></param>
-        /// <param name="key">member=key</param>
-        /// <param name="expression">补充条件</param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TJoin"></typeparam>
+        /// <param name="expression"></param>
         /// <returns></returns>
-        protected DbEntities<T> IncludeMany<T>(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null) where T : IModel, new()
+        protected DbEntities<TJoin> IncludeMany<T, TJoin>(Expression<Func<T, TJoin,bool>> expression) where T : IModel, new()
+            where TJoin : IModel, new()
         {
+            var type = typeof(TJoin);
+            var name = $"ents_{type}_{GetpPrimaryKeyValue()}";
+            var a = DbContext._DbSets.TryGetValue(name, out IDbSet set2);
+            if (a)
+            {
+                return set2 as DbEntities<TJoin>;
+            }
             if (FromCache)//当是缓存时
             {
-                return new DbEntities<T>(member, key, expression);
+                CRLException.Throw("缓存对象不能调用");
             }
-            var type = typeof(T);
-            if (_DbSets.ContainsKey(type))//当expression不为空时,会产生冲突
-            {
-                return _DbSets[type] as DbEntities<T>;
-            }
-            var set = new DbEntities<T>(member, key, expression, ManageName);
-            _DbSets.Add(type, set);
+            var _relationExp = CreaterelationExp(expression);
+
+            var set = new DbEntities<TJoin>(name, DbContext, _relationExp);
+            //DbContext._DbSets.Add(name, set);
             return set;
+        }
+        Expression<Func<TJoin, bool>> CreaterelationExp<T, TJoin>(Expression<Func<T, TJoin, bool>> expression)
+        {
+            var type = typeof(TJoin);
+            var be = (BinaryExpression)expression.Body;
+            var left = (MemberExpression)be.Left;
+            var right = (MemberExpression)be.Right;
+            MemberExpression relationExpression;
+            object relationValue;
+            if (left.Member.DeclaringType == typeof(T))
+            {
+                relationExpression = right;
+                relationValue = TypeCache.GetTable(left.Member.DeclaringType).FieldsDic[left.Member.Name].GetValue(this);
+            }
+            else
+            {
+                relationExpression = left;
+                relationValue = TypeCache.GetTable(right.Member.DeclaringType).FieldsDic[right.Member.Name].GetValue(this);
+            }
+
+            var parameterExpression = Expression.Parameter(type, "b");
+
+            var constant = Expression.Constant(relationValue);
+            var body = Expression.Equal(relationExpression, constant);
+            var _relationExp = Expression.Lambda<Func<TJoin, bool>>(body, parameterExpression);
+            return _relationExp;
         }
         /// <summary>
         /// 创建一对一关联
-        /// 在循环内调用会多次调用数据库
         /// </summary>
-        /// <typeparam name="T">关联对象</typeparam>
-        /// <param name="member"></param>
-        /// <param name="key">member=key</param>
-        /// <param name="expression">补充条件</param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TJoin"></typeparam>
+        /// <param name="expression"></param>
         /// <returns></returns>
-        protected DbEntity<T> IncludeOne<T>(Expression<Func<T, object>> member, object key, Expression<Func<T, bool>> expression = null) where T : IModel, new()
+        protected DbEntity<TJoin> IncludeOne<T, TJoin>(Expression<Func<T, TJoin, bool>> expression) where T : IModel, new()
+            where TJoin : IModel, new()
         {
-            return new DbEntity<T>(member, key, expression,ManageName);
+            var _relationExp = CreaterelationExp(expression);
+            return new DbEntity<TJoin>(DbContext, _relationExp);
         }
         #endregion
         #region 方法重写
@@ -171,7 +201,8 @@ namespace CRL
             Changes = new ParameCollection();
         }
 
-        internal string ManageName;
+        //internal string ManageName;
+        internal DbContext DbContext;
         #region 索引
 
         [System.Xml.Serialization.XmlIgnore]

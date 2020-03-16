@@ -22,8 +22,8 @@ namespace CRLTest.Code
         protected override System.Collections.IList GetInitData()
         {
             var list = new List<Order>();
-            list.Add(new Order() { UserId = 1, OrderId = "123" });
-            list.Add(new Order() { UserId = 2, OrderId = "456" });
+            list.Add(new Order() { UserId = 1, OrderId = "123", ProductId = 1 });
+            list.Add(new Order() { UserId = 2, OrderId = "456", ProductId = 1 });
             return list;
         }
         #region 关联
@@ -31,14 +31,14 @@ namespace CRLTest.Code
         {
             get
             {
-                return IncludeMany<ProductData>(b => b.Id, ProductId);
+                return IncludeMany<Order, ProductData>((a, b) => a.OrderId == b.OrderId);
             }
         }
         public DbEntity<Member> Member
         {
             get
             {
-                return IncludeOne<Member>(b => b.Id, UserId);
+                return IncludeOne<Order, Member>((a, b) => a.UserId == b.Id);
             }
         }
         #endregion

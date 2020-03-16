@@ -35,5 +35,9 @@ namespace CRL
             : base(message, innerException)
         {
         }
+        public static void Throw(string msg)
+        {
+            throw new CRLException(msg);
+        }
     }
 }

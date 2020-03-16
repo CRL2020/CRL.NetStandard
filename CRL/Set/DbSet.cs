@@ -9,55 +9,82 @@ namespace CRL.Set
     public abstract class IDbSet
     {
         internal abstract void Save();
-        internal abstract bool PackageTrans(TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted);
+        //internal abstract bool PackageTrans(TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted);
     }
 
     /// <summary>
     /// DbSet
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class DbSet<T> : IDbSet where T : IModel, new()
+    public class DbSet<T> : IDbSet where T : IModel, new()
     {
-        #region inner
-        class DbSetProvider : BaseProvider<T>
+        //#region inner
+        //class DbSetProvider : BaseProvider<T>
+        //{
+        //    public override string ManageName => _manageName;
+        //    string _manageName;
+        //    public DbSetProvider(string manageName)
+        //    {
+        //        _manageName = manageName;
+        //    }
+        //}
+        //#endregion
+        internal DbContext _dbContext;
+        internal Expression<Func<T, bool>> _relationExp = null;
+        public DbSet(string name, DbContext dbContext)
         {
-            public override string ManageName => _manageName;
-            string _manageName;
-            public DbSetProvider(string manageName)
+            _dbContext = dbContext;
+            _dbContext._DbSets.Add(name, this);
+        }
+        //BaseProvider<T> _BaseProvider;
+        //BaseProvider<T> BaseProvider
+        //{
+        //    get
+        //    {
+        //        if (_BaseProvider == null)
+        //        {
+        //            _BaseProvider = new DbSetProvider(_dbContext.DBLocation.ManageName);
+        //        }
+        //        return _BaseProvider;
+        //    }
+        //}
+        ///// <summary>
+        ///// 返回BaseProvider
+        ///// </summary>
+        ///// <returns></returns>
+        //public BaseProvider<T> GetProvider()
+        //{
+        //    return BaseProvider;
+        //}
+
+        ///// <summary>
+        ///// 获取查询表达式
+        ///// </summary>
+        ///// <returns></returns>
+        //public ILambdaQuery<T> GetQuery()
+        //{
+        //    return BaseProvider.GetLambdaQuery();
+        //}
+
+        AbsDBExtend getAbsDBExtend()
+        {
+            if (_dbContext == null)
             {
-                _manageName = manageName;
+                CRLException.Throw("_dbContext为空");
             }
-        }
-        #endregion
-        public DbSet(string manageName)
-        {
-            _BaseProvider = new DbSetProvider(manageName);
-        }
-        BaseProvider<T> _BaseProvider;
-        /// <summary>
-        /// 返回BaseProvider
-        /// </summary>
-        /// <returns></returns>
-        public BaseProvider<T> GetProvider()
-        {
-            return _BaseProvider;
+            var db = DBExtendFactory.CreateDBExtend(_dbContext);
+            return db;
         }
 
-        /// <summary>
-        /// 获取查询表达式
-        /// </summary>
-        /// <returns></returns>
-        public ILambdaQuery<T> GetQuery()
-        {
-            return _BaseProvider.GetLambdaQuery();
-        }
         /// <summary>
         /// 返回所有
         /// </summary>
         /// <returns></returns>
-        public List<T> ToList()
+        public List<T> All()
         {
-            return GetQuery().ToList();
+            var db = getAbsDBExtend();
+            return db.QueryList(_relationExp);
+            //return GetQuery().ToList();
         }
         /// <summary>
         /// 按条件返回
@@ -66,20 +93,31 @@ namespace CRL.Set
         /// <returns></returns>
         public List<T> FindAll(Expression<Func<T, bool>> expression)
         {
-            return GetQuery().Where(expression).ToList();
+            var db = getAbsDBExtend();
+            return db.QueryList(_relationExp.AndAlso(expression));
+            //return GetQuery().Where(expression).ToList();
         }
+        public T Find(Expression<Func<T, bool>> expression)
+        {
+            var db = getAbsDBExtend();
+            return db.QueryItem(_relationExp.AndAlso(expression));
+        }
+
         /// <summary>
         /// 查找一个
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T Find(object id)
+        public T FindById(object id)
         {
-            return _BaseProvider.QueryItem(id);
+            var db = getAbsDBExtend();
+            return db.QueryItem<T>(id);
+            //return BaseProvider.QueryItem(id);
         }
-        internal List<T> addObjs = new List<T>();
-        internal List<T> removeObjs = new List<T>();
-        internal List<T> updateObjs = new List<T>();
+        #region crud
+        internal List<T> addObjs;
+        internal List<T> removeObjs;
+        internal List<T> updateObjs;
         /// <summary>
         /// 添加
         /// 需调用Save保存更改
@@ -87,8 +125,8 @@ namespace CRL.Set
         /// <param name="item"></param>
         public void Add(T item)
         {
+            addObjs = addObjs ?? new List<T>();
             addObjs.Add(item);
-            //_BaseProvider.Add(item);
         }
         /// <summary>
         /// 删除一项
@@ -97,27 +135,8 @@ namespace CRL.Set
         /// <param name="item"></param>
         public void Remove(T item)
         {
+            removeObjs = removeObjs ?? new List<T>();
             removeObjs.Add(item);
-            //return _BaseProvider.Delete(item);
-        }
-        /// <summary>
-        /// 保存更改
-        /// </summary>
-        internal override void Save()
-        {
-            _BaseProvider.Add(addObjs);
-            foreach (var item in removeObjs)
-            {
-                _BaseProvider.Delete(item);
-            }
-            _BaseProvider.Update(updateObjs);
-            addObjs.Clear();
-            removeObjs.Clear();
-            updateObjs.Clear();
-        }
-        internal override bool PackageTrans(TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted)
-        {
-            return _BaseProvider.PackageTrans(method, out error, isolationLevel);
         }
         /// <summary>
         /// 更改
@@ -126,17 +145,59 @@ namespace CRL.Set
         /// <param name="item"></param>
         public void Update(T item)
         {
+            updateObjs = updateObjs ?? new List<T>();
             updateObjs.Add(item);
-            //return _BaseProvider.Update(item);
         }
+        /// <summary>
+        /// 保存更改
+        /// </summary>
+        internal override void Save()
+        {
+            var db = getAbsDBExtend();
+            if (addObjs != null)
+            {
+                if (addObjs.Count == 1)
+                {
+                    db.InsertFromObj(addObjs[0]);
+                }
+                else
+                {
+                    db.BatchInsert(addObjs);
+                }
+            }
+            if (removeObjs != null)
+            {
+                foreach (var item in removeObjs)
+                {
+                    db.Delete<T>(item);
+                }
+            }
+            if(updateObjs!=null)
+            {
+                db.Update(updateObjs);
+            }
+
+            addObjs?.Clear();
+            removeObjs?.Clear();
+            updateObjs?.Clear();
+        }
+        //internal override bool PackageTrans(TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted)
+        //{
+        //    return BaseProvider.PackageTrans(method, out error, isolationLevel);
+        //}
+
+        #endregion
+
         #region 函数
-        public TType Sum<TType>(Expression<Func<T, bool>> expression, Expression<Func<T, TType>> field, bool compileSp = false)
+        public TType Sum<TType>(Expression<Func<T, bool>> expression, Expression<Func<T, TType>> field)
         {
-            return _BaseProvider.Sum(expression, field, compileSp);
+            var db = getAbsDBExtend();
+            return db.Sum(_relationExp.AndAlso(expression), field);
         }
-        public int Count(Expression<Func<T, bool>> expression, bool compileSp = false)
+        public int Count(Expression<Func<T, bool>> expression = null)
         {
-            return _BaseProvider.Count(expression, compileSp);
+            var db = getAbsDBExtend();
+            return db.Count(_relationExp.AndAlso(expression));
         }
         #endregion
     }

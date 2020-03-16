@@ -198,6 +198,10 @@ namespace CRL.DBExtend.RelationDB
         }
         public override int Update<TModel>(List<TModel> objs)
         {
+            if(!objs.Any())
+            {
+                return 0;
+            }
             var table = TypeCache.GetTable(typeof(TModel));
             var primaryKey = table.PrimaryKey;
             int index = 0;

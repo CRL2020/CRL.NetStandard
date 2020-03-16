@@ -58,6 +58,7 @@ namespace CRL
             var helper = SettingConfig.GetDBAccessBuild(DBLocation).GetDBHelper();
             return helper;
         }
+        internal Dictionary<string, Set.IDbSet> _DbSets = new Dictionary<string, Set.IDbSet>();
     }
     /// <summary>
     /// 数据访问类型

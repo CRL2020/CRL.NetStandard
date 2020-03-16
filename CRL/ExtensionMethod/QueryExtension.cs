@@ -41,13 +41,13 @@ namespace CRL
             var db = DBExtendFactory.CreateDBExtend(query.__DbContext);
             return db.Update(query, updateValue);
         }
-        static DbContext getDbContext<T>(string manageName)
-        {
-            var dbLocation = new CRL.DBLocation() { DataAccessType = DataAccessType.Default, ManageType = typeof(T), ManageName = manageName };
-            var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
-            var dbContext = new DbContext(helper, dbLocation);
-            return dbContext;
-        }
+        //static DbContext getDbContext<T>(string manageName)
+        //{
+        //    var dbLocation = new CRL.DBLocation() { DataAccessType = DataAccessType.Default, ManageType = typeof(T), ManageName = manageName };
+        //    var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
+        //    var dbContext = new DbContext(helper, dbLocation);
+        //    return dbContext;
+        //}
         /// <summary>
         /// 保存更改
         /// </summary>
@@ -56,9 +56,9 @@ namespace CRL
         /// <returns></returns>
         public static int Save<T>(this T obj) where T : IModel, new()
         {
-            obj.CheckNull("obj");
-            var dbContext = getDbContext<T>(obj.ManageName);
-            var db = DBExtendFactory.CreateDBExtend(dbContext);
+            obj.DbContext.CheckNull("DbContext");
+            //var dbContext = getDbContext<T>(obj.DbContext.DBLocation.ManageName);
+            var db = DBExtendFactory.CreateDBExtend(obj.DbContext);
             return db.Update(obj);
         }
         /// <summary>
@@ -69,9 +69,9 @@ namespace CRL
         /// <returns></returns>
         public static int Delete<T>(this T obj) where T : IModel, new()
         {
-            obj.CheckNull("obj");
-            var dbContext = getDbContext<T>(obj.ManageName);
-            var db = DBExtendFactory.CreateDBExtend(dbContext);
+            obj.DbContext.CheckNull("DbContext");
+            //var dbContext = getDbContext<T>(obj.DbContext.DBLocation.ManageName);
+            var db = DBExtendFactory.CreateDBExtend(obj.DbContext);
             return db.Delete<T>(obj.GetpPrimaryKeyValue());
         }
     }
