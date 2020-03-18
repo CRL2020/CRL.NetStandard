@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.Core" Version="2.27.0" />
+    <!--<PackageReference Include="Grpc.Net.Client" Version="2.27.0" />-->
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CRL.Core\CRL.Core.csproj" />
+  </ItemGroup>
+</Project>

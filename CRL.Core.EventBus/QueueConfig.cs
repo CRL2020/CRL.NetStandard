@@ -12,8 +12,12 @@ namespace CRL.Core.EventBus
     }
     public class QueueConfig
     {
-        static QueueConfig Instance;
-        public static void UseRabbitMQ(string host,string user,string pass)
+        public static QueueConfig Instance;
+        static QueueConfig()
+        {
+            Instance = new QueueConfig();
+        }
+        public void UseRabbitMQ(string host,string user,string pass)
         {
             var config = new QueueConfig()
             {
@@ -24,7 +28,7 @@ namespace CRL.Core.EventBus
             };
             Instance = config;
         }
-        public static void UseRedis(string conn)
+        public void UseRedis(string conn)
         {
             var cb = new CRL.Core.ConfigBuilder();
             RedisProvider.Extension.UseRedis(cb, conn);
@@ -33,7 +37,7 @@ namespace CRL.Core.EventBus
             config.MQType = MQType.Redis;
             Instance = config;
         }
-        public static void UseMongoDb(string conn)
+        public void UseMongoDb(string conn)
         {
             var cb = new CRL.Core.ConfigBuilder();
             var config = new QueueConfig();

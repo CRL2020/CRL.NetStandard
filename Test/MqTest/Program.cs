@@ -13,7 +13,7 @@ namespace MqTest
         {
             //QueueConfig.UseRabbitMQ("127.0.0.1", "test", "test");
             //QueueConfig.UseRedis("Server_204@127.0.0.1:6389");
-            QueueConfig.UseMongoDb("mongodb://test:test@127.0.0.1:27017/test");
+            QueueConfig.Instance.UseMongoDb("mongodb://test:test@127.0.0.1:27017/test");
             var client = new Publisher();
             SubscribeService.Register(System.Reflection.Assembly.GetAssembly(typeof(SubscribeTest)));
             SubscribeService.StartSubscribe();
