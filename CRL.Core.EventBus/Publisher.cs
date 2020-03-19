@@ -14,10 +14,17 @@ namespace CRL.Core.EventBus
     public class Publisher : IPublisher, IDisposable
     {
         AbsQueue queue;
-        public Publisher()
+#if NETSTANDARD
+        public Publisher(Microsoft.Extensions.Options.IOptions<QueueConfig> options)
         {
-            queue = QueueFactory.CreateClient(QueueConfig.GetConfig(), false);
+            queue = QueueFactory.CreateClient(options.Value, false);
         }
+#else
+        public Publisher(QueueConfig _queueConfig)
+        {
+            queue = QueueFactory.CreateClient(_queueConfig, false);
+        }
+#endif
 
         public void Dispose()
         {

@@ -56,7 +56,7 @@ namespace GrpcService1
                 }
             };
             //consulClient.DeregisterService(info.ID);
-            var a = consulClient.RegisterService(info);
+            //var a = consulClient.RegisterService(info);
 
         }
     }

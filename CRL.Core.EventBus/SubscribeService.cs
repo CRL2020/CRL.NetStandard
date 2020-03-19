@@ -12,12 +12,24 @@ namespace CRL.Core.EventBus
     public class SubscribeService
     {
         static Dictionary<string, EventDeclare> eventRegister = new Dictionary<string, EventDeclare>();
+        QueueConfig queueConfig;
+#if NETSTANDARD
+        public SubscribeService(Microsoft.Extensions.Options.IOptions<QueueConfig> options)
+        {
+            queueConfig = options.Value;
+        }
+#else
+        public SubscribeService(QueueConfig _queueConfig)
+        {
+            queueConfig = _queueConfig;
+        }
+#endif
         internal static EventDeclare GetEventDeclare(string name)
         {
             eventRegister.TryGetValue(name,out EventDeclare ed);
             return ed;
         }
-        public static void Register(params Assembly[] assemblies)
+        public void Register(params Assembly[] assemblies)
         {
             foreach (var assembyle in assemblies)
             {
@@ -28,7 +40,7 @@ namespace CRL.Core.EventBus
                 }
             }  
         }
-        public static void Register(Type type)
+        public void Register(Type type)
         {
             var atr = type.GetCustomAttribute(typeof(SubscribeAttribute));
             if (atr == null)
@@ -64,9 +76,9 @@ namespace CRL.Core.EventBus
         /// 启动订阅
         /// </summary>
         /// <param name="serviceInstanceCtor">core 传入服务实例化委托</param>
-        public static void StartSubscribe(Func<Type, object> serviceInstanceCtor = null)
+        public void StartSubscribe(Func<Type, object> serviceInstanceCtor = null)
         {
-            var queueConfig = QueueConfig.GetConfig();
+            //var queueConfig = QueueConfig.GetConfig();
             foreach (var ed in eventRegister.Values)
             {
                 var queue = QueueFactory.GetQueueClient(queueConfig, ed);
@@ -86,7 +98,7 @@ namespace CRL.Core.EventBus
                 }
             }
         }
-        static EventDeclare CreateEventDeclare(SubscribeAttribute attr, MethodInfo method)
+        EventDeclare CreateEventDeclare(SubscribeAttribute attr, MethodInfo method)
         {
             var key = attr?.Name;
             var func = Core.DynamicMethodHelper.CreateMethodInvoker(method);
@@ -117,7 +129,7 @@ namespace CRL.Core.EventBus
             return ed;
         }
 
-        public static void StopSubscribe()
+        public void StopSubscribe()
         {
             QueueFactory.DisposeAll();
         }
