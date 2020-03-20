@@ -11,6 +11,7 @@ namespace CRL.Core.ConsulClient
         //public string Name { get; set; }
         //public string CheckID { get; set; }
         public string Interval { get; set; }
+        public string Timeout { get; set; }
         //public string Notes {get;set; }
         public string DeregisterCriticalServiceAfter {get;set; }
         //public string Script {get;set; }
@@ -22,5 +23,8 @@ namespace CRL.Core.ConsulClient
         //public string TTL { get; set; }
         //public string ServiceID { get; set; }
         //public ServiceCheckStatus Status { get; set; }
+
+        public string GRPC { get; set; }
+        public bool GRPCUseTLS { get; set; }
     }
 }

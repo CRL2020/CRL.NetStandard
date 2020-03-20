@@ -27,7 +27,7 @@ namespace gRpcClient
             {
                 op.Host = "127.0.0.1";
                 op.Port = 50001;
-                //op.UseConsulDiscover("http://127.0.0.1:5000", "grpcServer");//使用consul服务发现
+                op.UseConsulDiscover("http://localhost:8500", "grpcServer");//使用consul服务发现
             });
 
             provider = services.BuildServiceProvider();
@@ -40,16 +40,19 @@ namespace gRpcClient
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
             var grpcConnect = provider.GetService<IGrpcConnect>();
+            //认证
+            //https://www.cnblogs.com/stulzq/p/11897628.html
+            var token = "";
+            var headers = new Metadata { { "Authorization", $"Bearer {token}" } };
+            grpcConnect.SetMetadata(headers);
 
             var pollyAttr = new CRL.Core.Remoting.PollyAttribute() { RetryCount = 3 };//polly策略
             var client = grpcConnect.GetClient<Greeter.GreeterClient>(pollyAttr);
 
-            //认证
-            //https://www.cnblogs.com/stulzq/p/11897628.html
-            var headers = new Metadata { { "Authorization", $"Bearer token" } };
+  
         label1:
             var reply = client.SayHello(
-                new HelloRequest { Name = "test" }, headers);
+                new HelloRequest { Name = "test" });
             Console.WriteLine("Greeter 服务返回数据: " + reply.Message);
 
             Console.ReadLine();

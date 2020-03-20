@@ -21,11 +21,14 @@ namespace CRL.Ocelot
         {
             return client.DeregisterService(serviceId);
         }
-
-        public Dictionary<string, ServiceInfo> GetAllServices()
+        public List<CatalogService> GetService(string serviceName, bool passingOnly)
         {
-            return client.GetAllServices();
+            return client.GetService(serviceName, passingOnly);
         }
+        //public Dictionary<string, ServiceInfo> GetAllServices()
+        //{
+        //    return client.GetAllServices();
+        //}
         [CRL.Core.Remoting.LoginPoint()]
         public bool Login(string name, string pass)
         {

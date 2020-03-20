@@ -71,8 +71,8 @@ namespace CRL.Core.Remoting
             //发现consul服务注册,返回服务地址
             __GetConsulAgent = () =>
             {
-                var serviceInfo = consulClient.GetServiceInfo(serviceName, cacheMinute);
-                return new HostAddress() { address = serviceInfo.Address, port = serviceInfo.Port };
+                var serviceInfo = consulClient.GetServiceInfo(serviceName,false, cacheMinute);
+                return new HostAddress() { address = serviceInfo.ServiceAddress, port = serviceInfo.ServicePort };
             };
         }
         /// <summary>
@@ -108,12 +108,12 @@ namespace CRL.Core.Remoting
                 throw new ArgumentNullException("gatewayUrl");
             }
             __GatewayUrl = gatewayUrl;
-            var gatewayClient = new ConsulClient.ConsulGateway(gatewayUrl);
+            var gatewayClient = new ConsulClient.Consul(""); gatewayClient.UseOcelotGatewayDiscover(gatewayUrl);
             __GetConsulAgent = () =>
             {
                 //使用真实服务地址
-                var serviceInfo = gatewayClient.GetServiceInfo(serviceName, cacheMinute);
-                return new HostAddress() { address = serviceInfo.Address, port = serviceInfo.Port };
+                var serviceInfo = gatewayClient.GetServiceInfo(serviceName,false, cacheMinute);
+                return new HostAddress() { address = serviceInfo.ServiceAddress, port = serviceInfo.ServicePort };
             };
         }
 

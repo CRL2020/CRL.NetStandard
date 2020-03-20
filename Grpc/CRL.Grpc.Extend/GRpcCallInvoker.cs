@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using CRL.Core.Remoting;
+using Grpc.Core;
 using Grpc.Core.Utils;
 using System;
 
@@ -7,9 +8,13 @@ namespace CRL.Grpc.Extend
     public class GRpcCallInvoker : CallInvoker
     {
         public readonly Func<Channel> Channel;
-        public GRpcCallInvoker(Func<Channel> channel)
+        Func<Metadata> metadata;
+        PollyAttribute _pollyAttribute;
+        public GRpcCallInvoker(PollyAttribute pollyAttribute, Func<Channel> channel, Func<Metadata> _metadata)
         {
-            Channel = GrpcPreconditions.CheckNotNull(channel); 
+            _pollyAttribute = pollyAttribute;
+            Channel = GrpcPreconditions.CheckNotNull(channel);
+            metadata = _metadata;
         }
 
         public override TResponse BlockingUnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string host, CallOptions options, TRequest request)
@@ -38,10 +43,32 @@ namespace CRL.Grpc.Extend
         }
 
         protected virtual CallInvocationDetails<TRequest, TResponse> CreateCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string host, CallOptions options)
-            where TRequest : class 
+            where TRequest : class
             where TResponse : class
         {
-            return new CallInvocationDetails<TRequest, TResponse>(Channel.Invoke(), method, host, options);
+            CallOptions options2;
+            //重写header
+            if (options.Headers != null)
+            {
+                options2 = options;
+            }
+            else
+            {
+                options2 = new CallOptions(metadata(), options.Deadline, options.CancellationToken);
+            }
+            var methodName = $"{method.ServiceName}_{method.Name}";
+            var pollyData = PollyExtension.Invoke(_pollyAttribute, () =>
+            {
+                var callRes = new CallInvocationDetails<TRequest, TResponse>(Channel.Invoke(), method, host, options2);
+                return new PollyExtension.PollyData<CallInvocationDetails<TRequest, TResponse>>() { Data = callRes };
+            }, $"{methodName}");
+            var response = pollyData.Data;
+            if (!string.IsNullOrEmpty(pollyData.Error))
+            {
+                throw new Exception(pollyData.Error);
+            }
+            return response;
+            //return new CallInvocationDetails<TRequest, TResponse>(Channel.Invoke(), method, host, options2);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace CRL.Grpc.Extend
     public interface IGrpcConnect: IDisposable
     {
         T GetClient<T>(PollyAttribute pollyAttr = null);
+        void SetMetadata(Metadata metadata);
     }
     /// <summary>
     /// gRPC扩展,支持consul服务发现,polly策略
@@ -39,13 +40,20 @@ namespace CRL.Grpc.Extend
             InitOptions();
         }
 #endif
+        bool firstCheck = true;
         void InitOptions()
         {
             if(_options.UseConsul)
             {
+                updateSerivceStatus();
                 threadWork = new Core.ThreadWork();
                 threadWork.Start("consulServiceCheck", () =>
                 {
+                    if (firstCheck)
+                    {
+                        firstCheck = false;
+                        return true;
+                    }
                     updateSerivceStatus();
                     return true;
                 }, 10);
@@ -63,14 +71,14 @@ namespace CRL.Grpc.Extend
         {
             var consulClient = new Core.ConsulClient.Consul(_options.ConsulUrl);
             //发现consul服务注册,返回服务地址
-            var allService = consulClient.GetAllServices().Values.ToList().FindAll(b => b.Service == _options.ConsulServiceName);
+            var allService = consulClient.GetService(_options.ConsulServiceName,true);
             foreach (var s in allService)
             {
-                var a = channelCache.TryGetValue(s.ID, out ChannelObj channel);
+                var a = channelCache.TryGetValue(s.ServiceID, out ChannelObj channel);
                 if (!a)
                 {
-                    var address = $"{s.Address}:{s.Port}";
-                    channelCache.TryAdd(s.ID, new ChannelObj() { channel = CreateChannel(address), expTime = DateTime.Now.AddMinutes(5) });
+                    var address = $"{s.ServiceAddress}:{s.ServicePort}";
+                    channelCache.TryAdd(s.ServiceID, new ChannelObj() { channel = CreateChannel(address), expTime = DateTime.Now.AddMinutes(5) });
                 }
                 else
                 {
@@ -109,7 +117,7 @@ namespace CRL.Grpc.Extend
             var list = channelCache.Values.ToArray();
             if (list.Count() == 0)
             {
-                throw new Exception("没有找到可用的注册服务");
+                throw new Exception($"没有找到可用的注册服务:{_options.ConsulServiceName}");
             }
             var k = rng.Next(list.Count());
             return list[k].channel;
@@ -130,25 +138,22 @@ namespace CRL.Grpc.Extend
             var a = instanceCache.TryGetValue(typeof(T), out object instance);
             if (!a)
             {
-                var grpcCallInvoker = new GRpcCallInvoker(() =>
-                {
-                    return getChannel();
-                });
-                var invoker = new ClientCallInvoker(pollyAttr, grpcCallInvoker, Interceptor);
-                instance = System.Activator.CreateInstance(typeof(T), invoker);
-                //if(Interceptor!=null)
-                //{
-                //    var invoker = channel.Intercept(Interceptor);
-                //    instance = System.Activator.CreateInstance(typeof(T), invoker);
-                //}
-                //else
-                //{
-                //    instance = System.Activator.CreateInstance(typeof(T), channel);
-                //}
-
+                var grpcCallInvoker = new GRpcCallInvoker(pollyAttr, () =>
+                 {
+                     return getChannel();
+                 }, () =>
+                 {
+                     return metadata;
+                 });
+                instance = System.Activator.CreateInstance(typeof(T), grpcCallInvoker);
                 instanceCache.TryAdd(typeof(T), instance);
             }
             return (T)instance;
+        }
+        Metadata metadata;
+        public void SetMetadata(Metadata _metadata)
+        {
+            metadata = _metadata;
         }
         public void Dispose()
         {

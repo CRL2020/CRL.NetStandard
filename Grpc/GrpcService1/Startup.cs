@@ -32,7 +32,7 @@ namespace GrpcService1
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<GreeterService>();
-
+                endpoints.MapGrpcService<HealthCheckService>();
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
@@ -40,7 +40,7 @@ namespace GrpcService1
             });
 
             //注册服务
-            var consulClient = new CRL.Core.ConsulClient.Consul("http://127.0.0.1:5000");
+            var consulClient = new CRL.Core.ConsulClient.Consul("http://localhost:8500");
             var info = new CRL.Core.ConsulClient.ServiceRegistrationInfo
             {
                 Address = "127.0.0.1",
@@ -50,13 +50,14 @@ namespace GrpcService1
                 Tags = new[] { "v1" },
                 Check = new CRL.Core.ConsulClient.CheckRegistrationInfo()
                 {
-                    HTTP = "http://localhost:50001",
+                    GRPC = "127.0.0.1:50001",
                     Interval = "10s",
+                    GRPCUseTLS = false,
                     DeregisterCriticalServiceAfter = "90m"
                 }
             };
-            //consulClient.DeregisterService(info.ID);
-            //var a = consulClient.RegisterService(info);
+            consulClient.DeregisterService(info.ID);
+            var a = consulClient.RegisterService(info);
 
         }
     }

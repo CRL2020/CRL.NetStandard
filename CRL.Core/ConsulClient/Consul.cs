@@ -7,14 +7,16 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CRL.Core.Extension;
+using consul = Consul.ConsulClient;
 namespace CRL.Core.ConsulClient
 {
     public interface IConsulService
     {
         bool RegisterService(ServiceRegistrationInfo service);
         bool DeregisterService(string serviceId);
-        Dictionary<string, ServiceInfo> GetAllServices();
+        //Dictionary<string, ServiceInfo> GetAllServices();
         bool Login(string name,string pass);
+        List<CatalogService> GetService(string serviceName, bool passingOnly);
     }
     public class Consul
     {
@@ -63,22 +65,37 @@ namespace CRL.Core.ConsulClient
             var url = $"/v1/agent/service/deregister/{serviceId}";
             return PutJson(path, null);
         }
-        /// <summary>
-        /// 获取所有服务
-        /// </summary>
-        /// <returns></returns>
-        public Dictionary<string, ServiceInfo> GetAllServices()
+        
+        public List<CatalogService> GetService(string serviceName, bool passingOnly)
         {
-            var url = _ocelotGateway ? $"{ConsulHost}/consul/GetAllServices" : $"{ConsulHost}/v1/agent/services";
-
-            //var url = $"{ConsulHost}/v1/agent/services";
+            if (!_ocelotGateway)
+            {
+                var client = new consul((cfg) =>
+                {
+                    var uriBuilder = new UriBuilder(ConsulHost);
+                    cfg.Address = uriBuilder.Uri;
+                });
+                var result = client.Health.Service(serviceName, "", passingOnly).Result;
+                if (result.StatusCode != HttpStatusCode.OK)
+                    throw new Exception($"无法获取consul服务注册,{result.StatusCode }");
+                return result.Response.Select(b => new CatalogService
+                {
+                    ServiceAddress = b.Service.Address,
+                    ServiceID = b.Service.ID,
+                    ServiceName = serviceName,
+                    ServicePort = b.Service.Port,
+                    ServiceMeta = b.Service.Meta,
+                    ServiceTags = b.Service.Tags
+                }).ToList();
+            }
+            var url = _ocelotGateway ? $"{ConsulHost}/consul/GetService?serviceName={serviceName}&passingOnly={passingOnly}" : $"{ConsulHost}/v1/catalog/service/{serviceName}";
             try
             {
                 var result = request.Get(url);
-                var services = result.ToObject<Dictionary<string, ServiceInfo>>();
+                var services = result.ToObject<List<CatalogService>>();
                 return services;
             }
-            catch(Exception ero)
+            catch (Exception ero)
             {
                 throw new Exception($"无法获取consul服务注册,{ero}");
             }
@@ -89,27 +106,26 @@ namespace CRL.Core.ConsulClient
         /// <param name="serviceName"></param>
         /// <param name="minute"></param>
         /// <returns></returns>
-        public ServiceInfo GetServiceInfo(string serviceName, double minute = 0)
+        public CatalogService GetServiceInfo(string serviceName, bool passingOnly = false, double minute = 0)
         {
-            Dictionary<string, ServiceInfo> all;
+            List<CatalogService> all;
             if (minute > 0)
             {
                 all = DelegateCache.Init("consulServiceCache", minute, () =>
                  {
-                     return GetAllServices();
+                     return GetService(serviceName, passingOnly);
                  });
             }
             else
             {
-                all = GetAllServices();
+                all = GetService(serviceName, passingOnly);
             }
-            var services = all.Values.Where(b => b.Service == serviceName).ToList();
-            if (services.Count == 0)
+            if (all.Count == 0)
             {
                 throw new Exception($"找不到可用的服务:{serviceName}");
             }
-            int k = rng.Next(services.Count);
-            return services[k];
+            int k = rng.Next(all.Count);
+            return all[k];
         }
         public static void Shuffle<T>(IList<T> list)
         {
