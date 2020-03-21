@@ -12,19 +12,17 @@ namespace CRL.Grpc.Extend
 {
     public interface IGrpcConnect: IDisposable
     {
-        T GetClient<T>(PollyAttribute pollyAttr = null);
+        T GetClient<T>();
         void SetMetadata(Metadata metadata);
+        GrpcClientOptions GetOptions();
+        Channel GetChannel();
+        Metadata GetMetadata();
     }
     /// <summary>
     /// gRPC扩展,支持consul服务发现,polly策略
     /// </summary>
     public class GrpcConnect : IGrpcConnect
     {
-        /// <summary>
-        /// gRPC 拦截器
-        /// </summary>
-        Interceptor Interceptor;
-
         GrpcClientOptions _options;
 #if NETSTANDARD
       
@@ -40,6 +38,10 @@ namespace CRL.Grpc.Extend
             InitOptions();
         }
 #endif
+        public GrpcClientOptions GetOptions()
+        {
+            return _options;
+        }
         bool firstCheck = true;
         void InitOptions()
         {
@@ -112,7 +114,7 @@ namespace CRL.Grpc.Extend
         private static Random rng = new Random();
         ConcurrentDictionary<string, ChannelObj> channelCache = new ConcurrentDictionary<string, ChannelObj>();
 
-        Channel getChannel()
+        public Channel GetChannel()
         {
             var list = channelCache.Values.ToArray();
             if (list.Count() == 0)
@@ -133,24 +135,22 @@ namespace CRL.Grpc.Extend
             return channel;
         }
         ConcurrentDictionary<Type, object> instanceCache = new ConcurrentDictionary<Type, object>();
-        public T GetClient<T>(PollyAttribute pollyAttr = null)
+        public T GetClient<T>()
         {
             var a = instanceCache.TryGetValue(typeof(T), out object instance);
             if (!a)
             {
-                var grpcCallInvoker = new GRpcCallInvoker(pollyAttr, () =>
-                 {
-                     return getChannel();
-                 }, () =>
-                 {
-                     return metadata;
-                 }, _options);
+                var grpcCallInvoker = new GRpcCallInvoker(this);
                 instance = System.Activator.CreateInstance(typeof(T), grpcCallInvoker);
                 instanceCache.TryAdd(typeof(T), instance);
             }
             return (T)instance;
         }
         Metadata metadata;
+        public Metadata GetMetadata()
+        {
+            return metadata;
+        }
         public void SetMetadata(Metadata _metadata)
         {
             metadata = _metadata;

@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using Grpc.Net.Client;
+
 using GrpcService1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +29,7 @@ namespace gRpcClient
                 op.Port = 50001;
                 op.UseConsulDiscover("http://localhost:8500", "grpcServer");//使用consul服务发现
                 op.AddPolicy("Greeter.SayHello", new CRL.Core.Remoting.PollyAttribute() { RetryCount = 3 });//定义方法polly策略
-            });
+            }, System.Reflection.Assembly.GetExecutingAssembly());
 
             provider = services.BuildServiceProvider();
         }
@@ -47,11 +47,9 @@ namespace gRpcClient
             var headers = new Metadata { { "Authorization", $"Bearer {token}" } };
             grpcConnect.SetMetadata(headers);
 
-            var pollyAttr = new CRL.Core.Remoting.PollyAttribute() { RetryCount = 3 };//polly策略
-            var client = grpcConnect.GetClient<Greeter.GreeterClient>(pollyAttr);
 
-  
         label1:
+            var client = provider.GetService<Greeter.GreeterClient>();
             var reply = client.SayHello(
                 new HelloRequest { Name = "test" });
             Console.WriteLine("Greeter 服务返回数据: " + reply.Message);

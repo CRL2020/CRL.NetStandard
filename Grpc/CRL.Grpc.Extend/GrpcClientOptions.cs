@@ -36,7 +36,7 @@ namespace CRL.Grpc.Extend
         /// <summary>
         /// 按方法名增加Polly策略
         /// </summary>
-        /// <param name="methodName">like Greeter.SayHello</param>
+        /// <param name="methodName">like Greeter.SayHello,空则全局</param>
         /// <param name="pollyAttribute"></param>
         /// <returns></returns>
         public GrpcClientOptions AddPolicy(string methodName, Core.Remoting.PollyAttribute pollyAttribute)

@@ -7,16 +7,12 @@ namespace CRL.Grpc.Extend
 {
     public class GRpcCallInvoker : CallInvoker
     {
-        public readonly Func<Channel> Channel;
-        Func<Metadata> metadata;
-        PollyAttribute _pollyAttribute;
         GrpcClientOptions _options;
-        public GRpcCallInvoker(PollyAttribute pollyAttribute, Func<Channel> channel, Func<Metadata> _metadata, GrpcClientOptions options)
+        IGrpcConnect _grpcConnect;
+        public GRpcCallInvoker(IGrpcConnect grpcConnect)
         {
-            _pollyAttribute = pollyAttribute;
-            Channel = GrpcPreconditions.CheckNotNull(channel);
-            metadata = _metadata;
-            _options = options;
+            _options = grpcConnect.GetOptions();
+            _grpcConnect = grpcConnect;
         }
 
         public override TResponse BlockingUnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string host, CallOptions options, TRequest request)
@@ -51,7 +47,10 @@ namespace CRL.Grpc.Extend
             var methodName = $"{method.ServiceName}.{method.Name}";
             var key = methodName.Substring(methodName.IndexOf(".") + 1).ToLower();
             var a = _options.MethodPolicies.TryGetValue(key, out PollyAttribute methodPollyAttr);
-            PollyAttribute pa = a ? methodPollyAttr : _pollyAttribute;
+            if (!a)
+            {
+                _options.MethodPolicies.TryGetValue("", out methodPollyAttr);
+            }
             CallOptions options2;
             //重写header
             if (options.Headers != null)
@@ -60,12 +59,12 @@ namespace CRL.Grpc.Extend
             }
             else
             {
-                options2 = new CallOptions(metadata(), options.Deadline, options.CancellationToken);
+                options2 = new CallOptions(_grpcConnect.GetMetadata(), options.Deadline, options.CancellationToken);
             }
 
-            var pollyData = PollyExtension.Invoke(pa, () =>
+            var pollyData = PollyExtension.Invoke(methodPollyAttr, () =>
             {
-                var callRes = new CallInvocationDetails<TRequest, TResponse>(Channel.Invoke(), method, host, options2);
+                var callRes = new CallInvocationDetails<TRequest, TResponse>(_grpcConnect.GetChannel(), method, host, options2);
                 return new PollyExtension.PollyData<CallInvocationDetails<TRequest, TResponse>>() { Data = callRes };
             }, $"{methodName}");
             var response = pollyData.Data;
