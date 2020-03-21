@@ -18,6 +18,9 @@ namespace CRL.Core.Remoting
     public class AllowAnonymousAttribute : Attribute
     {
     }
+    /// <summary>
+    /// Polly策略
+    /// </summary>
     public class PollyAttribute : Attribute
     {
         /// <summary>

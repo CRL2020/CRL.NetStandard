@@ -45,7 +45,7 @@ namespace GrpcService1
             {
                 Address = "127.0.0.1",
                 Name = "grpcServer",
-                ID = "grpcServer",
+                ID = "grpcServer1",
                 Port = 50001,
                 Tags = new[] { "v1" },
                 Check = new CRL.Core.ConsulClient.CheckRegistrationInfo()

@@ -144,7 +144,7 @@ namespace CRL.Grpc.Extend
                  }, () =>
                  {
                      return metadata;
-                 });
+                 }, _options);
                 instance = System.Activator.CreateInstance(typeof(T), grpcCallInvoker);
                 instanceCache.TryAdd(typeof(T), instance);
             }
