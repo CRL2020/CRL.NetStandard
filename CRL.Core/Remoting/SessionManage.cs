@@ -11,9 +11,30 @@ namespace CRL.Core.Remoting
 {
     public interface ISessionManage
     {
-        void SaveSession(string user, string token, object tag = null);
+        void SaveSession(string user, ApiSessionData data);
         //bool CheckSession(string user, string token, ParameterInfo[] argsName, List<object> args, out string error);
-        Tuple<string, object> GetSession(string user);
+        ApiSessionData GetSession(string user);
+        //void RefreshSession(string user);
+    }
+    public class ApiSessionData
+    {
+        public ApiSessionData(string token,string tag)
+        {
+            Token = token;
+            Tag = tag;
+        }
+        public string Token
+        {
+            get;set;
+        }
+        public string Tag
+        {
+            get; set;
+        }
+        public DateTime ExpTime
+        {
+            get; set;
+        }
     }
     public class SignCheck
     {
@@ -75,29 +96,29 @@ namespace CRL.Core.Remoting
     }
     public class SessionManage : ISessionManage
     {
-        static ConcurrentDictionary<string, Tuple<string, object>> sessions = new ConcurrentDictionary<string, Tuple<string, object>>();
+        static ConcurrentDictionary<string, ApiSessionData> sessions = new ConcurrentDictionary<string, ApiSessionData>();
         /// <summary>
         /// 登录后返回新的TOKEN
         /// </summary>
         /// <param name="user"></param>
-        /// <param name="token"></param>
-        /// <param name="tag"></param>
-        public void SaveSession(string user, string token, object tag = null)
+        /// <param name="data"></param>
+        public void SaveSession(string user, ApiSessionData data)
         {
-            if (!sessions.TryGetValue(user, out Tuple<string, object> token2))
+            data.ExpTime = DateTime.Now.AddMinutes(20);
+            if (!sessions.TryGetValue(user, out ApiSessionData token2))
             {
-                sessions.TryAdd(user, new Tuple<string, object>(token, tag));
+                sessions.TryAdd(user, data);
             }
             else
             {
-                sessions[user] = new Tuple<string, object>(token, tag);
+                sessions[user] = data;
             }
         }
 
      
-        public Tuple<string, object> GetSession(string user)
+        public ApiSessionData GetSession(string user)
         {
-            sessions.TryGetValue(user, out Tuple<string, object> v);
+            sessions.TryGetValue(user, out ApiSessionData v);
             return v;
         }
     }

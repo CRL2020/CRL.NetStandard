@@ -21,7 +21,7 @@ namespace ServerTest
             var listener = new ServerListener();
             listener.Start("http://localhost:809/");
             label1:
-            PollyTest().Wait();
+            //PollyTest().Wait();
             Console.ReadLine();
             goto label1;
         }

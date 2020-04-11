@@ -12,13 +12,13 @@ namespace CRL.Core.Remoting
         //public object ServiceProvider;
         static string __token;
         protected string CurrentUserName;
-        protected object CurrentUserTag;
+        protected string CurrentUserTag;
         public void SetUser(string user)
         {
             var v = ServerCreater.SessionManage.GetSession(user);
             if (v != null)
             {
-                CurrentUserTag = v.Item2;
+                CurrentUserTag = v.Tag;
             }
             CurrentUserName = user;
         }
@@ -32,9 +32,9 @@ namespace CRL.Core.Remoting
         /// <param name="user"></param>
         /// <param name="token"></param>
         /// <param name="tag"></param>
-        protected void SaveSession(string user, string token, object tag = null)
+        protected void SaveSession(string user, string token, string tag = null)
         {
-            ServerCreater.SessionManage.SaveSession(user, token, tag);
+            ServerCreater.SessionManage.SaveSession(user, new ApiSessionData(token, tag));
             __token = string.Format("{0}@{1}", user, token);
         }
         //HttpPostedFile postFile;

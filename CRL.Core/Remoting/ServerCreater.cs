@@ -47,7 +47,7 @@ namespace CRL.Core.Remoting
             return this;
         }
         /// <summary>
-        /// 设置jwt认证方法
+        /// 设置jwt认证方法,和简单登录认证排斥
         /// </summary>
         /// <param name="jwtTokenCheck"></param>
         /// <returns></returns>

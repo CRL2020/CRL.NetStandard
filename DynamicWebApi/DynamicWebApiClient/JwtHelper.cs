@@ -28,19 +28,5 @@ namespace DynamicWebApiClient
 
             return jwt;
         }
-
-        public static Tuple<Dictionary<string, string>, DateTime> ReadToken(string jwt)
-        {
-            var token = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-            if (token.Claims != null)
-            {
-                foreach (var claim in token.Claims)
-                {
-                    dict.Add(claim.Type, claim.Value);
-                }
-            }
-            return new Tuple<Dictionary<string, string>, DateTime>(dict, token.ValidTo);
-        }
     }
 }

@@ -31,16 +31,32 @@ namespace ServerTest
 
         public static Tuple<Dictionary<string, string>, DateTime> ReadToken(string jwt)
         {
-            var token = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-            if (token.Claims != null)
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SigningKey));
+            var tokenValidationParams = new TokenValidationParameters()
             {
-                foreach (var claim in token.Claims)
-                {
-                    dict.Add(claim.Type, claim.Value);
-                }
-            }
-            return new Tuple<Dictionary<string, string>, DateTime>(dict, token.ValidTo);
+                ValidateLifetime = true,
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = Issuer,
+                ValidAudience = Audience,
+                IssuerSigningKey = secretKey,
+            };
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var claimsPrincipal = jwtTokenHandler.ValidateToken(jwt, tokenValidationParams, out SecurityToken validated);
+
+            var dict = claimsPrincipal.Claims.ToDictionary(b => b.Type, b => b.Value);
+            return new Tuple<Dictionary<string, string>, DateTime>(dict, validated.ValidTo);
         }
+
+        static DateTime GetDateTime(int timeStamp)
+        {
+            DateTime dtStart = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
+            long lTime = ((long)timeStamp * 10000000);
+            TimeSpan toNow = new TimeSpan(lTime);
+            DateTime targetDt = dtStart.Add(toNow);
+            return targetDt;
+        }
+
     }
 }

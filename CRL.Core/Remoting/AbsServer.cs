@@ -202,7 +202,7 @@ namespace CRL.Core.Remoting
                 error = "未找到API登录状态,请重新登录";
                 return false;
             }
-            var serverToken = v.Item1;
+            var serverToken = v.Token;
             if (ServerCreater.__CheckSign)//使用简单签名
             {
                 serverToken = SignCheck.CreateSign(serverToken, argsName, args);
