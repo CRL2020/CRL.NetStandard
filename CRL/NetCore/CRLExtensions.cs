@@ -1,4 +1,5 @@
 ﻿#if NETSTANDARD
+using CRL.Sharding;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,19 @@ namespace CRL.NetCore
 #if NETSTANDARD
     public static class CRLExtensions
     {
-        public static void AddCRL(this IServiceCollection services, Action<ISettingConfigBuilder> setupAction)
+        public static void AddCRL<T>(this IServiceCollection services) where T : class, IDBLocationCreator
         {
-            var builder = CRL.SettingConfigBuilder.CreateInstance();
-            setupAction(builder);
+            services.AddSingleton<ISettingConfigBuilder, SettingConfigBuilder>();
+            services.AddSingleton<IDBLocationCreator, T>();
         }
+        public static void UseCRL(this IServiceProvider provider)
+        {
+            var dBLocationCreator = provider.GetService<IDBLocationCreator>();
+        }
+    }
+    public interface IDBLocationCreator
+    {
+        
     }
 #endif
 }

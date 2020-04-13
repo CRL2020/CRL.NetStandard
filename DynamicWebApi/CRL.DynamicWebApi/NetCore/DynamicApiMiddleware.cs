@@ -19,13 +19,14 @@ namespace CRL.DynamicWebApi.NetCore
     public class DynamicApiMiddleware
     {
         private readonly RequestDelegate _next;
-        IConfiguration _configuration;
+        ServerCreater _serverCreater;
         IServiceProvider _serviceProvider;
-        public DynamicApiMiddleware(RequestDelegate next, IConfiguration configuration, IServiceProvider serviceProvider)
+        public DynamicApiMiddleware(RequestDelegate next, ServerCreater serverCreater, IServiceProvider serviceProvider)
         {
             _next = next;
-            _configuration = configuration;
+            _serverCreater = serverCreater;
             _serviceProvider = serviceProvider;
+            //_serverCreater.CreateApi();
         }
 
         public async Task Invoke(HttpContext httpContext)
@@ -60,11 +61,11 @@ namespace CRL.DynamicWebApi.NetCore
                 var args = await reader.ReadToEndAsync();
                 requestMsg.Args = args.ToObject<List<object>>();
             }
-            var instance = ServerCreater.Instance;
-            var server = instance.GetServer();
+            //var instance = ServerCreater.Instance;
+            var server = _serverCreater.GetServer();
             var result = server.InvokeResult(requestMsg, type =>
              {
-                 //获取服务实例
+                 //获取注入的AbsService
                  return _serviceProvider.GetService(type);
              });
             await response.WriteAsync(result.ToJson());

@@ -18,7 +18,7 @@ namespace WebSocketServer
         }
         static void Main(string[] args)
         {
-            var server = new ServerCreater().CreatetWebSocket(8015);
+            var server = new ServerCreater().CreateWebSocket(8015);
             server.CheckSign();
             server.SetSessionManage(new SessionManage());
             //server.Register<ITestService, TestService>();

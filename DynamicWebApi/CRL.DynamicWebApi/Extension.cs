@@ -9,7 +9,7 @@ namespace CRL.DynamicWebApi
 {
     public static class Extension
     {
-        public static ServerCreater CreatetApi(this ServerCreater serverCreater)
+        public static ServerCreater CreateApi(this ServerCreater serverCreater)
         {
             var server = new ApiServer();
             serverCreater.SetServer(server);

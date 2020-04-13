@@ -9,7 +9,7 @@ namespace CRL.WebSocket
 {
     public static class Extension
     {
-        public static ServerCreater CreatetWebSocket(this ServerCreater serverCreater, int port)
+        public static ServerCreater CreateWebSocket(this ServerCreater serverCreater, int port)
         {
             var server = new WebSocketServer(port);
             serverCreater.SetServer(server);

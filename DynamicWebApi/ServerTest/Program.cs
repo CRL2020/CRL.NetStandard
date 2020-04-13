@@ -12,7 +12,7 @@ namespace ServerTest
     {
         static void Main(string[] args)
         {
-            var server = new ServerCreater().CreatetApi();
+            var server = new ServerCreater().CreateApi();
             server.CheckSign();
             server.UseJWTUseAuthorization(tokenCheck);
             server.SetSessionManage(new SessionManage());

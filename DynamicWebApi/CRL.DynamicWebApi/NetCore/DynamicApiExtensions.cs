@@ -14,13 +14,14 @@ namespace CRL.DynamicWebApi.NetCore
 #if NETSTANDARD
     public static class DynamicApiExtensions
     {
-        static ServerCreater server;
-        static DynamicApiExtensions()
+        static Action<ServerCreater> _setupAction;
+        static Assembly[] _assemblies;
+        public static void AddDynamicApi(this IServiceCollection services, Action<ServerCreater> setupAction, params Assembly[] assemblies)
         {
-            server = new ServerCreater().CreatetApi();
-        }
-        public static void AddDynamicApi(this IServiceCollection services, params Assembly[] assemblies)
-        {
+            _setupAction = setupAction;
+            _assemblies = assemblies;
+            services.AddSingleton<ServerCreater>();
+
             foreach (var assembyle in assemblies)
             {
                 var types = assembyle.GetTypes();
@@ -34,13 +35,12 @@ namespace CRL.DynamicWebApi.NetCore
                         {
                             continue;
                         }
-                        //实现注册
-                        server.Register(implementedInterfaces, type);
-                        //注册服务
-                        services.AddTransient(implementedInterfaces, type);
+                        //注册AbsService
+                        services.AddScoped(implementedInterfaces, type);
                     }
                 }
             }
+
         }
         static bool MyInterfaceFilter(Type typeObj, Object criteriaObj)
         {
@@ -59,9 +59,12 @@ namespace CRL.DynamicWebApi.NetCore
 
             return true;
         }
-
         public static void UseDynamicApi(this IApplicationBuilder app)
         {
+            var serverCreater = app.ApplicationServices.GetService<ServerCreater>();
+            serverCreater.CreateApi();
+            _setupAction(serverCreater);
+            serverCreater.RegisterAll(_assemblies);
             app.UseMiddleware<DynamicApiMiddleware>();
         }
     }

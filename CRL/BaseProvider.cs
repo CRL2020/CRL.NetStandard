@@ -27,36 +27,10 @@ namespace CRL
     {
         internal override DbContext GetDbContext()
         {
-            DbContext dbContext = null;
-            ////cache = false;
-            //string contextName = "DbContext." + GetType().Name;//同一线程调用只创建一次
-            //var _BeginTransContext = CallContext.GetData<bool>(Base.CRLContextName);
-            //if (_BeginTransContext)//对于数据库事务,只创建一个上下文
-            //{
-            //    contextName = "TransDbContext";
-            //}
-
-            //if (cache)
-            //{
-            //    dbContext = CallContext.GetData<DbContext>(contextName);
-            //}
-            //if (dbContext != null)
-            //{
-            //    return dbContext;
-            //}
             dbLocation.ManageName = ManageName;
             var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
-            //helper.Name = Guid.NewGuid().ToString();
-            dbContext = new DbContext(helper, dbLocation);
-            //if (cache)
-            //{
-            //    dbContext.Name = contextName;
-            //    var allKey = "AllDbContext";
-            //    var allList = Base.GetCallDBContext();
-            //    CallContext.SetData(contextName, dbContext);
-            //    allList.Add(contextName);
-            //    CallContext.SetData(allKey, allList);
-            //}
+            var dbContext = new DbContext(helper, dbLocation);
+
             return dbContext;
         }
         #region 属性

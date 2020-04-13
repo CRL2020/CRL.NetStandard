@@ -37,6 +37,7 @@ namespace CRL.Sharding
             location.CheckNull("location");
             dbLocation.ShardingLocation = location;
             dbLocation.ShardingLocation.TableName = table.TableName;
+            DBExtend = null;
             return this;
         }
         internal override DbContext GetDbContext()

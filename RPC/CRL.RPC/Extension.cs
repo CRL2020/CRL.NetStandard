@@ -9,7 +9,7 @@ namespace CRL.RPC
 {
     public static class Extension
     {
-        public static ServerCreater CreatetRPC(this ServerCreater serverCreater, int port)
+        public static ServerCreater CreateRPC(this ServerCreater serverCreater, int port)
         {
             var server = new RPCServer(port);
             serverCreater.SetServer(server);

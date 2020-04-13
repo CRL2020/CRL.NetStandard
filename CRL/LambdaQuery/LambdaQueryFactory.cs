@@ -29,7 +29,7 @@ namespace CRL.LambdaQuery
             var a = mongoQueryCreaters.TryGetValue(type, out object creater);
             if (!a)
             {
-                a = configBuilder.LambdaQueryTypeCache.TryGetValue(DBType.MongoDB, out Type type2);
+                a = configBuilder.LambdaQueryTypeRegister.TryGetValue(DBType.MongoDB, out Type type2);
                 if (!a)
                 {
                     throw new CRLException("未引用CRL.MongoDB");

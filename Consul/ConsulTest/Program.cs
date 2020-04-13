@@ -14,7 +14,7 @@ namespace ConsulTest
         {
             //1.启动consol
             //2.启动CRL.Ocelot,配置见configuration.json
-            var server = new ServerCreater().CreatetApi();
+            var server = new ServerCreater().CreateApi();
             server.Register<ITestService, TestService>();
             var listener = new ServerListener();
             listener.Start("http://localhost:809/");//启用apiService1

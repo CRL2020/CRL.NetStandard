@@ -11,7 +11,7 @@ using System.Linq;
 using System.Web;
 using CRL.Sharding;
 
-namespace CRLTest.Code.Sharding
+namespace CRLCoreTest.Code.Sharding
 {
     public class MemberSharding : CRL.IModel
     {
@@ -30,6 +30,11 @@ namespace CRLTest.Code.Sharding
     }
     public class MemberManage : CRL.Sharding.BaseProvider<MemberSharding>
     {
+        public static MemberManage Instance
+        {
+            get {
+                return new MemberManage(); }
+        }
         public void TestLocation()
         {
             SetLocation(new MemberSharding());

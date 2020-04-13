@@ -93,7 +93,7 @@ namespace CRL
             set
             {
                 var configBuilder = SettingConfigBuilder.current;
-                configBuilder.DbAccessCreaterCache.Add(value);
+                configBuilder.DbAccessCreaterRegister.Add(value);
             }
         }
         /// <summary>
@@ -105,12 +105,12 @@ namespace CRL
         public static void RegisterDBAccessBuild(Func<DBLocation, DBAccessBuild> func)
         {
             var configBuilder = SettingConfigBuilder.current;
-            configBuilder.DbAccessCreaterCache.Add(func);
+            configBuilder.DbAccessCreaterRegister.Add(func);
         }
         internal static DBAccessBuild GetDBAccessBuild(DBLocation location)
         {
             var configBuilder = SettingConfigBuilder.current;
-            foreach (var m in configBuilder.DbAccessCreaterCache)
+            foreach (var m in configBuilder.DbAccessCreaterRegister)
             {
                 var act = m(location);
                 if (act != null)
@@ -198,6 +198,8 @@ namespace CRL
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         void RegisterLocation<T>(Func<Attribute.TableInnerAttribute, T, Location> func);
+
+        void RegisterLocation(Type type, object func);
     }
     public class SettingConfigBuilder: ISettingConfigBuilder
     {
@@ -205,16 +207,20 @@ namespace CRL
         internal Dictionary<DBType, Func<DbContext, DBAdapter.DBAdapterBase>> DBAdapterBaseRegister = new Dictionary<DBType, Func<DbContext, DBAdapter.DBAdapterBase>>();
         internal Dictionary<DBType, Func<DbContext, AbsDBExtend>> AbsDBExtendRegister = new Dictionary<DBType, Func<DbContext, AbsDBExtend>>();
 
-        internal List<Func<DBLocation, DBAccessBuild>> DbAccessCreaterCache = new List<Func<DBLocation, DBAccessBuild>>();
+        internal List<Func<DBLocation, DBAccessBuild>> DbAccessCreaterRegister = new List<Func<DBLocation, DBAccessBuild>>();
 
-        internal Dictionary<DBType, Type> LambdaQueryTypeCache = new Dictionary<DBType,Type>();
+        internal Dictionary<DBType, Type> LambdaQueryTypeRegister = new Dictionary<DBType,Type>();
 
         internal Dictionary<Type, object> LocationRegister = new Dictionary<Type, object>();
         internal static SettingConfigBuilder current;
-        SettingConfigBuilder()
+        public SettingConfigBuilder()
         {
             current = this;
         }
+        //SettingConfigBuilder()
+        //{
+        //    current = this;
+        //}
         static SettingConfigBuilder()
         {
             current = new SettingConfigBuilder();
@@ -245,9 +251,9 @@ namespace CRL
 
         public SettingConfigBuilder RegisterLambdaQueryType(DBType dBType, Type type) 
         {
-            if (!LambdaQueryTypeCache.ContainsKey(dBType))
+            if (!LambdaQueryTypeRegister.ContainsKey(dBType))
             {
-                LambdaQueryTypeCache.Add(dBType, type);
+                LambdaQueryTypeRegister.Add(dBType, type);
             }
             return this;
         }
@@ -259,12 +265,17 @@ namespace CRL
         /// <param name="func"></param>
         public void RegisterDBAccessBuild(Func<DBLocation, DBAccessBuild> func)
         {
-            DbAccessCreaterCache.Add(func);
+            DbAccessCreaterRegister.Add(func);
         }
         public void RegisterLocation<T>(Func<Attribute.TableInnerAttribute, T, Location> func)
         {
             LocationRegister.Add(typeof(T), func);
         }
+        public void RegisterLocation(Type type,object func)
+        {
+            LocationRegister.Add(type, func);
+        }
+
         internal Func<Attribute.TableInnerAttribute, T, Location> GetLocation<T>()
         {
             var a = LocationRegister.TryGetValue(typeof(T), out object value);
