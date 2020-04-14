@@ -20,10 +20,12 @@ namespace CRL.NetCore
         public static void UseCRL(this IServiceProvider provider)
         {
             var dBLocationCreator = provider.GetService<IDBLocationCreator>();
+            dBLocationCreator.Init();
         }
     }
     public interface IDBLocationCreator
     {
+        void Init();
         
     }
 #endif

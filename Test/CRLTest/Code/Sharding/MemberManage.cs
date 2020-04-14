@@ -30,16 +30,7 @@ namespace CRLTest.Code.Sharding
     }
     public class MemberManage : CRL.Sharding.BaseProvider<MemberSharding>
     {
-        public void TestLocation()
-        {
-            SetLocation(new MemberSharding());
-        }
+
     }
-    //public class locationA : AbsLocationCreate<MemberSharding>
-    //{
-    //    public override Location CreateLocation(CRL.Attribute.TableAttribute table, MemberSharding args)
-    //    {
-    //        return new Location("test", "table1");
-    //    }
-    //}
+
 }

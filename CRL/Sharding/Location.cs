@@ -17,15 +17,15 @@ namespace CRL.Sharding
     /// </summary>
     public class Location
     {
-        public Location(string dbName,string tablePartName)
+        public Location(string dataBaseSource,string tablePartName)
         {
-            DataBaseName = dbName;
+            DataBaseSource = dataBaseSource;
             TablePartName = tablePartName;
         }
         /// <summary>
         /// 库名
         /// </summary>
-        public string DataBaseName;
+        public string DataBaseSource;
         /// <summary>
         /// 主表名
         /// </summary>
@@ -40,7 +40,7 @@ namespace CRL.Sharding
         public List<string> AllTablePartName = new List<string>();
         public override string ToString()
         {
-            return string.Format("在库[{0}],表[{1}]", DataBaseName, TablePartName);
+            return string.Format("在库[{0}],表[{1}]", DataBaseSource, TablePartName);
         }
     }
 }

@@ -199,7 +199,6 @@ namespace CRL
         /// <param name="func"></param>
         void RegisterLocation<T>(Func<Attribute.TableInnerAttribute, T, Location> func);
 
-        void RegisterLocation(Type type, object func);
     }
     public class SettingConfigBuilder: ISettingConfigBuilder
     {
@@ -270,10 +269,6 @@ namespace CRL
         public void RegisterLocation<T>(Func<Attribute.TableInnerAttribute, T, Location> func)
         {
             LocationRegister.Add(typeof(T), func);
-        }
-        public void RegisterLocation(Type type,object func)
-        {
-            LocationRegister.Add(type, func);
         }
 
         internal Func<Attribute.TableInnerAttribute, T, Location> GetLocation<T>()

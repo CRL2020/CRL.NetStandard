@@ -90,7 +90,7 @@ namespace CRLTest
                 //定位库
                 if (dbLocation.ShardingLocation != null)
                 {
-                    return new CRL.DBAccessBuild(DBType.MSSQL, "Data Source=.;Initial Catalog=" + dbLocation.ShardingLocation.DataBaseName + ";User ID=sa;Password=123");
+                    return new CRL.DBAccessBuild(DBType.MSSQL, "Data Source=.;Initial Catalog=" + dbLocation.ShardingLocation.DataBaseSource + ";User ID=sa;Password=123");
                 }
                 return new CRL.DBAccessBuild(DBType.MSSQL, "server=.;database=testDb; uid=sa;pwd=123;");
             });
