@@ -22,6 +22,10 @@ namespace CRL.Mongo.MongoDBEx
             var table = TypeCache.GetTable(typeof(TModel));
             var collection = GetCollection<TModel>();
             var isPrimitive = table.PrimaryKey.PropertyType.IsPrimitive;//基元类型
+            if(table.PrimaryKey.KeepIdentity)
+            {
+                keepIdentity = table.PrimaryKey.KeepIdentity;
+            }
             if (!keepIdentity)
             {
                 foreach (var item in details)

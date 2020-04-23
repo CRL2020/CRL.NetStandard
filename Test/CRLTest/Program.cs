@@ -79,9 +79,7 @@ namespace CRLTest
             {
                 if (dbLocation.ManageName == "mongo")
                 {
-                    var conn = CRL.Core.CustomSetting.GetConfigKey("mongodb");
-                    return new CRL.DBAccessBuild(DBType.MongoDB, conn);
-
+                    return new CRL.DBAccessBuild(DBType.MongoDB, "mongodb://127.0.0.1:27017/admin");
                 }
                 return null;
             });
@@ -103,7 +101,9 @@ namespace CRLTest
             var client = new CRL.Core.RedisProvider.RedisClient(4);
 
         label1:
-            Code.ContextTest.Test();
+            //Code.ContextTest.Test();
+        
+
             //testFormat();
             //MongoDBTestManage.Instance.GroupTest();
             //TestAll();
@@ -111,6 +111,17 @@ namespace CRLTest
             Console.ReadLine();
             goto label1;
             Console.ReadLine();
+        }
+        static void testMongo()
+        {
+            new CounterWatch().Start("更新", () =>
+            {
+                new Code.MongoUpdateTest().testUpdate(5);
+            }, 1);
+            new CounterWatch().Start("删除/插入", () =>
+            {
+                new Code.MongoUpdateTest().testUpdate2(5);
+            }, 1);
         }
         static void testFormat()
         {
@@ -178,27 +189,6 @@ namespace CRLTest
                 }
  
             }
-        }
-        static void MakeGenericTypeTest()
-        {
-            var type = CRL.Core.Extension.Extension.MakeGenericType("CRL.LambdaQuery.Mapping.QueryInfo", "CRL", typeof(ProductData));
-        }
-
-        static void requestTest()
-        {
-            new CRL.Core.ThreadWork().Start("11", () =>
-            {
-                try
-                {
-                    var result = CRL.Core.Request.HttpRequest.HttpGet("http://localhost:8002");
-                    Console.WriteLine(result);
-                }
-                catch (Exception ero)
-                {
-                    Console.WriteLine(ero.Message);
-                }
-                return true;
-            }, 0.3);
         }
         static void testCallContext(string v)
         {

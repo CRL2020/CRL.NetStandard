@@ -16,7 +16,7 @@ namespace CRLTest
         string name;
         public void Start(string _name,Action action, int loopCount=1)
         {
-            action();
+            //action();
             //GC.Collect();
 
             var m1 = GC.GetTotalMemory(false);

@@ -60,7 +60,9 @@ namespace CRL.Ocelot
             services.AddOcelot(Configuration).AddConsul();
             services.AddControllers();
             //ע�ᶯ̬API
-            services.AddDynamicApi(System.Reflection.Assembly.GetAssembly(typeof(ConsulService)));
+            services.AddDynamicApi(config =>
+            {
+            }, System.Reflection.Assembly.GetAssembly(typeof(ConsulService)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

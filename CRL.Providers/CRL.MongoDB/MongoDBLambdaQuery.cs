@@ -79,6 +79,12 @@ namespace CRL.Mongo
                 #region 按方法
                 var field = methodInfo.MemberName;
                 var args = methodInfo.Args;
+                //var firstArrayArgs = args.FirstOrDefault() as IEnumerable;
+                var isArry = typeof(IEnumerable).IsAssignableFrom(args.FirstOrDefault()?.GetType());
+                if (isArry)
+                {
+                    methodInfo.MethodName = "In";
+                }
                 switch (methodInfo.MethodName)
                 {
                     case "Contains":
