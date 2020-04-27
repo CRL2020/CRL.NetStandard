@@ -35,6 +35,7 @@ namespace CRL.RPC
     }
     class RequestMessage : MessageBase
     {
+        public string ApiPrefix { get; set; }
         public string Service { get; set; }
         public string Method { get; set; }
         public List<byte[]> Args { get; set; }

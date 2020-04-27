@@ -46,8 +46,9 @@ namespace CRL.RPC
             var response = new ResponseMessage();
 
             try
-            {
-                var a = serviceHandle.TryGetValue(request.Service, out serviceInfo serviceInfo);
+            {     
+                var serviceKey = $"{request.ApiPrefix}.{request.Service}";
+                var a = serviceHandle.TryGetValue(serviceKey, out serviceInfo serviceInfo);
                 if (!a)
                 {
                     return ResponseMessage.CreateError("未找到该服务", "404");
@@ -74,7 +75,7 @@ namespace CRL.RPC
                     args[i] = Core.BinaryFormat.FieldFormat.UnPack(p.ParameterType, value, ref offSet);
                 }
 
-                var msgBase = new Core.Remoting.MessageBase() { Args = args.ToList(), Method = request.Method, Service = request.Service, Token = request.Token };
+                var msgBase = new Core.Remoting.MessageBase() { Args = args.ToList(), Method = request.Method, Service = request.Service, Token = request.Token, ApiPrefix = request.ApiPrefix };
                 var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs2, out string token, objectCtor);
                 if (errorInfo != null)
                 {

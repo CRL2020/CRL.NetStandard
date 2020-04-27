@@ -63,6 +63,7 @@ namespace CRL.RPC
                 MsgId = id,
                 Service = ServiceName,
                 Method = binder.Name,
+                ApiPrefix = serviceInfo.ServiceAttribute.ApiPrefix
                 //Token = clientConnect.Token.Token
             };
             var dic = new List<byte[]>();

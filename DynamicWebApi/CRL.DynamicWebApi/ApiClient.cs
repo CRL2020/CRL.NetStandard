@@ -15,7 +15,6 @@ namespace CRL.DynamicWebApi
     {
         public ApiClient(AbsClientConnect _clientConnect) : base(_clientConnect)
         {
-
         }
         
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
@@ -38,12 +37,13 @@ namespace CRL.DynamicWebApi
             var hostAddress = HostAddress;
             string url;
             if (!string.IsNullOrEmpty(hostAddress.serviceNamePrefix))
-            {
+            {     
+                //使用网关
                 url = hostAddress.GetHttpAddress() + $"/{request.Service}/{request.Method}";
             }
             else
             {
-                url = hostAddress.GetHttpAddress() + $"/DynamicApi/{request.Service}/{request.Method}";
+                url = hostAddress.GetHttpAddress() + $"/{serviceInfo.ServiceAttribute.ApiPrefix}/{request.Service}/{request.Method}";
             }
 
             var httpRequest = new ImitateWebRequest(HostAddress.address, Encoding.UTF8);

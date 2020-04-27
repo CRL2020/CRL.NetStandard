@@ -10,6 +10,7 @@ namespace CRL.Core.Remoting
     #region obj
     public class serviceInfo
     {
+        public static System.Collections.Concurrent.ConcurrentDictionary<string, Type> apiPrefixCache = new System.Collections.Concurrent.ConcurrentDictionary<string, Type>();
         public static serviceInfo GetServiceInfo(Type type, bool initObjCtor=false)
         {
             var info = new serviceInfo()
@@ -43,12 +44,17 @@ namespace CRL.Core.Remoting
                 methodInfoList.Add(mInfo);
             }
             info.Methods = methodInfoList;
+            info.ServiceAttribute = type.GetCustomAttribute<ServiceAttribute>() ?? new ServiceAttribute();
+            apiPrefixCache.TryAdd(info.ServiceAttribute.ApiPrefix, type);
             return info;
         }
         internal Type ServiceType;
         internal Func<object> InstaceCtor;
         internal Type InterfaceType;
         internal List<methodInfo> Methods = new List<methodInfo>();
+
+        public ServiceAttribute ServiceAttribute { get; private set; }
+
         internal List<Attribute> Attributes = new List<Attribute>();
         public T GetAttribute<T>() where T : Attribute
         {

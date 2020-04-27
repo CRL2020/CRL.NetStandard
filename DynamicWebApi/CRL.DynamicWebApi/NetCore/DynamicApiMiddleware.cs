@@ -31,15 +31,16 @@ namespace CRL.DynamicWebApi.NetCore
 
         public async Task Invoke(HttpContext httpContext)
         {
-            if (httpContext.Request.Path.Value.StartsWith("/DynamicApi/"))
+            var prefix = httpContext.Request.Path.Value.Split('/')[1];
+            if (serviceInfo.apiPrefixCache.ContainsKey(prefix))
             {
-                await OnRequest(httpContext);
+                await OnRequest(httpContext, prefix);
                 return;
             }
             await _next(httpContext);
         }
 
-        async Task OnRequest(HttpContext context)
+        async Task OnRequest(HttpContext context,string prefix)
         {
             var request = context.Request;
             var response = context.Response;
@@ -54,6 +55,7 @@ namespace CRL.DynamicWebApi.NetCore
                 Service = service,
                 Method = method,
                 Token = token,
+                ApiPrefix = prefix
             };
             if (request.ContentLength > 0)
             {

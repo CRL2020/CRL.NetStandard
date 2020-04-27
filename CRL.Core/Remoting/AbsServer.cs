@@ -20,7 +20,8 @@ namespace CRL.Core.Remoting
         {
             var info = serviceInfo.GetServiceInfo(serviceType,true);
             info.InterfaceType = interfaceType;
-            serviceHandle.Add(interfaceType.Name, info);
+            var serviceKey = $"{info.ServiceAttribute.ApiPrefix}.{interfaceType.Name}";
+            serviceHandle.Add(serviceKey, info);
         }
         protected ISessionManage sessionManage
         {
@@ -53,10 +54,11 @@ namespace CRL.Core.Remoting
             result = null;
             token = "";
             outs = new Dictionary<int, object>();
-            var a = serviceHandle.TryGetValue(request.Service, out serviceInfo serviceInfo);
+            var serviceKey = $"{request.ApiPrefix}.{request.Service}";
+            var a = serviceHandle.TryGetValue(serviceKey, out serviceInfo serviceInfo);
             if (!a)
             {
-                return new ErrorInfo("未找到该服务", "404");
+                return new ErrorInfo("未找到该服务:"+ serviceKey, "404");
             }
             var serviceType = serviceInfo.ServiceType;
             var constructor = serviceType.GetConstructors().Last();

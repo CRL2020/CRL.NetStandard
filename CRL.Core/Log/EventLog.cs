@@ -324,7 +324,7 @@ namespace CRL.Core
 			using (FileStream fs = File.OpenWrite(filePath))
 			{
 				//根据上面创建的文件流创建写数据流
-				StreamWriter w = new StreamWriter(fs, System.Text.Encoding.GetEncoding("gb2312"));
+				StreamWriter w = new StreamWriter(fs, System.Text.Encoding.Default);
 				//设置写数据流的起始位置为文件流的末尾
 				w.BaseStream.Seek(0, SeekOrigin.End);
 				//w.Write(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));

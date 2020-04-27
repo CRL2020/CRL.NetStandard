@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace CRL.Core.Remoting
 {
+    public class ServiceAttribute : Attribute
+    {
+        public string ApiPrefix
+        {
+            get; set;
+        } = "DynamicApi";
+    }
     /// <summary>
     /// 登录切入点
     /// </summary>

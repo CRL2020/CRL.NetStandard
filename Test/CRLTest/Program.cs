@@ -102,7 +102,7 @@ namespace CRLTest
 
         label1:
             //Code.ContextTest.Test();
-        
+            testMongo();
 
             //testFormat();
             //MongoDBTestManage.Instance.GroupTest();
@@ -116,11 +116,11 @@ namespace CRLTest
         {
             new CounterWatch().Start("更新", () =>
             {
-                new Code.MongoUpdateTest().testUpdate(5);
+                new Code.MongoUpdateTest().testUpdate(10000);
             }, 1);
             new CounterWatch().Start("删除/插入", () =>
             {
-                new Code.MongoUpdateTest().testUpdate2(5);
+                new Code.MongoUpdateTest().testUpdate2(10000);
             }, 1);
         }
         static void testFormat()

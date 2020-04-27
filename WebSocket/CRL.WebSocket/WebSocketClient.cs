@@ -40,6 +40,7 @@ namespace CRL.WebSocket
             {
                 Service = ServiceName,
                 Method = binder.Name,
+                ApiPrefix = serviceInfo.ServiceAttribute.ApiPrefix
                 //Token = clientConnect.Token
             };
             var allArgs = method.GetParameters();

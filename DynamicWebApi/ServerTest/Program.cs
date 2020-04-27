@@ -19,7 +19,7 @@ namespace ServerTest
             //server.Register<ITestService, TestService>();
             server.RegisterAll(System.Reflection.Assembly.GetAssembly(typeof(TestService)));
             var listener = new ServerListener();
-            listener.Start("http://localhost:809/");
+            listener.Start("http://localhost:8019/");
             label1:
             //PollyTest().Wait();
             Console.ReadLine();

@@ -12,6 +12,11 @@ namespace CRL.DynamicWebApi
 {
     public class ServerListener: IDisposable
     {
+        string _apiPrefix;
+        public ServerListener(string apiPrefix = "DynamicApi")
+        {
+            _apiPrefix = apiPrefix;
+        }
         HttpListener httpListenner;
         Thread thread;
         public void Start(string uriPrefix)
@@ -46,7 +51,8 @@ namespace CRL.DynamicWebApi
             var response = context.Response;
             response.Headers.Add("Access-Control-Allow-Origin", "*");
             var path = request.Url.AbsolutePath;
-            if (!path.StartsWith("/DynamicApi/"))
+            var prefix = path.Split('/')[1];
+            if (!serviceInfo.apiPrefixCache.ContainsKey(prefix))
             {
                 byte[] res2 = Encoding.UTF8.GetBytes(path);
                 response.OutputStream.Write(res2, 0, res2.Length);
@@ -64,6 +70,7 @@ namespace CRL.DynamicWebApi
                 Service = service,
                 Method = method,
                 Token = token,
+                ApiPrefix= prefix
             };
             if (request.ContentLength64 > 0)
             {

@@ -14,7 +14,7 @@ namespace CRL.Core.Remoting
         {
             get; set;
         }
-
+        public string ApiPrefix { get; set; }
         public string Service { get; set; }
         public string Method { get; set; }
         public List<object> Args { get; set; }
@@ -27,6 +27,8 @@ namespace CRL.Core.Remoting
         {
             get; set;
         }
+        public string ApiPrefix { get; set; }
+
         public string Service { get; set; }
         public string Method { get; set; }
         /// <summary>

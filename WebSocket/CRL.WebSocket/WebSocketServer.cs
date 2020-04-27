@@ -113,7 +113,7 @@ namespace CRL.WebSocket
 
             try
             {
-                var msgBase = new Core.Remoting.MessageBase() { Args = request.Args, Method = request.Method, Service = request.Service, Token = request.Token };
+                var msgBase = new Core.Remoting.MessageBase() { Args = request.Args, Method = request.Method, Service = request.Service, Token = request.Token, ApiPrefix = request.ApiPrefix };
                 var errorInfo = InvokeMessage(msgBase, out object result, out Dictionary<int, object> outs, out string token, getArgs);
                 if (errorInfo != null)
                 {

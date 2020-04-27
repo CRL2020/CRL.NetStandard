@@ -30,7 +30,7 @@ namespace CRLTest.Code
         public override string ManageName => "mongo";
         public void testUpdate(int take = 50)
         {
-            //take = 1000;
+            //take = 10000;
             var code = "267fb0be096240608adf284303bcc90d";
             var list = GetLambdaQuery().Where(b => b.OrgId == code).Take(take).ToList();
             Console.WriteLine($"行数为{list.Count}");
@@ -49,6 +49,7 @@ namespace CRLTest.Code
         }
         public void testUpdate2(int take = 50)
         {
+            //return;
             //take = 1000;
             var code = "267fb0be096240608adf284303bcc90d";
             var list = GetLambdaQuery().Where(b => b.OrgId == code).Take(take).ToList();
@@ -60,7 +61,7 @@ namespace CRLTest.Code
             foreach (var item in list)
             {
                 var state = item.KeyWord;
-                item._id = Guid.NewGuid().ToString();
+                //item._id = Guid.NewGuid().ToString();
                 item.CustomerId = Guid.NewGuid().ToString();
                 
             }
