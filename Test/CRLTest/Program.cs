@@ -99,7 +99,6 @@ namespace CRLTest
             //Code.ProductDataManage.Instance.QueryItem(1);
             string str = "111";
             var client = new CRL.Core.RedisProvider.RedisClient(4);
-
         label1:
             //Code.ContextTest.Test();
             testMongo();
@@ -114,14 +113,15 @@ namespace CRLTest
         }
         static void testMongo()
         {
-            new CounterWatch().Start("更新", () =>
-            {
-                new Code.MongoUpdateTest().testUpdate(10000);
-            }, 1);
-            new CounterWatch().Start("删除/插入", () =>
-            {
-                new Code.MongoUpdateTest().testUpdate2(10000);
-            }, 1);
+            new Code.MongoDBTestManage().SumTest();
+            //new CounterWatch().Start("更新", () =>
+            //{
+            //    new Code.MongoUpdateTest().testUpdate(10000);
+            //}, 1);
+            //new CounterWatch().Start("删除/插入", () =>
+            //{
+            //    new Code.MongoUpdateTest().testUpdate2(10000);
+            //}, 1);
         }
         static void testFormat()
         {

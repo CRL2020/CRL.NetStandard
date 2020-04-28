@@ -29,6 +29,10 @@ namespace CRLTest.Code
         {
             get;set;
         }
+        public double Price
+        {
+            get;set;
+        }
     }
     public class MongoResult
     {
@@ -56,12 +60,16 @@ namespace CRLTest.Code
         {
             get { return new MongoDBTestManage(); }
         }
-        public void  GetInitData()
+        public void GetInitData()
         {
+
             var list = new List<MongoDBModel2>();
-            list.Add(new MongoDBModel2() { name = "test1", Numbrer = 1, OrderId="11" });
-            list.Add(new MongoDBModel2() { name = "test2", Numbrer = 2, OrderId = "12" });
-            list.Add(new MongoDBModel2() { name = "test3", Numbrer = 3, OrderId = "13" });
+            list.Add(new MongoDBModel2() { name = "test", Numbrer = 1, Price = 1.125, OrderId = "13" });
+            for (int i = 0; i < 10; i++)
+            {
+                var n = i + 0.23 * i;
+                list.Add(new MongoDBModel2() { name = "test" + i, Numbrer = i, Price = n, OrderId = "13" });
+            }
             BatchInsert(list);
         }
         public void Test()
@@ -88,6 +96,25 @@ namespace CRLTest.Code
                 Console.WriteLine($"{item.OrderId} {item.num} {item.name}");
             }
             //var result = query.ToList<MongoResult>();
+        }
+        public void SumTest()
+        {
+            var count = Count(b => b.Numbrer >= 0);
+            if (count == 0)
+            {
+                GetInitData();
+            }
+            var query = GetLambdaQuery();
+            var result = query.GroupBy(b => new {  b.OrderId }).Select(b => new
+            {
+                sum = b.Price.SUM(),
+                b.OrderId,
+            }).ToList();
+            foreach (var item in result)
+            {
+                Console.WriteLine($"{item.OrderId} {item.OrderId} {item.sum}");
+            }
+
         }
     }
 }

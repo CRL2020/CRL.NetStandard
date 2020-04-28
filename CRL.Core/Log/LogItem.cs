@@ -22,7 +22,7 @@ namespace CRL.Core.Log
         {
             get;
             set;
-        }
+        } = DateTime.Now;
         public string Detail
         {
             get;

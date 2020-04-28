@@ -10,7 +10,7 @@ namespace CRL.Core
     /// <summary>
     /// 线程分割处理 
     /// </summary>
-    public class ThreadSplit<T> where T:class
+    public class ThreadSplit<T>
     {
         /// <summary>
         /// 线程数

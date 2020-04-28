@@ -18,6 +18,10 @@ namespace CRLTest.Code
         public string KeyWord { get; set; }
         public DateTime Time { get; set; }
         public string IndexKey { get; set; }
+        public decimal Hit
+        {
+            get;set;
+        }
         public string GetIndexKey()
         {
             var key = string.Format("{0}_{1}_{2}", CustomerId, KeyWord, Time.Date);
