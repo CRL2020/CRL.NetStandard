@@ -12,10 +12,11 @@ namespace MqTest
         static void Main(string[] args)
         {
             var config = new QueueConfig();
-            //config.UseRabbitMQ("127.0.0.1", "test", "test");
+            config.UseRabbitMQ("127.0.0.1", "guest", "guest");
             //config.UseRedis("Server_204@127.0.0.1:6389");
-            config.UseMongoDb("mongodb://test:test@127.0.0.1:27017/test");
+            //config.UseMongoDb("mongodb://test:test@127.0.0.1:27017/test");
             var client = new Publisher(config);
+            client.Publish("timeTest", DateTime.Now);
             var subService = new SubscribeService(config);
             subService.Register(System.Reflection.Assembly.GetAssembly(typeof(SubscribeTest)));
             subService.StartSubscribe();

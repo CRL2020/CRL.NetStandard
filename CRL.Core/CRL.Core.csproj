@@ -6,6 +6,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>5.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="ConsulClient\ConsulGateway.cs" />
