@@ -32,12 +32,13 @@ namespace CRL.Grpc.Extend
             InitOptions();
         }
 #else
+
+#endif
         public GrpcConnect(GrpcClientOptions options)
         {
             _options = options;
             InitOptions();
         }
-#endif
         public GrpcClientOptions GetOptions()
         {
             return _options;

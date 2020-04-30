@@ -88,7 +88,7 @@ namespace CRL.Core.ConsulClient
                     ServiceTags = b.Service.Tags
                 }).ToList();
             }
-            var url = _ocelotGateway ? $"{ConsulHost}/consul/GetService?serviceName={serviceName}&passingOnly={passingOnly}" : $"{ConsulHost}/v1/catalog/service/{serviceName}";
+            var url = $"{ConsulHost}/consul/GetService?serviceName={serviceName}&passingOnly={passingOnly}";
             try
             {
                 var result = request.Get(url);

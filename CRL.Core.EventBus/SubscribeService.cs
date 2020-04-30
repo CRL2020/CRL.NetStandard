@@ -18,12 +18,11 @@ namespace CRL.Core.EventBus
         {
             queueConfig = options.Value;
         }
-#else
+#endif
         public SubscribeService(QueueConfig _queueConfig)
         {
             queueConfig = _queueConfig;
         }
-#endif
         internal static EventDeclare GetEventDeclare(string name)
         {
             eventRegister.TryGetValue(name,out EventDeclare ed);

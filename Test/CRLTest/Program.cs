@@ -101,7 +101,6 @@ namespace CRLTest
             var client = new CRL.Core.RedisProvider.RedisClient(4);
         label1:
             //Code.ContextTest.Test();
-            testMongo();
 
             //testFormat();
             //MongoDBTestManage.Instance.GroupTest();
@@ -111,18 +110,7 @@ namespace CRLTest
             goto label1;
             Console.ReadLine();
         }
-        static void testMongo()
-        {
-            new Code.MongoDBTestManage().SumTest();
-            //new CounterWatch().Start("更新", () =>
-            //{
-            //    new Code.MongoUpdateTest().testUpdate(10000);
-            //}, 1);
-            //new CounterWatch().Start("删除/插入", () =>
-            //{
-            //    new Code.MongoUpdateTest().testUpdate2(10000);
-            //}, 1);
-        }
+
         static void testFormat()
         {
 

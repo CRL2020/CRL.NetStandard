@@ -18,14 +18,12 @@ namespace CRL.Core.EventBus
         public Publisher(Microsoft.Extensions.Options.IOptions<QueueConfig> options)
         {
             queue = QueueFactory.CreateClient(options.Value, false);
-        }
-#else
+        }     
+#endif
         public Publisher(QueueConfig _queueConfig)
         {
             queue = QueueFactory.CreateClient(_queueConfig, false);
         }
-#endif
-
         public void Dispose()
         {
             queue.Dispose();
