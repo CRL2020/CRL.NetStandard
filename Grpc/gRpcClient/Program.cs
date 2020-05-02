@@ -27,7 +27,7 @@ namespace gRpcClient
             {
                 op.Host = "127.0.0.1";
                 op.Port = 50001;
-                op.UseConsulDiscover("http://localhost:8500", "grpcServer");//使用consul服务发现
+                //op.UseConsulDiscover("http://localhost:8500", "grpcServer");//使用consul服务发现
                 op.AddPolicy("Greeter.SayHello", new CRL.Core.Remoting.PollyAttribute() { RetryCount = 3 });//定义方法polly策略
             }, System.Reflection.Assembly.GetExecutingAssembly());
 
