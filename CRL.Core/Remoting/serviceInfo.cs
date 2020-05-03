@@ -11,7 +11,7 @@ namespace CRL.Core.Remoting
     public class serviceInfo
     {
         public static System.Collections.Concurrent.ConcurrentDictionary<string, Type> apiPrefixCache = new System.Collections.Concurrent.ConcurrentDictionary<string, Type>();
-        public static serviceInfo GetServiceInfo(Type type, bool initObjCtor=false)
+        public static serviceInfo GetServiceInfo(Type type, bool initObjCtor = false)
         {
             var info = new serviceInfo()
             {

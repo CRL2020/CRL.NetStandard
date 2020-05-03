@@ -21,7 +21,7 @@ namespace ApiProxyTest
 
             //clientConnect.UseConsulDiscover("http://127.0.0.1:8500", "serviceName");//使用consul发现服务
             //clientConnect.UseOcelotApiGateway("http://127.0.0.1:3400");//直接使用ocelot网关
-            //clientConnect.UseOcelotApiGatewayDiscover("http://127.0.0.1:3400", "serviceName");//使用ocelot网关发现服务
+            clientConnect.UseOcelotApiGatewayDiscover("http://localhost:3400", "serviceName");//使用ocelot网关发现服务
 
             clientConnect.UseBeforRequest((request, members, url) =>
             {

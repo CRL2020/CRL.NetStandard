@@ -68,37 +68,37 @@ namespace CRL.Core.ConsulClient
         
         public List<CatalogService> GetService(string serviceName, bool passingOnly)
         {
-            if (!_ocelotGateway)
+            if(_ocelotGateway)//使用ocelot服务发现
             {
-                var client = new consul((cfg) =>
+                var url = $"{ConsulHost}/Consul/GetService?serviceName={serviceName}&passingOnly={passingOnly}";
+                try
                 {
-                    var uriBuilder = new UriBuilder(ConsulHost);
-                    cfg.Address = uriBuilder.Uri;
-                });
-                var result = client.Health.Service(serviceName, "", passingOnly).Result;
-                if (result.StatusCode != HttpStatusCode.OK)
-                    throw new Exception($"无法获取consul服务注册,{result.StatusCode }");
-                return result.Response.Select(b => new CatalogService
+                    var result2 = request.Get(url);
+                    var services = result2.ToObject<List<CatalogService>>();
+                    return services;
+                }
+                catch (Exception ero)
                 {
-                    ServiceAddress = b.Service.Address,
-                    ServiceID = b.Service.ID,
-                    ServiceName = serviceName,
-                    ServicePort = b.Service.Port,
-                    ServiceMeta = b.Service.Meta,
-                    ServiceTags = b.Service.Tags
-                }).ToList();
+                    throw new Exception($"无法获取consul服务注册,{ero}");
+                }
             }
-            var url = $"{ConsulHost}/consul/GetService?serviceName={serviceName}&passingOnly={passingOnly}";
-            try
+            var client = new consul((cfg) =>
             {
-                var result = request.Get(url);
-                var services = result.ToObject<List<CatalogService>>();
-                return services;
-            }
-            catch (Exception ero)
+                var uriBuilder = new UriBuilder(ConsulHost);
+                cfg.Address = uriBuilder.Uri;
+            });
+            var result = client.Health.Service(serviceName, "", passingOnly).Result;
+            if (result.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"无法获取consul服务注册,{result.StatusCode }");
+            return result.Response.Select(b => new CatalogService
             {
-                throw new Exception($"无法获取consul服务注册,{ero}");
-            }
+                ServiceAddress = b.Service.Address,
+                ServiceID = b.Service.ID,
+                ServiceName = serviceName,
+                ServicePort = b.Service.Port,
+                ServiceMeta = b.Service.Meta,
+                ServiceTags = b.Service.Tags
+            }).ToList();
         }
         /// <summary>
         /// 按服务名称,随机返回一个服务地址

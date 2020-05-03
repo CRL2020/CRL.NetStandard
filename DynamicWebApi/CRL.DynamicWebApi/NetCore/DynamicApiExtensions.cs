@@ -36,7 +36,7 @@ namespace CRL.DynamicWebApi.NetCore
                             continue;
                         }
                         //注册AbsService
-                        services.AddScoped(implementedInterfaces, type);
+                        services.AddTransient(implementedInterfaces, type);
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace CRL.DynamicWebApi.NetCore
         public static void UseDynamicApi(this IApplicationBuilder app)
         {
             var serverCreater = app.ApplicationServices.GetService<ServerCreater>();
-            serverCreater.CreateApi();
+            serverCreater.CreateApi().UseCoreInjection();
             _setupAction(serverCreater);
             serverCreater.RegisterAll(_assemblies);
             app.UseMiddleware<DynamicApiMiddleware>();
