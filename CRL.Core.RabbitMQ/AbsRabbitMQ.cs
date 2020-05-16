@@ -46,18 +46,22 @@ namespace CRL.Core.RabbitMQ
         {
             lock (sync_root)
             {
-                int i = 0;
-                while (!IsOpen && i < 5)
+                int i = 1;
+                while (!IsOpen)
                 {
                     try
                     {
                         CreateConnect();
                     }
                     catch (Exception ero) {
-                        Log("Connection eror" + ero.Message);
+                        Log("Connection eror " + ero.Message);
                     }
                     i++;
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(1000 * i);
+                    if (i > 10)
+                    {
+                        i = 1;
+                    }
                 }
             }
         }
@@ -194,9 +198,13 @@ namespace CRL.Core.RabbitMQ
             if (_pool.TryDequeue(out var model))
             {
                 Interlocked.Decrement(ref _count);
-
+                if(model.IsClosed)
+                {
+                    goto label1;
+                }
                 return model;
             }
+            label1:
             if (!connection.IsOpen)
             {
                 TryConnect();
