@@ -55,18 +55,23 @@ namespace CRL.Core.RabbitMQ
         {
             lock (sync_root)
             {
-                int i = 0;
-                while (!IsOpen && i < 5)
+                int i = 1;
+                while (!IsOpen)
                 {
                     try
                     {
                         CreateConnect();
                     }
-                    catch (Exception ero) {
-                        Log("Connection eror" + ero.Message);
+                    catch (Exception ero)
+                    {
+                        Log("Connection eror " + ero.Message);
                     }
                     i++;
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(1000 * i);
+                    if (i > 10)
+                    {
+                        i = 1;
+                    }
                 }
             }
         }
