@@ -1,4 +1,5 @@
-﻿using CRL.Core.Session;
+﻿using CRL.Core.Log;
+using CRL.Core.Session;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,13 @@ namespace CRL.Core
     {
         public ConfigBuilder()
         {
-            current = this;
+            __Current = this;
         }
         static ConfigBuilder()
         {
-            current = new ConfigBuilder();
+            __Current = new ConfigBuilder();
         }
-        internal static ConfigBuilder current;
+        internal static ConfigBuilder __Current;
         public Func<IWebContext, AbsSession> __SessionCreater;
     }
 }

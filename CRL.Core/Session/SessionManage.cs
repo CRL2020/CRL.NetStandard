@@ -11,11 +11,11 @@ namespace CRL.Core.Session
     {
         public static AbsSession GetSessionClient(IWebContext context)
         {
-            if (ConfigBuilder.current?.__SessionCreater == null)
+            if (ConfigBuilder.__Current?.__SessionCreater == null)
             {
                 return new WebSession(context);
             }
-            return ConfigBuilder.current?.__SessionCreater(context);
+            return ConfigBuilder.__Current?.__SessionCreater(context);
         }
     }
 }

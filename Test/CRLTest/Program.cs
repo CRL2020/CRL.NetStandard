@@ -101,7 +101,7 @@ namespace CRLTest
             var client = new CRL.Core.RedisProvider.RedisClient(4);
         label1:
             //Code.ContextTest.Test();
-
+            testHttpClient();
             //testFormat();
             //MongoDBTestManage.Instance.GroupTest();
             //TestAll();
@@ -183,6 +183,21 @@ namespace CRLTest
             CallContext.SetData("testData", v);
             var value = CallContext.GetData<string>("testData");
             Console.WriteLine(value);
+        }
+        static void testHttpClient()
+        {
+
+            var urls = new List<string>() { "http://news.163.com", "http://www.baidu.com", "https://www.cnblogs.com" };
+            foreach (var item in urls)
+            {
+                Task.Run(() =>
+                {
+                    var request = new CRL.Core.Request.ImitateWebRequest(item);
+                    request.ContentType = "text/html";
+                    var result = request.SendDataAsync(item, "GET", "").Result;
+                    Console.WriteLine(result.Length);
+                });
+            }
         }
     }
 }

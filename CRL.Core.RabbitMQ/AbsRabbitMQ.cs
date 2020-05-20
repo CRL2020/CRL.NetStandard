@@ -28,6 +28,7 @@ namespace CRL.Core.RabbitMQ
             }
         }
         ConnectionFactory factory;
+        SimplePool<IModel> channelPool;
         public AbsRabbitMQ(string host, string user, string pass, bool consumersAsync = false)
         {
             factory = new ConnectionFactory
@@ -40,6 +41,14 @@ namespace CRL.Core.RabbitMQ
                 DispatchConsumersAsync = consumersAsync
             };
             CreateConnect();
+            channelPool = new SimplePool<IModel>(() =>
+             {
+                 if (!connection.IsOpen)
+                 {
+                     TryConnect();
+                 }
+                 return connection.CreateModel();
+             });
         }
         object sync_root = new object();
         public void TryConnect()
@@ -93,7 +102,7 @@ namespace CRL.Core.RabbitMQ
 
         protected void BasePublish<T>(string exchangeType, string routingKey, params T[] msgs)
         {
-            var channel = RentChannel();
+            var channel = channelPool.Rent();
             try
             {
                 channel.ExchangeDeclare(__exchangeName, exchangeType, false, false, null);
@@ -109,7 +118,7 @@ namespace CRL.Core.RabbitMQ
             }
             finally
             {
-                ReturnChannel(channel);
+                channelPool.Return(channel);
             }
         }
 
@@ -173,70 +182,13 @@ namespace CRL.Core.RabbitMQ
             consumerChannels.Add(channel);
             return channel;
         }
-        #region pool
-        static readonly object SLock = new object();
-        ConcurrentQueue<IModel> _pool = new ConcurrentQueue<IModel>();
-        int _count;
-        int _maxSize = 20;
-        IModel RentChannel()
-        {
-            lock (SLock)
-            {
-                while (_count > _maxSize)
-                {
-                    Thread.SpinWait(1);
-                }
-                return RentBaseChannel();
-            }
-        }
-        IModel RentBaseChannel()
-        {
-            if (_pool.TryDequeue(out var model))
-            {
-                Interlocked.Decrement(ref _count);
-
-                return model;
-            }
-            if (!connection.IsOpen)
-            {
-                TryConnect();
-            }
-            try
-            {
-                model = connection.CreateModel();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("connection.CreateModel时发生错误:" + e.Message);
-            }
-
-            return model;
-        }
-        bool ReturnChannel(IModel connection)
-        {
-            if (Interlocked.Increment(ref _count) <= _maxSize)
-            {
-                _pool.Enqueue(connection);
-
-                return true;
-            }
-
-            Interlocked.Decrement(ref _count);
-            return false;
-        }
-        #endregion
         public void Dispose()
         {
             foreach(var c in consumerChannels)
             {
                 c?.Dispose();
             }
-            _maxSize = 0;
-
-            while (_pool.TryDequeue(out var channel))
-            {
-                channel.Dispose();
-            }
+            channelPool.Dispose();
             connection?.Dispose();
         }
     }

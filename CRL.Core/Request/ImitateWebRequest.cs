@@ -247,41 +247,56 @@ namespace CRL.Core.Request
             string out_str;
             return SendData(url, "PUT", data, out out_str);
         }
+        static SimplePool<HttpClient> httpClientPool = new SimplePool<HttpClient>(()=>
+        {
+            return new HttpClient();
+        },20,1);
         public async Task<string> SendDataAsync(string url, string method, string data)
         {
-            using (var httpClient = new HttpClient())
+            //httpclient的问题
+            //https://www.cnblogs.com/jlion/p/12813692.html
+            var httpClient = httpClientPool.Rent();
+            httpClient.DefaultRequestHeaders.Clear();
+            //httpClient.BaseAddress = new Uri(url);
+            httpClient.DefaultRequestHeaders.Add("ContentType", ContentType);
+            httpClient.DefaultRequestHeaders.Add("Accept", Accept);
+            foreach (var kv in heads)
             {
-                //httpClient.BaseAddress = new Uri(url);
-                httpClient.DefaultRequestHeaders.Add("ContentType", ContentType);
-                httpClient.DefaultRequestHeaders.Add("Accept", Accept);
-                httpClient.DefaultRequestHeaders.Add("Accept", Accept);
-                foreach(var kv in heads)
-                {
-                    httpClient.DefaultRequestHeaders.Add(kv.Key, kv.Value.ToString());
-                }
-                var content = new StringContent(data, ContentEncoding);
-                HttpResponseMessage response;
-                switch (method)
-                {
-                    case "POST":
-                        response = await httpClient.PostAsync(url, content);
-                        break;
-                    case "PUT":
-                        response = await httpClient.PutAsync(url, content);
-                        break;
-                    case "DELETE":
-                        response = await httpClient.DeleteAsync(url);
-                        break;
-                    default:
-                        response = await httpClient.GetAsync(url);
-                        break;
-                }
-                if (response.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new Exception("服务器错误:" + response.StatusCode);
-                }
-                return await response.Content.ReadAsStringAsync();
+                httpClient.DefaultRequestHeaders.Add(kv.Key, kv.Value.ToString());
             }
+            var content = new StringContent(data, ContentEncoding);
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentType);
+            HttpResponseMessage response;
+            switch (method)
+            {
+                case "POST":
+                    response = await httpClient.PostAsync(url, content);
+                    break;
+                case "PUT":
+                    response = await httpClient.PutAsync(url, content);
+                    break;
+                case "DELETE":
+                    response = await httpClient.DeleteAsync(url);
+                    break;
+                default:
+                    response = await httpClient.GetAsync(url);
+                    break;
+            }
+            httpClientPool.Return(httpClient);
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("服务器错误:" + response.StatusCode);
+            }
+            string result;
+            using (var myResponseStream = await response.Content.ReadAsStreamAsync())
+            {
+                using (var myStreamReader = new StreamReader(myResponseStream, ResponseEncoding))
+                {
+                    result = myStreamReader.ReadToEnd();
+                }
+            }
+            //httpClientPool.Return(httpClient);
+            return result;
         }
         /// <summary>
         /// POST内容,并返回跳转后的URL

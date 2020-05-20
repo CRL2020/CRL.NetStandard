@@ -9,6 +9,8 @@ using System.Web;
 using System.IO;
 using System.Configuration;
 using System.Net.Sockets;
+using CRL.Core.Log;
+
 namespace CRL.Core
 {
     /// <summary>
@@ -25,103 +27,19 @@ namespace CRL.Core
             {
                 WriteLogFromCache();
                 return true;
-            }, 0.5);
+            }, 0.3);
         }
         /// <summary>
         /// 是否使用上下文信息写日志
         /// </summary>
         public static bool UseContext = true;
-        #region LogItem
-        [Serializable]
-        public class LogItem
+
+        internal static Action<LogItem> __LogCallBack;
+        public static void SetLogCallBack(Action<LogItem> logCallBack)
         {
-            internal string Path;
-            internal string Id;
-            public DateTime Time
-            {
-                get;
-                set;
-            }
-            public string Title
-            {
-                get;
-                set;
-            }
-            public string Detail
-            {
-                get;
-                set;
-            }
-            public string RequestUrl
-            {
-                get;
-                set;
-            }
-            public string UrlReferrer
-            {
-                get;
-                set;
-            }
-            public string HostIP
-            {
-                get;
-                set;
-            }
-            public string UserAgent
-            {
-                get;
-                set;
-            }
-            public string Post
-            {
-                get;
-                set;
-            }
-            public string Method
-            {
-                get;set;
-            }
-            public override string ToString()
-            {
-                string s = Time.ToString("yy-MM-dd HH:mm:ss fffff");
-                if (string.IsNullOrEmpty(Title))
-                {
-                    Title = Detail;
-                    Detail = "";
-                }
-                if (!string.IsNullOrEmpty(Title))
-                {
-                    s += "  " + Title;
-                }
-                if (!string.IsNullOrEmpty(RequestUrl))
-                {
-                    s += "\r\nUrl:" + RequestUrl;
-                }
-                if (!string.IsNullOrEmpty(Method))
-                {
-                    s += "\r\nMethod:" + Method;
-                }
-                if (!string.IsNullOrEmpty(UrlReferrer))
-                {
-                    s += "\r\nUrlReferrer:" + UrlReferrer;
-                }
-                if (!string.IsNullOrEmpty(HostIP))
-                {
-                    s += "\r\nHostIP:" + HostIP;
-                }
-                if (!string.IsNullOrEmpty(UserAgent))
-                {
-                    s += "\r\n" + UserAgent;
-                }
-                if (!string.IsNullOrEmpty(Detail))
-                {
-                    s += "\r\n" + Detail;
-                }
-                s += "\r\n";
-                return s;
-            }
+            __LogCallBack = logCallBack;
         }
-        #endregion
+
         static object lockObj = new object();
         /// <summary>
         /// 检查目录并建立
@@ -159,6 +77,14 @@ namespace CRL.Core
         {
             return Log(logItem, typeName, true);
         }
+        static HttpContext GetHttpContext()
+        {
+            return CallContext.GetData<HttpContext>("logHttpContext");
+        }
+        public static void SetLogHttpContext(HttpContext contenxt)
+        {
+            CallContext.SetData("logHttpContext", contenxt);
+        }
         /// <summary>
         /// 指定日志类型名生成日志
         /// </summary>
@@ -173,36 +99,23 @@ namespace CRL.Core
             {
                 fileName += "." + typeName;
             }
-            //HttpContext context = HttpContext.Current;
-            //logItem.Time = DateTime.Now;
+            var context = GetHttpContext();
+            logItem.Time = DateTime.Now;
 
-            //if (context != null)
-            //{
-            //    try
-            //    {
-            //        if (string.IsNullOrEmpty(thisDomain))
-            //        {
-            //            thisDomain = context.Request.Url.Host;
-            //        }
-            //        if (UseContext)
-            //        {
-            //            if (useContext)
-            //            {
-            //                logItem.HostIP = Request.RequestHelper.GetIP();
-
-            //                logItem.RequestUrl = context.Request.Url.ToString();
-            //                logItem.UserAgent = context.Request.UserAgent;
-            //                logItem.UrlReferrer = context.Request.UrlReferrer + "";
-            //                logItem.Post = context.Request.Form.ToString();
-            //                logItem.Method = context.Request.HttpMethod;
-            //            }
-            //        }
-            //    }
-            //    catch
-            //    {
-            //    }
-            //}
-            return WriteLog(GetLogFolder(), logItem, fileName);
+            if (context != null && UseContext)
+            {
+                if (useContext)
+                {
+                    logItem.UserIP = context.UserIP;
+                    logItem.RequestUrl = context.RequestUrl;
+                    logItem.UserAgent = context.UserAgent;
+                    logItem.UrlReferrer = context.UrlReferrer + "";
+                    logItem.Method = context.Method;
+                }
+            }
+            var a= WriteLog(GetLogFolder(), logItem, fileName);
+            __LogCallBack?.Invoke(logItem);
+            return a;
         }
 		/// <summary>
 		/// 生成日志,默认文件名
@@ -249,9 +162,6 @@ namespace CRL.Core
             return Log(message, "");
 		}
 
-
-		static bool Writing = false;
-		static DateTime lastWriteTime = DateTime.Now;
 		static Dictionary<string, LogItem> logCaches = new Dictionary<string, LogItem>();
 
         /// <summary>
@@ -286,7 +196,6 @@ namespace CRL.Core
         {
             lock (lockObj)
             {
-                Writing = true;
                 //累加上次记录的日志
                 if (logCaches.Count > 0)
                 {
@@ -311,12 +220,8 @@ namespace CRL.Core
                         logCaches.Remove(key);
                     }
                 }
-                //System.Threading.Thread.Sleep(6000);
-                Writing = false;
             }
         }
-
-        static string thisDomain = "";
 
 		private static void WriteLine(string message, string filePath)
 		{

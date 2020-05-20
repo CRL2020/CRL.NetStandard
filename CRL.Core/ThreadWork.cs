@@ -38,8 +38,8 @@ namespace CRL.Core
                         }
                         catch (Exception ero)
                         {
-                            Console.WriteLine("ThreadWork时发生错误" + ero, "ThreadWork_" + name);
-                            CRL.Core.EventLog.Log("ThreadWork时发生错误" + ero, "ThreadWork_" + name);
+                            Console.WriteLine("ThreadWork时发生错误" + ero.Message);
+                            CRL.Core.EventLog.Log("ThreadWork时发生错误" + ero.Message, "ThreadWork_" + name);
                         }
 
                         Thread.Sleep((int)(1000 * second));
