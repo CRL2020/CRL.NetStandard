@@ -15,6 +15,12 @@ namespace CRL.Core.Remoting
             Instance = this;
         }
         AbsServer Server;
+        bool _UseCoreInjection = false;
+        public ServerCreater UseCoreInjection()
+        {
+            _UseCoreInjection = true;
+            return this;
+        }
         /// <summary>
         /// 验证签名
         /// </summary>
@@ -82,18 +88,18 @@ namespace CRL.Core.Remoting
             foreach (var assembyle in assemblies)
             {
                 var types = assembyle.GetTypes();
-                foreach(var type in types)
+                foreach (var type in types)
                 {
-                    if(type.IsSubclassOf(typeof(AbsService)))
+                    if (type.IsSubclassOf(typeof(AbsService)))
                     {
                         var theFilter = new System.Reflection.TypeFilter(MyInterfaceFilter);
-                        var implementedInterfaces = type.FindInterfaces(theFilter, type.BaseType).FirstOrDefault() ;
+                        var implementedInterfaces = type.FindInterfaces(theFilter, type.BaseType).FirstOrDefault();
                         if (implementedInterfaces == null)
                         {
                             continue;
                         }
                         //实现注册
-                        Server.Register(implementedInterfaces, type);
+                        Server.Register(implementedInterfaces, type, _UseCoreInjection ? false : true);
                         //var mainType = this.GetType();
                         //var method = mainType.GetMethod(nameof(Register), BindingFlags.Public | BindingFlags.Instance);
                         //method.MakeGenericMethod(new Type[] { implementedInterfaces, type }).Invoke(this, new object[] { });

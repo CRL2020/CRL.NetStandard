@@ -16,9 +16,9 @@ namespace CRL.Core.Remoting
         {
             Register(typeof(IService), typeof(Service));
         }
-        internal void Register(Type interfaceType, Type serviceType)
+        internal void Register(Type interfaceType, Type serviceType, bool initObjCtor = true)
         {
-            var info = serviceInfo.GetServiceInfo(serviceType,true);
+            var info = serviceInfo.GetServiceInfo(serviceType, initObjCtor);
             info.InterfaceType = interfaceType;
             var serviceKey = $"{info.ServiceAttribute.ApiPrefix}.{interfaceType.Name}";
             serviceHandle.Add(serviceKey, info);
