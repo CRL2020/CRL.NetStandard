@@ -21,8 +21,8 @@ namespace CRL.Mongo.MongoDBEx
                 return;
             var table = TypeCache.GetTable(typeof(TModel));
             var collection = GetCollection<TModel>();
-            var isPrimitive = table.PrimaryKey.PropertyType.IsPrimitive;//基元类型
-            if(table.PrimaryKey.KeepIdentity)
+            //var isPrimitive = table.PrimaryKey.PropertyType.IsPrimitive;//基元类型
+            if (table.PrimaryKey?.KeepIdentity == true)
             {
                 keepIdentity = table.PrimaryKey.KeepIdentity;
             }
@@ -31,7 +31,7 @@ namespace CRL.Mongo.MongoDBEx
                 foreach (var item in details)
                 {
                     var index = getId(table.TableName);
-                    table.PrimaryKey.SetValue(item, index);
+                    table.PrimaryKey?.SetValue(item, index);
                 }
             }
             collection.InsertMany(details);

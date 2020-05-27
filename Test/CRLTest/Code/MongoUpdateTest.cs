@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CRL;
+using MongoDB.Bson;
+
 namespace CRLTest.Code
 {
     public class SearchHistory:CRL.IModel
     {
-        [CRL.Attribute.Field(IsPrimaryKey =true,KeepIdentity =true)]
-        public string _id
+        [CRL.Attribute.Field(IsPrimaryKey = true, KeepIdentity = true)]
+        public ObjectId _id
         {
-            get;set;
+            get; set;
         }
         public string OrgId { get; set; }
         public string CustomerId { get; set; }
@@ -41,13 +43,13 @@ namespace CRLTest.Code
             foreach (var item in list)
             {
                 var state = item.KeyWord;
-                item._id = Guid.NewGuid().ToString();
+                //item._id = Guid.NewGuid().ToString();
                 item.CustomerId = Guid.NewGuid().ToString();
                 var n = Update(b => b.CustomerId == item.CustomerId, new Dictionary<string, object>() { { "KeyWord", state } });
             }
             if(list.Count==0)
             {
-                list.Add(new SearchHistory() { _id = Guid.NewGuid().ToString(), CustomerId = Guid.NewGuid().ToString(), KeyWord = "key2", OrgId = code, Time = DateTime.Now });
+                list.Add(new SearchHistory() { CustomerId = Guid.NewGuid().ToString(), KeyWord = "key2", OrgId = code, Time = DateTime.Now });
             }
             //BatchInsert(list);
         }
@@ -70,6 +72,15 @@ namespace CRLTest.Code
                 
             }
             BatchInsert(list);
+        }
+        public void TestInsert()
+        {
+            var list = new List<SearchHistory>();
+            for (int i = 0; i < 100; i++)
+            {
+                list.Add(new SearchHistory() { CustomerId = Guid.NewGuid().ToString(), KeyWord = "key2", OrgId = i.ToString(), Time = DateTime.Now });
+            }
+            BatchInsert(list, true);
         }
     }
 }
