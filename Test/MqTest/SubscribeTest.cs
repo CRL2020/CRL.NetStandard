@@ -1,4 +1,4 @@
-﻿using CRL.Core.EventBus;
+﻿using CRL.EventBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;

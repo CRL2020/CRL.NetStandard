@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CRL.Core.RedisProvider\CRL.Core.RedisProvider.csproj" />
     <ProjectReference Include="..\..\CRL.Core\CRL.Core.csproj" />
     <ProjectReference Include="..\..\CRL.Providers\CRL.MongoDB\CRL.MongoDB.csproj" />
+    <ProjectReference Include="..\..\CRL.RedisProvider\CRL.RedisProvider.csproj" />
     <ProjectReference Include="..\..\CRL\CRL.csproj" />
     <ProjectReference Include="..\..\DynamicWebApi\CRL.DynamicWebApi\CRL.DynamicWebApi.csproj" />
   </ItemGroup>

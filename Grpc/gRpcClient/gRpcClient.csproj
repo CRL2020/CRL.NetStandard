@@ -21,6 +21,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\CRL.Grpc.Extend\CRL.Grpc.Extend.csproj" />
+    <ProjectReference Include="..\CRL.GrpcExtend\CRL.GrpcExtend.csproj" />
   </ItemGroup>
 </Project>

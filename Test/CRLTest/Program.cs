@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CRL.Core.Extension;
-using CRL.Core.RedisProvider;
+using CRL.RedisProvider;
 using CRL.Mongo;
 namespace CRLTest
 {
@@ -98,7 +98,7 @@ namespace CRLTest
             //Code.OrderManage.Instance.QueryItem(1);
             //Code.ProductDataManage.Instance.QueryItem(1);
             string str = "111";
-            var client = new CRL.Core.RedisProvider.RedisClient(4);
+            var client = new CRL.RedisProvider.RedisClient(4);
         label1:
             new MongoUpdateTest().TestInsert();
             //Code.ContextTest.Test();

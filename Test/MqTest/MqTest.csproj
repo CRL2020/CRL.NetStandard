@@ -51,9 +51,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CRL.Core.EventBus\CRL.Core.EventBus.csproj">
-      <Project>{cfb4f0fe-2c65-4d31-a5f3-4273a02f8cc3}</Project>
-      <Name>CRL.Core.EventBus</Name>
+    <ProjectReference Include="..\..\CRL.EventBus\CRL.EventBus.csproj">
+      <Project>{12f27e53-e1fb-40d1-8c84-08e53bcc2b36}</Project>
+      <Name>CRL.EventBus</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

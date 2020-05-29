@@ -5,8 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
-using CRL.Grpc.Extend.NetCore;
-using CRL.Grpc.Extend;
+using CRL.GrpcExtend.NetCore;
+using CRL.GrpcExtend;
 
 namespace gRpcClient
 {

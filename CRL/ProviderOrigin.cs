@@ -83,14 +83,14 @@ namespace CRL
         }
 
         #region redis
-        Core.RedisProvider.RedisClient _RedisClient;
-        protected Core.RedisProvider.RedisClient RedisClient
+        RedisProvider.RedisClient _RedisClient;
+        protected RedisProvider.RedisClient RedisClient
         {
             get
             {
                 if (_RedisClient == null)
                 {
-                    _RedisClient = new Core.RedisProvider.RedisClient(RedisDbIndex);
+                    _RedisClient = new RedisProvider.RedisClient(RedisDbIndex);
                 }
                 return _RedisClient;
             }
