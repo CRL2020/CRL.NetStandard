@@ -9,11 +9,11 @@ namespace CRLTest.Code
 {
     public class SearchHistory:CRL.IModel
     {
-        [CRL.Attribute.Field(IsPrimaryKey = true, KeepIdentity = true)]
-        public ObjectId _id
-        {
-            get; set;
-        }
+        //[CRL.Attribute.Field(IsPrimaryKey = true, KeepIdentity = true)]
+        //public ObjectId _id
+        //{
+        //    get; set;
+        //}
         public string OrgId { get; set; }
         public string CustomerId { get; set; }
         public string UserId { get; set; }
@@ -80,6 +80,15 @@ namespace CRLTest.Code
             {
                 list.Add(new SearchHistory() { CustomerId = Guid.NewGuid().ToString(), KeyWord = "key2", OrgId = i.ToString(), Time = DateTime.Now });
             }
+            //int total = list.Count;
+            //int index = 0;
+            //while (index < total)
+            //{
+            //    var list2 = list.Skip(index).Take(12);
+            //    index += list2.Count();
+            //    Console.WriteLine(index);
+            //}
+            Console.WriteLine("ok");
             BatchInsert(list, true);
         }
     }

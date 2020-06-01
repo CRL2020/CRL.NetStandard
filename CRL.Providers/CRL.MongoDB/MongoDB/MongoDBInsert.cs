@@ -47,7 +47,7 @@ $inc:{ 'currentIdValue':1}
         public override void InsertFromObj<TModel>(TModel obj)
         {
             var table = TypeCache.GetTable(typeof(TModel));
-            if (!table.PrimaryKey.KeepIdentity)
+            if (!table.PrimaryKey?.KeepIdentity == true)
             {
                 var index = getId(table.TableName);
                 table.PrimaryKey.SetValue(obj, index);
