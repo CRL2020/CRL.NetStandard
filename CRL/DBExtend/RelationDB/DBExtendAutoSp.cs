@@ -15,10 +15,10 @@ using CRL.LambdaQuery;
 namespace CRL.DBExtend.RelationDB
 {
     public sealed partial class DBExtend
-    { 
+    {
         #region sql to sp
 
-        static Dictionary<string, int> spCahe = new Dictionary<string, int>();
+        static Dictionary<string, Dictionary<string, int>> spCahe = new Dictionary<string, Dictionary<string, int>>();
         /// <summary>
         /// 将SQL语句编译成储存过程
         /// </summary>
@@ -33,13 +33,18 @@ namespace CRL.DBExtend.RelationDB
                 throw new CRLException("当前数据库不支持动态编译");
             }
             sql = _DBAdapter.SqlFormat(sql);
+            var dbName = dbContext.DBHelper.DatabaseName;
             lock (lockObj)
             {
-                if (spCahe.Count == 0)//初始已编译过的存储过程
+                if (!spCahe.ContainsKey(dbName))//初始已编译过的存储过程
                 {
                     var db = GetBackgroundDBExtend();
                     //BackupParams();
-                    spCahe = db.ExecDictionary<string, int>(_DBAdapter.GetAllSPSql(dbContext.DBHelper.DatabaseName));
+                    var dic = db.ExecDictionary<string, int>(_DBAdapter.GetAllSPSql(dbContext.DBHelper.DatabaseName));
+                    if (!spCahe.ContainsKey(dbName))
+                    {
+                        spCahe.Add(dbName, dic);
+                    }
                     //RecoveryParams();
                 }
             }
@@ -59,19 +64,17 @@ namespace CRL.DBExtend.RelationDB
                     fields += "_" + parames["rowOver"];
                 }
             }
+            string spPrex = $"ZautoSp_";
             string sp;
             if(SettingConfig.FieldParameName)
             {
-                sp = (fields + "_" + sql.Trim()).GetHashCode().ToString();
-                sp = "ZautoSp_H" + (sp.Replace("-", "F"));
+                spPrex += "H_";
             }
-            else
-            {
-                sp = StringHelper.EncryptMD5(fields + "_" + sql.Trim());
-                sp = "ZautoSp_" + sp.Substring(8, 16);
-            }
-            
-            if (!spCahe.ContainsKey(sp))
+            sp = StringHelper.EncryptMD5(fields + "_" + sql.Trim());
+            sp = spPrex + sp.Substring(8, 16);
+
+            var dbCahce = spCahe[dbName];
+            if (!dbCahce.ContainsKey(sp))
             {
                 //sql = __DbHelper.FormatWithNolock(sql);
                 var db = GetBackgroundDBExtend();
@@ -84,9 +87,9 @@ namespace CRL.DBExtend.RelationDB
                     //RecoveryParams();
                     lock (lockObj)
                     {
-                        if (!spCahe.ContainsKey(sp))
+                        if (!dbCahce.ContainsKey(sp))
                         {
-                            spCahe.Add(sp, 0);
+                            dbCahce.Add(sp, 0);
                         }
                     }
                     string log = string.Format("创建存储过程:{0}\r\n{1}", sp, spScript);

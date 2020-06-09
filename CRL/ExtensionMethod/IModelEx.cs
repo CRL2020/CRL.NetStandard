@@ -52,9 +52,10 @@ namespace CRL
         /// <typeparam name="T"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public static PageData<T> GetPageData<T>(this LambdaQuery.LambdaQuery<T> query) where T : IModel, new()
+        public static PageData<T> GetPageData<T>(this LambdaQuery.ILambdaQuery<T> query) where T : IModel, new()
         {
-            var obj = new PageData<T>() { CurrentPage = query.SkipPage, Rows = query.ToList<T>(), RowCount = query.RowCount };
+            var query2 = query as LambdaQuery.LambdaQuery<T>;
+            var obj = new PageData<T>() { CurrentPage = query2.SkipPage, Rows = query.ToList<T>(), RowCount = query.RowCount };
             return obj;
         }
 

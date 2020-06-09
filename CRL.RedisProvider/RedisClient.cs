@@ -230,6 +230,7 @@ namespace CRL.RedisProvider
             return value.data;
         }
         #endregion
+
         #region list
         public long ListRightPush<T>(string key, T value)
         {
@@ -256,6 +257,21 @@ namespace CRL.RedisProvider
             return new StackExchangeRedisHelper(_id).ListLength(key);
         }
         #endregion
+
+        public bool GetBit(string key,long offSet)
+        {
+            return new StackExchangeRedisHelper(_id).GetDatabase().StringGetBit(key, offSet);
+        }
+        public void SetBit(string key, long offSet, bool bit)
+        {
+            new StackExchangeRedisHelper(_id).GetDatabase().StringSetBit(key, offSet, bit);
+        }
+        public StackExchange.Redis.IDatabase GetIDatabase()
+        {
+            var str = "";
+            var a = str.GetHashCode();
+            return new StackExchangeRedisHelper(_id).GetDatabase();
+        }
 
     }
 
