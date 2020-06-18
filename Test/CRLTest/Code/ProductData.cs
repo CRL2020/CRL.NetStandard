@@ -102,7 +102,7 @@ namespace CRLTest.Code
         /// 方向
         /// </summary>
         [CRL.Attribute.Field(FieldIndexType = CRL.Attribute.FieldIndexType.非聚集)]
-        public TransType TransType
+        public TransType? TransType
         {
             get;
             set;

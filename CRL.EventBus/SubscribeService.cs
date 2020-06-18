@@ -98,6 +98,57 @@ namespace CRL.EventBus
                 }
             }
         }
+        /// <summary>
+        /// 手动指定订阅
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="attr"></param>
+        /// <param name="func"></param>
+        public void StartSubscribe<T>(SubscribeAttribute attr, Action<T> func)
+        {
+            var ed = CreateEventDeclare<T>(attr, (i, b) =>
+            {
+                func((T)b.First());
+                return null;
+            });
+            var queue = QueueFactory.GetQueueClient(queueConfig, ed);
+            ed.IQueue = queue;
+            if (ed.IsCopy)
+            {
+                ed.StartPublishThread();
+            }
+            if (ed.IsAsync)
+            {
+                queue.SubscribeAsync(ed);
+            }
+            else
+            {
+                queue.Subscribe(ed);
+            }
+        }
+        EventDeclare CreateEventDeclare<T>(SubscribeAttribute attr, Func<object, object[], object> func)
+        {
+            var key = attr?.Name;
+            var eventDataType = typeof(T);
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new Exception("name不能为空");
+            }
+            var isArry = typeof(System.Collections.IEnumerable).IsAssignableFrom(eventDataType);
+
+            var ed = new EventDeclare()
+            {
+                EventDataType = eventDataType,
+                Name = key,
+                MethodInvoke = func,
+                //IsAsync = isAsync,
+                IsArray = isArry,
+                ListTake = attr.ListTake,
+                QueueName = attr.QueueName,
+                ThreadSleepSecond = attr.ThreadSleepSecond
+            };
+            return ed;
+        }
         EventDeclare CreateEventDeclare(SubscribeAttribute attr, MethodInfo method)
         {
             var key = attr?.Name;
@@ -107,18 +158,18 @@ namespace CRL.EventBus
             {
                 throw new Exception("至少一个参数");
             }
+            var eventDataType = args1.ParameterType;
             if (string.IsNullOrEmpty(key))
             {
-                key = args1.ParameterType.Name;
+                throw new Exception("name不能为空");
             }
-            var isArry = typeof(System.Collections.IEnumerable).IsAssignableFrom(args1.ParameterType);
+            var isArry = typeof(System.Collections.IEnumerable).IsAssignableFrom(eventDataType);
             var isAsync = method.ReturnType == typeof(Task);
 
             var ed = new EventDeclare()
             {
-                EventDataType = args1.ParameterType,
+                EventDataType = eventDataType,
                 Name = key,
-                Method = method,
                 MethodInvoke = func,
                 IsAsync = isAsync,
                 IsArray = isArry,

@@ -174,11 +174,11 @@ namespace CRL.Core
             if (connectionCaches == null)
             {
                 connectionCaches = new Dictionary<string, string>();
-                string folder = "c:\\DBConnection\\";
-                string folder2 = RequestHelper.GetFilePath("/DBConnection");
+                //string folder = "c:\\DBConnection\\";
+                string folder = RequestHelper.GetFilePath("/DBConnection");
                 //优先以网站当前目录下设置
-                if (System.IO.Directory.Exists(folder2))
-                    folder = folder2;
+                //if (System.IO.Directory.Exists(folder2))
+                //    folder = folder2;
 
                 if (watch2 == null)
                 {

@@ -14,10 +14,16 @@ namespace CRL.EventBus
         {
             Name = name;
         }
+        /// <summary>
+        /// 订阅的名称
+        /// </summary>
         public string Name
         {
             get; set;
         }
+        /// <summary>
+        /// 批量订阅时条数
+        /// </summary>
         public int ListTake
         {
             get; set;

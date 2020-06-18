@@ -56,7 +56,8 @@ namespace CRL
             //obj = System.Activator.CreateInstance(toType);
             try
             {
-                obj = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(toType);
+                obj = Core.DynamicMethodHelper.CreateCtorFuncFromCache(toType)();
+                //obj = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(toType);
             }
             catch
             {
@@ -78,7 +79,13 @@ namespace CRL
                 if (nameSpace == "System" || sourceInfo.PropertyType.BaseType == typeof(Enum))
                 {
                     value = sourceInfo.GetValue(source, null);
-                    value = ObjectConvert.ConvertObject(info.PropertyType, value);
+                    try
+                    {
+                        value = ObjectConvert.ConvertObject(info.PropertyType, value);
+                    }
+                    catch (Exception ero) {
+                        continue;
+                    }
                 }
                 else//如果是class,则再转换一次
                 {

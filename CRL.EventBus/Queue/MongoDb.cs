@@ -6,6 +6,7 @@ using System.Text;
 using CRL.Core.Extension;
 using System.Threading.Tasks;
 using CRL.Core;
+//不要引用MongoDB.Bson
 
 namespace CRL.EventBus.Queue
 {
@@ -60,7 +61,7 @@ namespace CRL.EventBus.Queue
         {
             var ed = args as EventDeclare;
             var name = $"CRL_QUEUE_{ed.Name}";
-            var coll = database.GetCollection<MongoData>(name);
+            var coll = database.GetCollection<MongoDataRead>(name);
             var list = coll.Find(b => true).SortBy(b => b.Time).Limit(ed.ListTake).ToList();
             if (list.Count == 0)
             {
@@ -68,17 +69,17 @@ namespace CRL.EventBus.Queue
             }
             if (ed.IsArray)
             {
-                var objInstance = DynamicMethodHelper.CreateCtorFuncFromCache(ed.EventDataType)();
+                var listInstance = DynamicMethodHelper.CreateCtorFuncFromCache(ed.EventDataType)();
                 var innerType = ed.EventDataType.GenericTypeArguments[0];
                 var method = ed.EventDataType.GetMethod("Add");
                 foreach (var m in list)
                 {
                     var item = m.Data.ToObject(innerType);
-                    method.Invoke(objInstance, new object[] { item });
+                    method.Invoke(listInstance, new object[] { item });
                 }
-                ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { objInstance });
-                var ids = list.Select(b => b.Id).ToArray();
-                coll.DeleteMany(b => ids.Contains(b.Id));
+                ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { listInstance });
+                var ids = list.Select(b => b._id).ToArray();
+                coll.DeleteMany(b => ids.Contains(b._id));
             }
             else
             {
@@ -86,7 +87,7 @@ namespace CRL.EventBus.Queue
                 {
                     var item = m.Data.ToObject(ed.EventDataType);
                     ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { item });
-                    coll.DeleteOne(b => b.Id == m.Id);
+                    coll.DeleteOne(b => b._id == m._id);
                 }
             }
             return true;
@@ -95,7 +96,7 @@ namespace CRL.EventBus.Queue
         {
             var ed = args as EventDeclare;
             var name = $"CRL_QUEUE_{ed.Name}";
-            var coll = database.GetCollection<MongoData>(name);
+            var coll = database.GetCollection<MongoDataRead>(name);
             var list = await coll.Find(b => true).SortBy(b => b.Time).Limit(ed.ListTake).ToListAsync();
             if (list.Count == 0)
             {
@@ -112,8 +113,8 @@ namespace CRL.EventBus.Queue
                     method.Invoke(objInstance, new object[] { item });
                 }
                 await (Task)ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { objInstance });
-                var ids = list.Select(b => b.Id).ToArray();
-                await coll.DeleteManyAsync(b => ids.Contains(b.Id));
+                var ids = list.Select(b => b._id).ToArray();
+                await coll.DeleteManyAsync(b => ids.Contains(b._id));
             }
             else
             {
@@ -121,7 +122,7 @@ namespace CRL.EventBus.Queue
                 {
                     var item = m.Data.ToObject(ed.EventDataType);
                     await (Task)ed.MethodInvoke.Invoke(ed.CreateServiceInstance(), new object[] { item });
-                    await coll.DeleteOneAsync(b => b.Id == m.Id);
+                    await coll.DeleteOneAsync(b => b._id == m._id);
                 }
             }
             return true;
@@ -148,13 +149,16 @@ namespace CRL.EventBus.Queue
         {
             get; set;
         }
-        public Guid Id
-        {
-            get; set;
-        } = Guid.NewGuid();
         public DateTime Time
         {
             get; set;
         } = DateTime.Now;
+    }
+    class MongoDataRead: MongoData
+    {
+        public MongoDB.Bson.ObjectId _id
+        {
+            get; set;
+        } = MongoDB.Bson.ObjectId.GenerateNewId();
     }
 }

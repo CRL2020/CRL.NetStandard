@@ -13,7 +13,7 @@ namespace CRL.DynamicWebApi
         {
             //throw new NotImplementedException();
         }
-
+        static ApiServer apiServer = new ApiServer();
         public void Init(HttpApplication context)
         {
             context.BeginRequest += (s, e) =>
@@ -22,7 +22,7 @@ namespace CRL.DynamicWebApi
                 var request = application.Request;
                 var response = application.Response;
                 var path = request.FilePath;
-                if(!path.StartsWith("/DynamicApi/"))
+                if (!path.StartsWith("/DynamicApi/"))
                 {
                     return;
                 }
@@ -31,8 +31,8 @@ namespace CRL.DynamicWebApi
                 var method = arry[3];
                 //var serviceHandle = ApiServer.serviceHandle;
                 var token = request.Headers["token"];
-                var apiServer = ApiServer.Instance;
-  
+                //var apiServer = ApiServer.Instance;
+
                 var requestMsg = new RequestJsonMessage()
                 {
                     Service = service,
@@ -42,7 +42,7 @@ namespace CRL.DynamicWebApi
                 if (request.Files != null && request.Files.Count > 0)
                 {
                     var file = request.Files[0];
-                    requestMsg.httpPostedFile = file;
+                    //requestMsg.httpPostedFile = file;
                 }
                 if (request.ContentLength > 0)
                 {
@@ -52,7 +52,7 @@ namespace CRL.DynamicWebApi
                     var args = System.Text.Encoding.UTF8.GetString(data);
                     requestMsg.Args = args.ToObject<List<object>>();
                 }
-                var result = apiServer.InvokeResult(requestMsg);
+                var result = apiServer.InvokeResult(requestMsg, null);
                 response.Headers.Add("Access-Control-Allow-Origin", "*");
                 response.ContentType = "application/json";
                 response.Write(result.ToJson());

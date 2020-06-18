@@ -100,7 +100,8 @@ namespace CRLTest
             string str = "111";
             var client = new CRL.RedisProvider.RedisClient(4);
         label1:
-            new MongoUpdateTest().TestInsert();
+            var item = new Code.ProductDataManage().QueryItem(b => b.Id == 1);
+            //new MongoUpdateTest().TestInsert();
             //Code.ContextTest.Test();
             //testHttpClient();
             //testFormat();

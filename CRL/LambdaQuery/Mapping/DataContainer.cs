@@ -305,17 +305,17 @@ namespace CRL.LambdaQuery.Mapping
         static Dictionary<Type, MethodInfo> methods = new Dictionary<Type, MethodInfo>();
         public static MethodInfo GetMethod(Type propType, bool anonymousClass = false)
         {
-            var  unType = Nullable.GetUnderlyingType(propType);
+            var unType = Nullable.GetUnderlyingType(propType);
             var isNullable = unType != null;
             MethodInfo result;
-            if (propType.IsEnum && !anonymousClass)//按是按lanbda表达式便建对象赋值时,需返回强类型方法
+            if (propType.IsEnum && !anonymousClass)
             {
                 propType = propType.GetEnumUnderlyingType();
             }
-            var Type2 = typeof(DataContainer);
+            var typeDataContainer = typeof(DataContainer);
             if (methods.Count == 0)
             {
-                var array = Type2.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+                var array = typeDataContainer.GetMethods(BindingFlags.Instance | BindingFlags.Public);
                 foreach (var item in array)
                 {
                     if (item.Name == "GetHashCode")
@@ -329,11 +329,10 @@ namespace CRL.LambdaQuery.Mapping
                     methods.Add(item.ReturnType, item);
                 }
             }
-            if (propType.IsEnum && anonymousClass)
+            if (propType.IsEnum || unType?.IsEnum == true)
             {
-                //按是按lanbda表达式便建对象赋值时,需返回强类型方法
-                var m1 = Type2.GetMethod("GetEnum");
-                var m2 = Type2.GetMethod("GetEnumNullable");
+                var m1 = typeDataContainer.GetMethod("GetEnum");
+                var m2 = typeDataContainer.GetMethod("GetEnumNullable");
                 if (isNullable)
                 {
                     return m2.MakeGenericMethod(unType);
@@ -348,7 +347,7 @@ namespace CRL.LambdaQuery.Mapping
             }
             if (propType == typeof(Guid))
             {
-                result = Type2.GetMethod("GetGuid");
+                result = typeDataContainer.GetMethod("GetGuid");
             }
             return result;
         }

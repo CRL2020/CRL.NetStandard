@@ -18,7 +18,7 @@ namespace CRL.Core.Extension
                 var typeRef = typeof(ReflectionHelper);
                 var method = typeRef.GetMethod(nameof(ReflectionHelper.GetInfo), BindingFlags.Public | BindingFlags.Static);
                 var refInfo = method.MakeGenericMethod(new Type[] { type }).Invoke(null, new object[] { null }) as IReflectionInfo;
-                var pro = type.GetProperties().Where(b => b.GetSetMethod() != null);
+                var pro = type.GetProperties().Where(b => b.GetSetMethod() != null).Where(b => b.SetMethod.Name != "set_Item");
                 typeInfo = new TypeInfo() { Properties = pro, ReflectionInfo = refInfo };
                 TypeInfoCache.TryAdd(type, typeInfo);
             }

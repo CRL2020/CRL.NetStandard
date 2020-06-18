@@ -12,7 +12,7 @@ namespace CRL.EventBus
         internal AbsQueue IQueue;
         internal string Name;
         internal Type EventDataType;
-        internal MethodInfo Method;
+        //internal MethodInfo Method;
         internal Func<object, object[], object> MethodInvoke;
         internal bool IsAsync;
         internal bool IsArray;
@@ -39,7 +39,7 @@ namespace CRL.EventBus
             }
             else
             {
-                return ServiceInstanceCtor2();
+                return ServiceInstanceCtor2?.Invoke();
             }
         }
         internal string GetArrayName()
