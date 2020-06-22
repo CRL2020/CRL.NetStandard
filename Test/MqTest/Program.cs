@@ -16,6 +16,7 @@ namespace MqTest
             config.UseMongoDb("mongodb://test:test@127.0.0.1:27017/test");
             var client = new Publisher(config);
             client.Publish("timeTest", DateTime.Now);
+       
             var subService = new SubscribeService(config);
             //注册方式订阅
             //subService.Register(System.Reflection.Assembly.GetAssembly(typeof(SubscribeTest)));
@@ -29,7 +30,8 @@ namespace MqTest
         label1:
             client.Publish("timeTest", DateTime.Now);
             client.Publish("intTest", DateTime.Now.Second);
-            Console.WriteLine("send ok");
+            var n = client.GetQueueLength("timeTest");
+            Console.WriteLine("send ok " + n);
             Console.ReadLine();
             goto label1;
         }

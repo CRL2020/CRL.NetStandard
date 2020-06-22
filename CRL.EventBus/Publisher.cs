@@ -38,5 +38,13 @@ namespace CRL.EventBus
             Publish(name, msgs);
             return Task.FromResult(true);
         }
+        public long CleanQueue(string name)
+        {
+            return queue.CleanQueue(name);
+        }
+        public long GetQueueLength(string name)
+        {
+            return queue.GetQueueLength(name);
+        }
     }
 }

@@ -142,6 +142,18 @@ namespace CRL.EventBus.Queue
             }, ed.ThreadSleepSecond);
             threads.Add(thread);
         }
+        public override long CleanQueue(string name)
+        {
+            name = $"CRL_QUEUE_{name}";
+            var coll = database.GetCollection<MongoDataRead>(name);
+            return coll.DeleteMany(b => true).DeletedCount;
+        }
+        public override long GetQueueLength(string name)
+        {
+            name = $"CRL_QUEUE_{name}";
+            var coll = database.GetCollection<MongoDataRead>(name);
+            return coll.Find(b => true).CountDocuments();
+        }
     }
     class MongoData
     {

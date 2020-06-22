@@ -345,7 +345,7 @@ namespace CRL.Mongo.MongoDBEx
                     query2.Skip(skip);
                 }
                 query2.Limit(pageSize);
-                rowNum = collection.Count(query.__MongoDBFilter);
+                rowNum = collection.Find(query.__MongoDBFilter).CountDocuments();
             }
             var result = query2.ToList();
             if (rowNum == 0)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CRL.Core.Extension;
+
 namespace CRL.EventBus.Queue
 {
     class RabbitMQ : AbsQueue
@@ -62,6 +63,14 @@ namespace CRL.EventBus.Queue
         public override void Dispose()
         {
             client?.Dispose();
+        }
+        public override long CleanQueue(string name)
+        {
+            return client.CleanQueue(name);
+        }
+        public override long GetQueueLength(string name)
+        {
+            return client.GetQueueLength(name);
         }
     }
 }

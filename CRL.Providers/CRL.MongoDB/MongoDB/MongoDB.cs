@@ -91,22 +91,49 @@ namespace CRL.Mongo.MongoDBEx
         public override TType GetFunction<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> selectField, FunctionType functionType, bool compileSp = false)
         {
             var query = new MongoDBLambdaQuery<TModel>(dbContext);
-            query.Select(selectField.Body);
-            query.Where(expression);
+            var m = selectField.Body as MemberExpression;
+            var fieldName = m.Member.Name;
+            //query.Select(selectField.Body);
+            //query.Where(expression);
             var collection = _MongoDB.GetCollection<TModel>(query.QueryTableName);
             object result = null;
-            //https://blog.csdn.net/shiyaru1314/article/details/52370478
-            //https://www.jb51.net/article/113820.htm
-            //https://blog.csdn.net/u013476435/article/details/81560089
+
+
             switch (functionType)
             {
                 case FunctionType.COUNT:
-                    result = collection.Count(query.__MongoDBFilter);
+                    result = collection.Find(expression).CountDocuments();
+                    break;
+                case FunctionType.SUM:
+                    result = getAggregateResult(collection, expression, "sum", fieldName);
+                    break;
+                case FunctionType.MAX:
+                    result = getAggregateResult(collection, expression, "max", fieldName);
+                    break;
+                case FunctionType.MIN:
+                    result = getAggregateResult(collection, expression, "min", fieldName);
                     break;
                 default:
                     throw new NotSupportedException("MongoDB不支持的函数:" + functionType);
             }
             return ObjectConvert.ConvertObject<TType>(result);
+        }
+        object getAggregateResult<TModel>(IMongoCollection<TModel> collection, Expression<Func<TModel, bool>> expression, string func,string fieldName)
+        {
+            var options = new AggregateOptions()
+            {
+                AllowDiskUse = true
+            };
+            var groupInfo = new BsonDocument()
+                        .Add("_id", new BsonDocument())
+                        .Add($"funName", new BsonDocument()
+                                .Add("$" + func, $"${fieldName}"));
+            var projection = new BsonDocument()
+                .Add("funcResult", $"$funName")
+                .Add("_id", 0);
+            var sumResult = collection.Aggregate(options).Match(expression).Group(groupInfo).Project(projection).First();
+            var result = sumResult["funcResult"];
+            return result;
         }
     }
 }

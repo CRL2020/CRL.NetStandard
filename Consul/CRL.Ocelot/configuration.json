@@ -33,6 +33,7 @@
     "TtlSeconds": 60, //缓存时间(秒)
     "Region": "key" //缓存分区名
   },
+  //consul
   "GlobalConfiguration": {
     //"BaseUrl": "https://api.mybusiness.com"
     "ServiceDiscoveryProvider": {

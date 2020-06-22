@@ -31,6 +31,8 @@ namespace CRL.DynamicWebApi.NetCore
 
         public async Task Invoke(HttpContext httpContext)
         {
+            //await httpContext.Response.WriteAsync(httpContext.Request.Path.ToString());
+            //return;
             var prefix = httpContext.Request.Path.Value.Split('/')[1];
             if (serviceInfo.apiPrefixCache.ContainsKey(prefix))
             {

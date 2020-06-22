@@ -14,7 +14,14 @@ namespace CRL.EventBus.Queue
         public abstract void Publish<T>(string routingKey, params T[] msg);
         public abstract void Subscribe(EventDeclare eventDeclare);
         public abstract void SubscribeAsync(EventDeclare eventDeclare);
-
+        public virtual long CleanQueue(string name)
+        {
+            return 0;
+        }
+        public virtual long GetQueueLength(string name)
+        {
+            return 0;
+        }
         #region inner
         protected internal void OnReceiveString(string msg, string key)
         {

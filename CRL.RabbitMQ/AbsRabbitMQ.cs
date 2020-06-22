@@ -9,6 +9,7 @@ using CRL.Core.Extension;
 using System.Threading;
 using System.Collections.Concurrent;
 using CRL.Core;
+using System.Collections.Specialized;
 
 namespace CRL.RabbitMQ
 {
@@ -196,6 +197,20 @@ namespace CRL.RabbitMQ
             }
             channelPool.Dispose();
             connection?.Dispose();
+        }
+        public long CleanQueue(string queue)
+        {
+            var channel = channelPool.Rent();
+            var count = channel.QueueDelete(queue);
+            channelPool.Return(channel);
+            return count;
+        }
+        public long GetQueueLength(string queue)
+        {
+            var channel = channelPool.Rent();
+            var count = channel.MessageCount(queue);
+            channelPool.Return(channel);
+            return count;
         }
     }
 }
