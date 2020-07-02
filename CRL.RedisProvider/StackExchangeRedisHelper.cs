@@ -13,73 +13,70 @@ namespace CRL.RedisProvider
 {
     public class StackExchangeRedisHelper
     {
-        private static readonly string Coonstr = RedisClient.GetRedisConn();
-        private static object _locker = new Object();
-        private static ConnectionMultiplexer _instance = null;
+        //private static readonly string Coonstr = RedisClient.GetRedisConn();
+        //private static object _locker = new Object();
+        private static System.Collections.Concurrent.ConcurrentDictionary<string, ConnectionMultiplexer> _cache = new System.Collections.Concurrent.ConcurrentDictionary<string, ConnectionMultiplexer>();
         static string host;
         /// <summary>
         /// 使用一个静态属性来返回已连接的实例，如下列中所示。这样，一旦 ConnectionMultiplexer 断开连接，便可以初始化新的连接实例。
         /// </summary>
-        public static ConnectionMultiplexer Instance
+        public static ConnectionMultiplexer GetInstance(string type)
         {
-            get
+            var a = _cache.TryGetValue(type, out ConnectionMultiplexer instance);
+            if (a && instance.IsConnected)
             {
-                if(RedisClient.GetRedisConn==null)
-                {
-                    throw new Exception("请实现RedisClient.GetRedisConn");
-                }
-                if (_instance == null)
-                {
-                    lock (_locker)
-                    {
-                        if (_instance == null || !_instance.IsConnected)
-                        {
-                            if(string.IsNullOrEmpty(Coonstr))
-                            {
-                                throw new Exception("请实现RedisClient.GetRedisConn");
-                            }
-                            if (Coonstr.Contains("@"))
-                            {
-                                var arry = Coonstr.Split(',');
-                                var arry1 = arry[0].Split('@');
-                                var pass = "";
-                                var ip = "";
-                                if (arry1.Length > 1)
-                                {
-                                    pass = arry1[0];
-                                    ip = arry1[1];
-                                }
-                                else
-                                {
-                                    ip = arry1[0];
-                                }
-                                host = ip;
-                                var options = ConfigurationOptions.Parse(ip);
-                                options.Password = pass;
-                                _instance = ConnectionMultiplexer.Connect(options);
-                            }
-                            else
-                            {
-                                _instance = ConnectionMultiplexer.Connect(Coonstr);
-                            }
-                            
-                        }
-                    }
-                }
-                //注册如下事件
-                //_instance.ConnectionFailed += MuxerConnectionFailed;
-                //_instance.ConnectionRestored += MuxerConnectionRestored;
-                //_instance.ErrorMessage += MuxerErrorMessage;
-                //_instance.ConfigurationChanged += MuxerConfigurationChanged;
-                //_instance.HashSlotMoved += MuxerHashSlotMoved;
-                //_instance.InternalError += MuxerInternalError;
-                return _instance;
+                return instance;
             }
+            if (RedisClient.GetRedisConn == null)
+            {
+                throw new Exception("请实现RedisClient.GetRedisConn");
+            }
+            var Coonstr = RedisClient.GetRedisConn(type);
+            if (string.IsNullOrEmpty(Coonstr))
+            {
+                throw new Exception("请实现RedisClient.GetRedisConn");
+            }
+            if (Coonstr.Contains("@"))
+            {
+                var arry = Coonstr.Split(',');
+                var arry1 = arry[0].Split('@');
+                var pass = "";
+                var ip = "";
+                if (arry1.Length > 1)
+                {
+                    pass = arry1[0];
+                    ip = arry1[1];
+                }
+                else
+                {
+                    ip = arry1[0];
+                }
+                host = ip;
+                var options = ConfigurationOptions.Parse(ip);
+                options.Password = pass;
+                instance = ConnectionMultiplexer.Connect(options);
+            }
+            else
+            {
+                instance = ConnectionMultiplexer.Connect(Coonstr);
+            }
+            _cache.TryRemove(type, out ConnectionMultiplexer instance2);
+            _cache.TryAdd(type, instance);
+            //注册如下事件
+            //_instance.ConnectionFailed += MuxerConnectionFailed;
+            //_instance.ConnectionRestored += MuxerConnectionRestored;
+            //_instance.ErrorMessage += MuxerErrorMessage;
+            //_instance.ConfigurationChanged += MuxerConfigurationChanged;
+            //_instance.HashSlotMoved += MuxerHashSlotMoved;
+            //_instance.InternalError += MuxerInternalError;
+            return instance;
         }
         int _db = -1;
-        public StackExchangeRedisHelper(int db=-1)
+        string _type;
+        public StackExchangeRedisHelper(string type, int db = -1)
         {
             _db = db;
+            _type = type;
         }
 
         /// <summary>
@@ -88,12 +85,12 @@ namespace CRL.RedisProvider
         /// <returns></returns>
         public IDatabase GetDatabase()
         {
-            return Instance.GetDatabase(_db);
+            return GetInstance(_type).GetDatabase(_db);
         }
         public List<string> SearchKey(string key)
         {
             var db = _db < 0 ? 0 : _db;
-            return Instance.GetServer(host).Keys(db, key + "*").Select(b => b.ToString()).ToList();
+            return GetInstance(_type).GetServer(host).Keys(db, key + "*").Select(b => b.ToString()).ToList();
         }
 
         private string MergeKey(string key)
@@ -318,7 +315,7 @@ namespace CRL.RedisProvider
         /// <returns></returns>
         public void Publish(string channel, params string[] messages)
         {
-            ISubscriber sub = Instance.GetSubscriber();
+            ISubscriber sub = GetInstance(_type).GetSubscriber();
             //return sub.Publish("messages", "hello");
             foreach (var message in messages)
             {
@@ -333,7 +330,7 @@ namespace CRL.RedisProvider
         /// <returns></returns>
         public void Subscribe(string channelFrom, Action<string,string> callBack)
         {
-            var sub = Instance.GetSubscriber();
+            var sub = GetInstance(_type).GetSubscriber();
             sub.Subscribe(channelFrom, (channel, message) =>
             {
                 try
@@ -348,7 +345,7 @@ namespace CRL.RedisProvider
         }
         public Task SubscribeAsync(string channelFrom, Action<string, string> callBack)
         {
-            var sub = Instance.GetSubscriber();
+            var sub = GetInstance(_type).GetSubscriber();
             var task = sub.SubscribeAsync(channelFrom, (channel, message) =>
               {
                   try
@@ -375,7 +372,7 @@ namespace CRL.RedisProvider
         /// <returns></returns>
         public IServer GetServer(string host, int port)
         {
-            IServer server = Instance.GetServer(host, port);
+            IServer server = GetInstance(_type).GetServer(host, port);
             return server;
         }
 
@@ -385,7 +382,7 @@ namespace CRL.RedisProvider
         /// <returns></returns>
         public EndPoint[] GetEndPoints()
         {
-            EndPoint[] endpoints = Instance.GetEndPoints();
+            EndPoint[] endpoints = GetInstance(_type).GetEndPoints();
             return endpoints;
         }
         public long ListRightPush<T>(string key, T value)

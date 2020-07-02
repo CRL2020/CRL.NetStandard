@@ -116,13 +116,6 @@ namespace CRL.RedisProvider
             client.KSetEntryIn(SessionId, new TimeSpan(0, timeOut, 0));
         }
 
-        /// <summary>
-        /// 当前SessionId
-        /// </summary>
-        public string SessionId { get; set; }
-
-
-
         ///// <summary>
         ///// 获取当前用户信息
         ///// </summary>

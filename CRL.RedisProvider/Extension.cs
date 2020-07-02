@@ -14,9 +14,14 @@ namespace CRL.RedisProvider
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="redisConn"></param>
-        public static ConfigBuilder UseRedis(this ConfigBuilder builder,string redisConn)
+        public static ConfigBuilder UseRedis(this ConfigBuilder builder, string redisConn)
         {
-            RedisClient.GetRedisConn = () => redisConn;
+            RedisClient.GetRedisConn = (type) => redisConn;
+            return builder;
+        }
+        public static ConfigBuilder UseRedis(this ConfigBuilder builder, Func<string, string> func)
+        {
+            RedisClient.GetRedisConn = func;
             return builder;
         }
         /// <summary>
