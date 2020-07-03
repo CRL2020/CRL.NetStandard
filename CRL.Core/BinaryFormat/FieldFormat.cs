@@ -143,8 +143,6 @@ namespace CRL.Core.BinaryFormat
         }
         public static byte[] Pack(Type type, object param)
         {
-            type = ReturnType(type);
-
             var len = 0;
 
             byte[] data = null;
@@ -155,6 +153,7 @@ namespace CRL.Core.BinaryFormat
             }
             else
             {
+                type = ReturnType(type);
                 if (type == typeof(object))//object转为string
                 {
                     throw new Exception("类型不能为object:" + param);
@@ -217,7 +216,6 @@ namespace CRL.Core.BinaryFormat
 
         public static object UnPack(Type type, byte[] datas, ref int offset)
         {
-            type = ReturnType(type);
             if (type == typeof(object))
             {
                 throw new Exception("类型不能为object:" + type);
@@ -235,6 +233,8 @@ namespace CRL.Core.BinaryFormat
             offset += lenSaveLength;
             if (len > 0)
             {
+                type = ReturnType(type);
+
                 byte[] data = new byte[len];
                 Buffer.BlockCopy(datas, offset, data, 0, len);
                 offset += len;

@@ -10,11 +10,6 @@ namespace CRL.Core.BinaryFormat
 {
     public class ClassFormat
     {
-        //class TypeInfo
-        //{
-        //    public IEnumerable<PropertyInfo> Properties;
-        //    public IReflectionInfo ReflectionInfo;
-        //}
 
         static Dictionary<Type, IEnumerable<PropertyInfo>> proCache = new Dictionary<Type, IEnumerable<PropertyInfo>>();
         public static byte[] Pack(Type type, object obj)
@@ -22,39 +17,25 @@ namespace CRL.Core.BinaryFormat
             var typeInfo = type.GetReflectionInfo();
             var arry = new List<byte[]>();
             var len = 0;
-            foreach (var p in typeInfo.Properties)
+            for (int i = 0; i < typeInfo.Properties.Count; i++)
             {
+                var p = typeInfo.Properties[i];
                 var value = typeInfo.ReflectionInfo.GetValue(obj, p.Name);
                 var d = FieldFormat.Pack(p.PropertyType, value);
-                //body.AddRange(d);
                 arry.Add(d);
                 len += d.Length;
             }
-            //return body.ToArray();
             return arry.JoinData(len);
         }
-        //static Dictionary<Type, TypeInfo> TypeInfoCache = new Dictionary<Type, TypeInfo>();
-        //static TypeInfo getTypeInfo(Type type)
-        //{
-        //    var a = TypeInfoCache.TryGetValue(type, out TypeInfo typeInfo);
-        //    if (!a)
-        //    {
-        //        var typeRef = typeof(ReflectionHelper);
-        //        var method = typeRef.GetMethod(nameof(ReflectionHelper.GetInfo), BindingFlags.Public | BindingFlags.Static);
-        //        var refInfo = method.MakeGenericMethod(new Type[] { type }).Invoke(null, new object[] { null }) as IReflectionInfo;
-        //        var pro = type.GetProperties().Where(b => b.GetSetMethod() != null);
-        //        typeInfo = new TypeInfo() { Properties = pro, ReflectionInfo = refInfo };
-        //        TypeInfoCache.Add(type, typeInfo);
-        //    }
-        //    return typeInfo;
-        //}
+
         public static object UnPack(Type type, byte[] datas)
         {
             var obj = DynamicMethodHelper.CreateCtorFuncFromCache(type)();
             var typeInfo = type.GetReflectionInfo();
             int dataIndex = 0;
-            foreach (var p in typeInfo.Properties)
+            for (int i = 0; i < typeInfo.Properties.Count; i++)
             {
+                var p = typeInfo.Properties[i];
                 var value = FieldFormat.UnPack(p.PropertyType, datas, ref dataIndex);
                 if (value == null)
                 {

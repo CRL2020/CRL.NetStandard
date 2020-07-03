@@ -11,15 +11,20 @@ using System.Threading.Tasks;
 using CRL.Core.Extension;
 using CRL.RedisProvider;
 using CRL.Mongo;
+using ProtoBuf;
+
 namespace CRLTest
 {
     #region obj
+    [ProtoContract]
     class testClass
     {
+        [ProtoMember(1)]
         public string name
         {
             get; set;
         }
+        [ProtoMember(2)]
         public DateTime? time
         {
             get; set;
@@ -28,6 +33,7 @@ namespace CRLTest
         //{
         //    get; set;
         //}
+        [ProtoMember(3)]
         public decimal price
         {
             get; set;
@@ -36,6 +42,16 @@ namespace CRLTest
         //{
         //    get; set;
         //}
+        [ProtoMember(4)]
+        public decimal price2
+        {
+            get; set;
+        }
+        [ProtoMember(5)]
+        public decimal price3
+        {
+            get; set;
+        }
     }
     public class b
     {
@@ -100,11 +116,11 @@ namespace CRLTest
             string str = "111";
             var client = new CRL.RedisProvider.RedisClient(4);
         label1:
-            var item = new Code.MongoDBTestManage().Sum(b => b.Id > 0, b => b.Numbrer);
+            //var item = new Code.MongoDBTestManage().Sum(b => b.Id > 0, b => b.Numbrer);
             //new MongoUpdateTest().TestInsert();
             //Code.ContextTest.Test();
             //testHttpClient();
-            //testFormat();
+            testFormat();
             //MongoDBTestManage.Instance.GroupTest();
             //TestAll();
             //testCallContext("data3");
@@ -124,25 +140,38 @@ namespace CRLTest
             obj.time = DateTime.Now;
             obj.price = 1002;
             int count = 1000;
-            new CounterWatch().Start("json", () =>
+
+
+            new CounterWatch().Start("testJson", () =>
             {
                 testJson(obj);
             }, count);
-            //var data = CRL.Core.BinaryFormat.ClassFormat.Pack(obj.GetType(), obj);
-            new CounterWatch().Start("binary",() =>
+
+            new CounterWatch().Start("testBinary", () =>
             {
-                //var obj2 = CRL.Core.BinaryFormat.ClassFormat.UnPack(obj.GetType(), data);
                 testBinary(obj);
             }, count);
-
+            new CounterWatch().Start("testProtobuf", () =>
+            {
+                testProtobuf(obj);
+            }, count);
         }
         static int testJson(testClass obj)
         {
             var json = SerializeHelper.SerializerToJson(obj);
             var obj2 = SerializeHelper.DeserializeFromJson<testClass>(json);
-            //var buffer = System.Text.Encoding.UTF8.GetBytes(json);
             return 0;
         }
+        static int testProtobuf(testClass obj)
+        {
+            using (var ms = new System.IO.MemoryStream())
+            {
+                ProtoBuf.Serializer.Serialize(ms, obj);
+                var obj2 = ProtoBuf.Serializer.Deserialize<testClass>(ms);
+            }
+            return 0;
+        }
+
         static int testBinary(testClass obj)
         {
             var data = CRL.Core.BinaryFormat.ClassFormat.Pack(obj.GetType(), obj);
