@@ -92,7 +92,7 @@ namespace CRL
             {
                 return objItems;
             }
-            var CRLModelFile = Core.Request.RequestHelper.GetFilePath("/bin/CRL.Package.xml");
+            var CRLModelFile = Core.Request.RequestHelper.GetFilePath("bin/CRL.Package.xml");
             if (System.IO.File.Exists(CRLModelFile))
             {
                 xmlFiles.Add(CRLModelFile);

@@ -155,7 +155,7 @@ C类 192.168.0.0-192.168.255.255
 #if NET45
             path = AppDomain.CurrentDomain.BaseDirectory + file.Replace("/",@"\");
 #else
-            path = AppContext.BaseDirectory + file.Replace("/", @"\");
+            path = AppContext.BaseDirectory + file.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString());//file.Replace("/", @"\");
 #endif
 
             return path;

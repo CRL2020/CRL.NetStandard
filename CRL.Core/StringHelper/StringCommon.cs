@@ -22,8 +22,8 @@ namespace CRL.Core
         /// <summary>
         /// 手机号正则表达式
         /// </summary>
-        public static readonly string RegCellphone = @"^(13[0-9]|15[0-9]|18[0-9]|147)\d{8}$";
-        public static readonly string RegCellphoneNoEnds = @"(13[0-9]|15[0-9]|18[0-9]|147)\d{8}";
+        public static readonly string RegCellphone = @"^1(3|4|5|6|7|8|9)\d{9}$";
+        public static readonly string RegCellphoneNoEnds = @"1(3|4|5|6|7|8|9)\d{9}";
 
        
         /// <summary>

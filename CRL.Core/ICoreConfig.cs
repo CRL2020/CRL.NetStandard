@@ -17,7 +17,7 @@ namespace CRL.Core
         {
             get
             {
-                return string.Format("/Config/{0}.ser", typeof(T).Name);
+                return string.Format("Config/{0}.ser", typeof(T).Name);
             }
         }
 
@@ -45,7 +45,7 @@ namespace CRL.Core
         static T FromFile()
         {
             string file = RequestHelper.GetFilePath(confgiFile);
-            var path = RequestHelper.GetFilePath("/Config");
+            var path = RequestHelper.GetFilePath("Config");
             if (!System.IO.Directory.Exists(path))
             {
                 System.IO.Directory.CreateDirectory(path);
