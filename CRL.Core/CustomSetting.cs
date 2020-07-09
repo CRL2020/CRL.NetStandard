@@ -19,7 +19,7 @@ namespace CRL.Core
         static Dictionary<string, string> keyCaches;
         static Dictionary<string, string> GetSettings()
         {
-            string confgiFile = "/Config/CustomSetting.config";
+            string confgiFile = "Config/CustomSetting.config";
             //var cache = System.Web.HttpRuntime.Cache;
             //string configKey = "$CustomSetting";
             //var cacheObj = cache.Get(configKey);
@@ -28,10 +28,10 @@ namespace CRL.Core
             //{
             //    keyCaches = cacheObj as Dictionary<string, string>;
             //}
-            if (keyCaches== null)
+            if (keyCaches == null)
             {
                 keyCaches = new Dictionary<string, string>();
-                var path = RequestHelper.GetFilePath("/Config");
+                var path = RequestHelper.GetFilePath("Config");
                 if (!System.IO.Directory.Exists(path))
                 {
                     System.IO.Directory.CreateDirectory(path);
@@ -146,7 +146,7 @@ namespace CRL.Core
                 {
                     value = StringHelper.Decrypt(value.Substring(1, value.Length - 2).Trim(), CoreConfig.EncryptKey);
                 }
-                catch(Exception ero)
+                catch (Exception ero)
                 {
                     throw new Exception("解密串时发生错误 ,请检查源文本是否是正确 :" + ero.Message);
                 }
@@ -175,7 +175,7 @@ namespace CRL.Core
             {
                 connectionCaches = new Dictionary<string, string>();
                 //string folder = "c:\\DBConnection\\";
-                string folder = RequestHelper.GetFilePath("/DBConnection");
+                string folder = RequestHelper.GetFilePath("DBConnection");
                 //优先以网站当前目录下设置
                 //if (System.IO.Directory.Exists(folder2))
                 //    folder = folder2;
@@ -198,7 +198,7 @@ namespace CRL.Core
                     try
                     {
                         value = DesString(value);
-                        string fileName = file.Substring(file.LastIndexOf("\\") + 1).ToUpper();
+                        string fileName = System.IO.Path.GetFileName(file).ToUpper(); //file.Substring(file.LastIndexOf("\\") + 1).ToUpper();
                         connectionCaches.Add(fileName, value);
                     }
                     catch { }

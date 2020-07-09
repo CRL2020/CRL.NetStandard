@@ -225,8 +225,8 @@ namespace CRL.Core
 
 		private static void WriteLine(string message, string filePath)
 		{
-            message += "\r\n";
-			using (FileStream fs = File.OpenWrite(filePath))
+            message += Environment.NewLine;//"\r\n";
+            using (FileStream fs = File.OpenWrite(filePath))
 			{
 				//根据上面创建的文件流创建写数据流
 				StreamWriter w = new StreamWriter(fs, System.Text.Encoding.Default);
@@ -253,8 +253,8 @@ namespace CRL.Core
                 //{
                 //    rootPath = AppDomain.CurrentDomain.BaseDirectory + @"\log\";
                 //}
-                rootPath = Request.RequestHelper.GetFilePath(@"\log\");
-                rootPath += @"\";
+                rootPath = Request.RequestHelper.GetFilePath("log/");
+                //rootPath += @"\";
                 
             }
 			return rootPath;
