@@ -38,7 +38,7 @@ namespace CRLTest
             UsedMemory = Math.Round((m2 - m1) / 1024.0, 4);
             GC.Collect();
             Console.WriteLine(this.ToString());
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
         }
         public override string ToString()
         {

@@ -59,6 +59,7 @@ namespace CRL.Mongo.MongoDBEx
                     object sumField = 1;
                     if (!string.IsNullOrEmpty(method))
                     {
+                        var addProjection = true;
                         if (method == "count")
                         {
                             groupInfo.Add(f.ResultName, new BsonDocument("$sum", 1));
@@ -66,10 +67,56 @@ namespace CRL.Mongo.MongoDBEx
                         else
                         {
                             var memberName = f.QueryField;
-                            memberName = System.Text.RegularExpressions.Regex.Replace(memberName, @"\w+\((\w+)\)", "$1");
-                            groupInfo.Add(f.ResultName, new BsonDocument("$" + method.ToLower(), "$" + memberName));
+                            memberName = System.Text.RegularExpressions.Regex.Replace(memberName, @"\w+\(+(.+?)\)+", "$1");
+                            #region 字段间运算
+                            string op = "";
+                            string opFunc = "";
+                            if (memberName.Contains("+"))
+                            {
+                                op = "+";
+                                opFunc = "add";
+                            }
+                            else if (memberName.Contains("-"))
+                            {
+                                op = "-";
+                                opFunc = "subtract";
+                            }
+                            else if (memberName.Contains("*"))
+                            {
+                                op = "*";
+                                opFunc = "multiply";
+                            }
+                            else if (memberName.Contains("1"))
+                            {
+                                op = "/";
+                                opFunc = "divide";
+                            }
+                
+                            if (!string.IsNullOrEmpty(op))
+                            {
+                                var arry = memberName.Split(op.First());//仅第一个运算符                                 
+                                //等效 $multiply:["$price","$count"] sum(price*count)
+                                var bs1 = new BsonDocument();
+                                var bsArry = new BsonArray();
+                                foreach (var field1 in arry)
+                                {
+                                    bsArry.Add($"${method}_{field1}");
+                                    groupInfo.Add($"{method}_{field1}", new BsonDocument("$" + method.ToLower(), "$" + field1));
+                                }
+                                bs1.Add($"${opFunc}", bsArry);
+                                projection.Add(f.ResultName, bs1);
+                                addProjection = false;
+                            }
+                            else
+                            {
+                                groupInfo.Add(f.ResultName, new BsonDocument("$" + method.ToLower(), "$" + memberName));
+                            }
+                            #endregion
                         }
-                        projection.Add(f.ResultName, "$" + f.ResultName);
+                        if (addProjection)
+                        {
+                            projection.Add(f.ResultName, "$" + f.ResultName);
+                        }
                     }
                     else
                     {
@@ -126,7 +173,10 @@ namespace CRL.Mongo.MongoDBEx
                     aggregate = aggregate.Limit(pageSize);
                     //rowNum = collection.Count(query.__MongoDBFilter);//todo 总行数
                 }
-                //var str = aggregate.ToString();
+                query1.__QueryReturn = () =>
+                {
+                    return aggregate.ToString();
+                };
                 var result = aggregate.ToList();
                 if (rowNum == 0)
                 {

@@ -12,7 +12,7 @@ namespace CRL.Core.BinaryFormat
     {
 
         static Dictionary<Type, IEnumerable<PropertyInfo>> proCache = new Dictionary<Type, IEnumerable<PropertyInfo>>();
-        public static byte[] Pack(Type type, object obj)
+        public static byte[] Pack2(Type type, object obj)
         {
             var typeInfo = type.GetReflectionInfo();
             var arry = new List<byte[]>();
@@ -26,6 +26,22 @@ namespace CRL.Core.BinaryFormat
                 len += d.Length;
             }
             return arry.JoinData(len);
+        }
+        public static byte[] Pack(Type type, object obj)
+        {
+            var typeInfo = type.GetReflectionInfo();
+            byte[] data = new byte[0];
+            var len = 0;
+            for (int i = 0; i < typeInfo.Properties.Count; i++)
+            {
+                var p = typeInfo.Properties[i];
+                var value = typeInfo.ReflectionInfo.GetValue(obj, p.Name);
+                var d = FieldFormat.Pack(p.PropertyType, value);
+                len += d.Length;
+                Array.Resize(ref data, len);
+                data.Append(len - d.Length, d);
+            }
+            return data;
         }
 
         public static object UnPack(Type type, byte[] datas)

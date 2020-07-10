@@ -344,29 +344,7 @@ namespace CRL.LambdaQuery
         /// <returns></returns>
         public abstract string GetOrderBy();
 
-        /// <summary>
-        /// 输出当前查询语句
-        /// </summary>
-        /// <param name="uselog">是否生成到文件</param>
-        /// <returns></returns>
-        public string PrintQuery(bool uselog = false)
-        {
-            string sql = GetQuery();
-            //string log = string.Format("[SQL]:{0}\r\n", sql);
-            foreach (var item in QueryParames)
-            {
-                var pat = @"\" + item.Item1 + @"(?!\w)";
-                sql = Regex.Replace(sql, pat, "'" + item.Item2 + "'");
-                //sql = sql.Replace(item.Item1, "'" + item.Item2 + "'");
-                //log += string.Format("[{0}]:[{1}]\r\n", item.Item1, item.Item2);
-            }
-            if (uselog)
-            {
-                EventLog.Log(sql + "\r\n", "LambdaQuery", false);
-            }
-            Console.WriteLine(sql);
-            return sql;
-        }
+
         #endregion
         #region inner
         public double AnalyticalTime

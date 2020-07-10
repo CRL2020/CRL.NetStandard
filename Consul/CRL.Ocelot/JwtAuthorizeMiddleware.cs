@@ -22,6 +22,8 @@ namespace CRL.Ocelot
 
         public async Task Invoke(HttpContext httpContext)
         {
+            //await httpContext.Response.WriteAsync(httpContext.Request.Path.Value);
+            //return;
             var useJwtAuthorize = _configuration.GetValue<bool>("UseJwtAuthorize");
             if (useJwtAuthorize)
             {

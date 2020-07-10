@@ -263,7 +263,14 @@ namespace CRL.LambdaQuery
             {
                 __typeStr2 = "";
             }
-            sb = string.Format("({0}{1}{2})", outLeft, __typeStr2, outRight);
+            if (isBinary)
+            {
+                sb = string.Format("({0}{1}{2})", outLeft, __typeStr2, outRight);
+            }
+            else
+            {
+                sb = string.Format("{0}{1}{2}", outLeft, __typeStr2, outRight);
+            }
             var e = new CRLExpression.CRLExpression() { ExpType = expType, Left = leftPar, Right = rightPar, Type = isBinary ? CRLExpression.CRLExpressionType.Binary : CRLExpression.CRLExpressionType.Tree };
             e.SqlOut = sb;
             e.Data = e.SqlOut;

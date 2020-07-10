@@ -117,8 +117,35 @@ namespace CRL.LambdaQuery
         internal bool __WithNoLock = SettingConfig.QueryWithNoLock;
         //internal int __AutoInJoin = 0;
         //internal bool __QueryAllField = false;
-        
 
+        public Func<string> __QueryReturn;
+        /// <summary>
+        /// 输出当前查询语句
+        /// </summary>
+        /// <param name="uselog">是否生成到文件</param>
+        /// <returns></returns>
+        public string PrintQuery(bool uselog = false)
+        {
+            if (__QueryReturn != null)
+            {
+                return __QueryReturn();
+            }
+            string sql = GetQuery();
+            //string log = string.Format("[SQL]:{0}\r\n", sql);
+            foreach (var item in QueryParames)
+            {
+                var pat = @"\" + item.Item1 + @"(?!\w)";
+                sql = Regex.Replace(sql, pat, "'" + item.Item2 + "'");
+                //sql = sql.Replace(item.Item1, "'" + item.Item2 + "'");
+                //log += string.Format("[{0}]:[{1}]\r\n", item.Item1, item.Item2);
+            }
+            if (uselog)
+            {
+                EventLog.Log(sql + "\r\n", "LambdaQuery", false);
+            }
+            Console.WriteLine(sql);
+            return sql;
+        }
         #region 别名
         /// <summary>
         /// 别名

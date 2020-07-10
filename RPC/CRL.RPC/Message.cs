@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using CRL.Core.Extension;
+
 namespace CRL.RPC
 {
     abstract class MessageBase
@@ -13,7 +15,8 @@ namespace CRL.RPC
         }
         public IByteBuffer ToBuffer()
         {
-            var data = Core.BinaryFormat.ClassFormat.Pack(GetType(), this);
+            //var data = Core.BinaryFormat.ClassFormat.Pack(GetType(), this);
+            var data = Encoding.UTF8.GetBytes(this.ToJson());
             if (data.Length > ushort.MaxValue)
             {
                 throw new Exception("发送数据长度超过了DotNetty最大包长度" + ushort.MaxValue);
@@ -26,11 +29,11 @@ namespace CRL.RPC
         }
         internal static T FromBuffer<T>(IByteBuffer buffer)
         {
-            //var data = buffer.ToString(Encoding.UTF8);
-            //return data.ToObject<T>();
-            var data = new byte[buffer.MaxCapacity];
-            buffer.ReadBytes(data);
-            return (T)Core.BinaryFormat.ClassFormat.UnPack(typeof(T), data);
+            var data = buffer.ToString(Encoding.UTF8);
+            return data.ToObject<T>();
+            //var data = new byte[buffer.MaxCapacity];
+            //buffer.ReadBytes(data);
+            //return (T)Core.BinaryFormat.ClassFormat.UnPack(typeof(T), data);
         }
     }
     class RequestMessage : MessageBase

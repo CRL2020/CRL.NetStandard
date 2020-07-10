@@ -97,6 +97,24 @@ namespace CRLTest.Code
             }
             //var result = query.ToList<MongoResult>();
         }
+        public void GroupTest2(int page = 1)
+        {
+            //Delete(b=>b.Numbrer>0);
+            GetInitData();
+            var query = GetLambdaQuery();
+            var result = query.GroupBy(b => new { b.name }).Select(b => new
+            {
+                num = b.Numbrer.SUM(),
+                num2 = b.SUM(x => x.Numbrer * x.Price),
+                b.name
+            }).ToList();
+            var sql = query.PrintQuery();//输出bson
+            foreach (var item in result)
+            {
+                Console.WriteLine($"{item.num2} {item.name}");
+            }
+          
+        }
         public void SumTest()
         {
             var count = Count(b => b.Numbrer >= 0);

@@ -24,6 +24,10 @@ namespace CRLTest
         {
             get; set;
         }
+        public string name2
+        {
+            get; set;
+        }
         [ProtoMember(2)]
         public DateTime? time
         {
@@ -116,12 +120,13 @@ namespace CRLTest
             string str = "111";
             var client = new CRL.RedisProvider.RedisClient(4);
         label1:
+            //new ProductDataManage().TransactionTest5();
             //var item = new Code.MongoDBTestManage().Sum(b => b.Id > 0, b => b.Numbrer);
             //new MongoUpdateTest().TestInsert();
             //Code.ContextTest.Test();
             //testHttpClient();
-            testFormat();
-            //MongoDBTestManage.Instance.GroupTest();
+            //testFormat();
+            MongoDBTestManage.Instance.GroupTest2();
             //TestAll();
             //testCallContext("data3");
             Console.WriteLine("ok");
@@ -139,7 +144,10 @@ namespace CRLTest
             obj.name = "test2ConvertObject";
             obj.time = DateTime.Now;
             obj.price = 1002;
-            int count = 1000;
+            //obj.name2 = "sss";
+            obj.price2 = 2;
+            obj.price3 = 10;
+            int count = 1;
 
 
             new CounterWatch().Start("testJson", () =>
@@ -159,24 +167,29 @@ namespace CRLTest
         static int testJson(testClass obj)
         {
             var json = SerializeHelper.SerializerToJson(obj);
-            var obj2 = SerializeHelper.DeserializeFromJson<testClass>(json);
-            return 0;
+            var len = Encoding.UTF8.GetBytes(json).Length;
+            Console.WriteLine(len);
+            //var obj2 = SerializeHelper.DeserializeFromJson<testClass>(json);
+            return len;
         }
         static int testProtobuf(testClass obj)
         {
             using (var ms = new System.IO.MemoryStream())
             {
                 ProtoBuf.Serializer.Serialize(ms, obj);
-                var obj2 = ProtoBuf.Serializer.Deserialize<testClass>(ms);
+                //var obj2 = ProtoBuf.Serializer.Deserialize<testClass>(ms);
+                Console.WriteLine(ms.Length);
+                return (int)ms.Length;
             }
-            return 0;
+ 
         }
 
         static int testBinary(testClass obj)
         {
             var data = CRL.Core.BinaryFormat.ClassFormat.Pack(obj.GetType(), obj);
-            var obj2 = CRL.Core.BinaryFormat.ClassFormat.UnPack(obj.GetType(), data);
-            return 0;
+            //var obj2 = CRL.Core.BinaryFormat.ClassFormat.UnPack(obj.GetType(), data);
+            Console.WriteLine(data.Length);
+            return data.Length;
         }
         static void testSharding()
         {

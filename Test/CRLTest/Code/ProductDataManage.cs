@@ -58,7 +58,18 @@ namespace CRLTest.Code
         {
             get { return  new ProductDataManage(); }
         }
+        public void TransactionTest5()
+        {
+            var db = GetDBExtend();
+            var product = new ProductData();
+            product.BarCode = "code" + DateTime.Now.Millisecond;
+            product.Number = 10;
+            var order = new Order() { OrderId="222"  };
+            db.BeginTran();
+            db.InsertFromObj(order);
+            db.BatchInsert(new List<ProductData>() { product, product });
+            db.CommitTran();
+        }
 
-       
     }
 }
