@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CRL;
+using MongoDB.Driver;
+
 namespace CRLTest.Code
 {
     [CRL.Attribute.Table(TableName = "MongoDBModel3")]
@@ -97,23 +99,43 @@ namespace CRLTest.Code
             }
             //var result = query.ToList<MongoResult>();
         }
+        class modelTest
+        {
+            public int num { get; set; }
+            public double num2 { get; set; }
+            public string name2 { get; set; }
+        }
         public void GroupTest2(int page = 1)
         {
             //Delete(b=>b.Numbrer>0);
-            GetInitData();
+            //GetInitData();
+            var sum = QueryList(b => b.Price > 0).Sum(b => b.Price * b.Numbrer);
             var query = GetLambdaQuery();
             var result = query.GroupBy(b => new { b.name }).Select(b => new
             {
-                num = b.Numbrer.SUM(),
                 num2 = b.SUM(x => x.Numbrer * x.Price),
-                b.name
+                name2 = b.name
             }).ToList();
             var sql = query.PrintQuery();//输出bson
+            var sum2 = result.Sum(b => b.num2);
             foreach (var item in result)
             {
-                Console.WriteLine($"{item.num2} {item.name}");
+                Console.WriteLine($" name:{item.name2} num:{item.num2}");
             }
-          
+        }
+        public void MongoQueryTest()
+        {
+            var connectionString = "mongodb://127.0.0.1:27017";
+            var _client = new MongoClient(connectionString);
+            var _MongoDB = _client.GetDatabase("admin");
+            var coll= _MongoDB.GetCollection<MongoDBModel2>("MongoDBModel3");
+            var query = coll.AsQueryable().GroupBy(b => b.name)
+                .Select(b => new
+                {
+                    name = b.Key,
+                    sum1 = b.Sum(x => x.Numbrer)
+                });
+            var result = query.ToList();
         }
         public void SumTest()
         {

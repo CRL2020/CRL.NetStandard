@@ -22,6 +22,10 @@ namespace CRL.RedisProvider
         /// </summary>
         public static ConnectionMultiplexer GetInstance(string type)
         {
+            if(string.IsNullOrEmpty(type))
+            {
+                type = "default__";
+            }
             var a = _cache.TryGetValue(type, out ConnectionMultiplexer instance);
             if (a && instance.IsConnected)
             {

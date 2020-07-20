@@ -81,7 +81,10 @@ namespace CRLTest
             builder.UseMongoDB();
 
             var configBuilder = new CRL.Core.ConfigBuilder();
-            configBuilder.UseRedis("Server_204@127.0.0.1:6389")
+            configBuilder.UseRedis(t=>
+            {
+                return "Server_204@127.0.0.1:6389";
+            })
                 .UseRedisSession();
             //自定义定位
             builder.RegisterLocation<Code.Sharding.MemberSharding>((t, a) =>
@@ -118,7 +121,8 @@ namespace CRLTest
             //Code.OrderManage.Instance.QueryItem(1);
             //Code.ProductDataManage.Instance.QueryItem(1);
             string str = "111";
-            var client = new CRL.RedisProvider.RedisClient(4);
+            var client = new CRL.RedisProvider.RedisClient(1,"test");
+       
         label1:
             //new ProductDataManage().TransactionTest5();
             //var item = new Code.MongoDBTestManage().Sum(b => b.Id > 0, b => b.Numbrer);
@@ -126,9 +130,10 @@ namespace CRLTest
             //Code.ContextTest.Test();
             //testHttpClient();
             //testFormat();
-            MongoDBTestManage.Instance.GroupTest2();
+            MongoDBTestManage.Instance.MongoQueryTest();
             //TestAll();
             //testCallContext("data3");
+            //client.ContainsKey("sss");
             Console.WriteLine("ok");
             Console.ReadLine();
             goto label1;

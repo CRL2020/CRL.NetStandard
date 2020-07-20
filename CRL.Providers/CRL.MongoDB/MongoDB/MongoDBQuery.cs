@@ -59,7 +59,6 @@ namespace CRL.Mongo.MongoDBEx
                     object sumField = 1;
                     if (!string.IsNullOrEmpty(method))
                     {
-                        var addProjection = true;
                         if (method == "count")
                         {
                             groupInfo.Add(f.ResultName, new BsonDocument("$sum", 1));
@@ -91,21 +90,18 @@ namespace CRL.Mongo.MongoDBEx
                                 op = "/";
                                 opFunc = "divide";
                             }
-                
+
                             if (!string.IsNullOrEmpty(op))
                             {
                                 var arry = memberName.Split(op.First());//仅第一个运算符                                 
-                                //等效 $multiply:["$price","$count"] sum(price*count)
-                                var bs1 = new BsonDocument();
+                                //等效 "$sum":{$multiply:["$price","$count"]} sum(price*count)
                                 var bsArry = new BsonArray();
                                 foreach (var field1 in arry)
                                 {
-                                    bsArry.Add($"${method}_{field1}");
-                                    groupInfo.Add($"{method}_{field1}", new BsonDocument("$" + method.ToLower(), "$" + field1));
+                                    bsArry.Add($"${field1}");
                                 }
-                                bs1.Add($"${opFunc}", bsArry);
-                                projection.Add(f.ResultName, bs1);
-                                addProjection = false;
+                                var bs1 = new BsonDocument($"${opFunc}", bsArry);
+                                groupInfo.Add(f.ResultName, new BsonDocument("$" + method.ToLower(), bs1));
                             }
                             else
                             {
@@ -113,10 +109,7 @@ namespace CRL.Mongo.MongoDBEx
                             }
                             #endregion
                         }
-                        if (addProjection)
-                        {
-                            projection.Add(f.ResultName, "$" + f.ResultName);
-                        }
+                        projection.Add(f.ResultName, "$" + f.ResultName);
                     }
                     else
                     {
@@ -173,6 +166,7 @@ namespace CRL.Mongo.MongoDBEx
                     aggregate = aggregate.Limit(pageSize);
                     //rowNum = collection.Count(query.__MongoDBFilter);//todo 总行数
                 }
+                //var str = aggregate.ToString();
                 query1.__QueryReturn = () =>
                 {
                     return aggregate.ToString();
@@ -329,11 +323,11 @@ namespace CRL.Mongo.MongoDBEx
             //int i = 0;
             foreach (var mp in mapping)
             {
-                if (!fields.ContainsKey(mp.FieldName))
+                if (!fields.ContainsKey(mp.ResultName))
                 {
                     continue;
                 }
-                var m = fields[mp.FieldName].GetPropertyInfo();
+                var m = fields[mp.ResultName].GetPropertyInfo();
                 var method = ObjContainer.GetMethod(m.PropertyType, true);
                 //Expression getValue = Expression.Call(method, parame);
                 var getValue = parame.Call(method.Name, Expression.Constant(mp.ResultName));
