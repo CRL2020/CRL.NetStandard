@@ -124,7 +124,7 @@ namespace CRLTest
             var client = new CRL.RedisProvider.RedisClient(1,"test");
 
         label1:
-            //new ProductDataManage().TransactionTest5();
+            new ProductDataManage().TestBatchInsert();
             //var item = new Code.MongoDBTestManage().Sum(b => b.Id > 0, b => b.Numbrer);
             //new MongoUpdateTest().TestInsert();
             //Code.ContextTest.Test();

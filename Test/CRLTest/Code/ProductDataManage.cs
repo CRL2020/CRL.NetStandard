@@ -71,5 +71,13 @@ namespace CRLTest.Code
             db.CommitTran();
         }
 
+        public void TestBatchInsert()
+        {
+            Delete(b => b.Id > 0);
+            var p = new ProductData() { Id = 1999, BarCode="sss", Number=12 };
+            var list = new List<ProductData>() { p };
+            BatchInsert(list, true);
+        }
+
     }
 }

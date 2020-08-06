@@ -449,6 +449,7 @@ namespace CRL
             if (list.Count == 1)
             {
                 db.InsertFromObj(list.First());
+                return;
             }
             db.BatchInsert(list, keepIdentity);
             //redis
