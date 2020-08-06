@@ -122,7 +122,7 @@ namespace CRLTest
             //Code.ProductDataManage.Instance.QueryItem(1);
             string str = "111";
             var client = new CRL.RedisProvider.RedisClient(1,"test");
-       
+
         label1:
             //new ProductDataManage().TransactionTest5();
             //var item = new Code.MongoDBTestManage().Sum(b => b.Id > 0, b => b.Numbrer);
@@ -130,7 +130,8 @@ namespace CRLTest
             //Code.ContextTest.Test();
             //testHttpClient();
             //testFormat();
-            MongoDBTestManage.Instance.MongoQueryTest();
+            Code.TestAll.TestMethod();
+            //MongoDBTestManage.Instance.MongoQueryTest();
             //TestAll();
             //testCallContext("data3");
             //client.ContainsKey("sss");

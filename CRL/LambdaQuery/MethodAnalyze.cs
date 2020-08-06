@@ -87,8 +87,23 @@ namespace CRL.LambdaQuery
                 methodDic.Add("GreaterThanOrEqual", GreaterThanOrEqual);
                 methodDic.Add("LessThanOrEqual", LessThanOrEqual);
                 methodDic.Add("FormatTo", DateTimeFormat);
+                methodDic.Add("FuncFormat", FuncFormat);
+                methodDic.Add("SplitFirst", StringSplitFirst);
             }
             return methodDic;
+        }
+
+        private string StringSplitFirst(MethodCallObj methodInfo, ref int parIndex, AddParameHandler addParame)
+        {
+            var field = methodInfo.MemberQueryName;
+            var charindex = dBAdapter.GetSplitFirst(field, methodInfo.Args[0].ToString());
+            return charindex;
+        }
+
+        private string FuncFormat(MethodCallObj methodInfo, ref int parIndex, AddParameHandler addParame)
+        {
+            var field = methodInfo.MemberQueryName;
+            return string.Format(methodInfo.Args[0].ToString(), field);
         }
         #region compare
         string compare(MethodCallObj methodInfo, ref int parIndex, AddParameHandler addParame, string op)

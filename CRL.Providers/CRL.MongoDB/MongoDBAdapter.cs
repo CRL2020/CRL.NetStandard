@@ -165,5 +165,9 @@ namespace CRL.Mongo
         {
             throw new NotImplementedException();
         }
+        public override string GetSplitFirst(string field, string parName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

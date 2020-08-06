@@ -118,7 +118,7 @@ namespace CRL.Core
                     }
                     catch(Exception ero)
                     {
-                        CRL.Core.EventLog.Log(string.Format("执行线程项时发生错误:{0}", ero.Message));
+                        CRL.Core.EventLog.Error(string.Format("执行线程项时发生错误:{0}", ero));
                     }
                     waits[temp].Set();//发送线程执行完毕信号
                 };

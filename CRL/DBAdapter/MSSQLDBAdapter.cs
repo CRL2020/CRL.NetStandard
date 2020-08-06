@@ -567,6 +567,10 @@ set  nocount  on
         {
             return string.Format("CONVERT(varchar(100), {0}, {1})", field, format);
         }
+        public override string GetSplitFirst(string field, string parName)
+        {
+            return $"substring({field},1,charindex('{parName}',{field})-1)";
+        }
     }
 
     internal class MSSQL2000DBAdapter : MSSQLDBAdapter

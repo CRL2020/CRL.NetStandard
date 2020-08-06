@@ -119,6 +119,8 @@ namespace CRL.DBAdapter
         /// <param name="field"></param>
         /// <returns></returns>
         public abstract string GetCreateColumnScript(CRL.Attribute.FieldInnerAttribute field);
+
+
         /// <summary>
         /// 创建存储过程
         /// </summary>
@@ -518,5 +520,7 @@ namespace CRL.DBAdapter
         /// 参数名
         /// </summary>
         public abstract string GetParamName(string name, object index);
+
+        public abstract string GetSplitFirst(string field, string parName);
     }
 }

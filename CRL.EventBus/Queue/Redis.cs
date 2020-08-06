@@ -12,7 +12,7 @@ namespace CRL.EventBus.Queue
         QueueConfig _queueConfig;
         public Redis(QueueConfig queueConfig)
         {
-            client = new StackExchangeRedisHelper();
+            client = new StackExchangeRedisHelper("");
             _queueConfig = queueConfig;
         }
         public override void Dispose()

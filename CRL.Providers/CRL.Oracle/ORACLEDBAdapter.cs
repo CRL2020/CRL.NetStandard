@@ -566,6 +566,9 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
         {
             return string.Format(":{0}{1}", name, index);
         }
-
+        public override string GetSplitFirst(string field, string parName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

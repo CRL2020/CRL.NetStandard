@@ -18,7 +18,34 @@ namespace CRL
     public static partial class ExtensionMethod
     {
         /// <summary>
-        /// 表示Min此字段
+        /// 表示MIN此字段
+        /// </summary>
+        /// <param name="origin"></param>
+        /// <returns></returns>
+        public static string MIN(this string origin)
+        {
+            return origin;
+        }
+        /// <summary>
+        /// 表示MIN此字段
+        /// </summary>
+        /// <param name="origin"></param>
+        /// <returns></returns>
+        public static DateTime MIN(this DateTime origin)
+        {
+            return origin;
+        }
+        /// <summary>
+        /// 表示MIN此字段
+        /// </summary>
+        /// <param name="origin"></param>
+        /// <returns></returns>
+        public static DateTime MIN(this DateTime? origin)
+        {
+            return origin.Value;
+        }
+        /// <summary>
+        /// 表示MIN此字段
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="origin"></param>
@@ -28,7 +55,7 @@ namespace CRL
             return origin;
         }
         /// <summary>
-        /// 表示Min此字段
+        /// 表示MIN此字段
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="origin"></param>
@@ -38,7 +65,7 @@ namespace CRL
             return origin.Value;
         }
         /// <summary>
-        /// 表示Min一个属性二元运算 如 MIN(b=>b.Num*b.Price)
+        /// 表示MIN一个属性二元运算 如 MIN(b=>b.Num*b.Price)
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TResult"></typeparam>

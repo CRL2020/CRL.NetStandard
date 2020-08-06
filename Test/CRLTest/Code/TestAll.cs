@@ -20,7 +20,7 @@ namespace CRLTest.Code
             var time = DateTime.Now;
             //select 测试
             var query = ProductDataManage.Instance.GetLambdaQuery();
-
+            query.Where(b=> Convert.ToString(b.Id)=="11");
             query.Take(3);
             //query.Where(b => DateTime.Parse("2016-02-11 12:56") == b.AddTime);
             //query.Where(b => b.CategoryName != null);
@@ -57,7 +57,8 @@ namespace CRLTest.Code
             //query.Where(b => b.ProductName.Contains("122"));
             //Console.WriteLine(query.ToString());
             //return;
-     
+            query.Where(b => b.CategoryName.SplitFirst("a") == "123");
+            query.Where(b => b.AddTime.FuncFormat<int>("month({0})") == 1);
             query.Where(b => b.TransType == TransType.In);
             var item = new ProductData();
             var year = DateTime.Now.Year;

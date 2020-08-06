@@ -498,5 +498,9 @@ namespace CRL.MySql
         {
             return string.Format("date_format({0},'{1}')", field, format);
         }
+        public override string GetSplitFirst(string field, string parName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
