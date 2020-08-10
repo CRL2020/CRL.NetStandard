@@ -38,6 +38,18 @@ namespace CRL.Oracle
                         {
                             var kv = _params[k];
                             DbParameter p = new OracleParameter(k, kv);
+                            if (kv != null)
+                            {
+                                if (kv is DBNull)
+                                {
+                                    p.IsNullable = true;
+                                }
+                            }
+                            else
+                            {
+                                p.IsNullable = true;
+                                p.Value = DBNull.Value;
+                            }
                             cmd.Parameters.Add(p);
                         }
                     }

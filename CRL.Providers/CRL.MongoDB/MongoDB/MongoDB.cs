@@ -92,7 +92,7 @@ namespace CRL.Mongo.MongoDBEx
         {
             var query = new MongoDBLambdaQuery<TModel>(dbContext);
             var m = selectField.Body as MemberExpression;
-            var fieldName = m.Member.Name;
+            var fieldName = m?.Member?.Name;
             //query.Select(selectField.Body);
             //query.Where(expression);
             var collection = _MongoDB.GetCollection<TModel>(query.QueryTableName);

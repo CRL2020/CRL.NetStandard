@@ -91,5 +91,9 @@ namespace CRLTest.Code
             Console.WriteLine("ok");
             BatchInsert(list, true);
         }
+        public void testCount()
+        {
+            var n=Count(b=>b.CustomerId=="sss");
+        }
     }
 }

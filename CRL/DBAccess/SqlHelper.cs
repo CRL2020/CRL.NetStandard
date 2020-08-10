@@ -57,6 +57,11 @@ namespace CRL.DBAccess
                         p.IsNullable = true;
                     }
                 }
+                else
+                {
+                    p.IsNullable = true;
+                    p.Value = DBNull.Value;
+                }
                 cmd.Parameters.Add(p);
             }
             if (cmd.CommandType == CommandType.StoredProcedure)

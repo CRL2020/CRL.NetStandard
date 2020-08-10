@@ -29,6 +29,18 @@ namespace CRL.MySql
                 var key = kv.Key;
                 //key = key.Replace("@","?");
                 DbParameter p = new MySqlParameter(key, kv.Value);
+                if (kv.Value != null)
+                {
+                    if (kv.Value is DBNull)
+                    {
+                        p.IsNullable = true;
+                    }
+                }
+                else
+                {
+                    p.IsNullable = true;
+                    p.Value = DBNull.Value;
+                }
                 cmd.Parameters.Add(p);
             }
             if (OutParams != null)
