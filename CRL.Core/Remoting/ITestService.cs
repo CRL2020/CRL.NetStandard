@@ -13,17 +13,17 @@ namespace CRL.Core.Remoting
     }
     public interface ITestService
     {
-        Task<string> Login();
+        string Login();
         bool Test1(int a,int? b,out string error);
         TestObj Test2(TestObj obj);
     }
     public class TestService : AbsService, ITestService
     {
         [LoginPoint]
-        public async Task<string> Login()
+        public string Login()
         {
             SaveSession("hubro", "7777777777", "test");
-            return await Task.FromResult("登录成功");
+            return "登录成功";
         }
 
         public bool Test1(int a, int? b, out string error)
@@ -50,7 +50,7 @@ namespace CRL.Core.Remoting
         {
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            var loginStatus = service.Login().Result;
+            var loginStatus = service.Login();
             Console.WriteLine(loginStatus);
             int? a = 1;
             string error;

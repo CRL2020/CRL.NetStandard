@@ -53,40 +53,41 @@ namespace CRL.DynamicWebApi
 
             #endregion
             var json = request.Args.ToJson();
-            var asynResult = SendRequestAsync(pollyAttr, httpRequest, url, "POST", json, $"{ServiceName}.{method.Name}", (msg) =>
-               {
-                   var resMsg = msg.ToObject<ResponseJsonMessage>();
-                   if (!resMsg.Success)
-                   {
-                       ThrowError($"服务端处理错误：{resMsg.Msg}", resMsg.Data);
-                   }
-                   if (resMsg.Outs != null && resMsg.Outs.Count > 0)
-                   {
-                       foreach (var kv in resMsg.Outs)
-                       {
-                           var p = allArgs[kv.Key];
-                           var value = kv.Value;
-                           if (p.Name.EndsWith("&"))
-                           {
-                               var name = p.Name.Replace("&", "");
-                               var type2 = Type.GetType(name);
-                               value = value.ToString().ToObject(type2);
-                           }
-                           args[kv.Key] = value;
-                       }
-                   }
-                   if (!string.IsNullOrEmpty(resMsg.Token))
-                   {
-                       clientConnect.TokenInfo.Token = resMsg.Token;
-                   }
-                   var generType = returnType;
-                   if (methodInfo.IsAsync)
-                   {
-                       generType = returnType.GenericTypeArguments[0];
-                   }
-                   //转换为实际的数据类型
-                   return resMsg.GetData(generType);
-               });
+            Func<string, object> dataCall = (msg) =>
+              {
+                  var resMsg = msg.ToObject<ResponseJsonMessage>();
+                  if (!resMsg.Success)
+                  {
+                      ThrowError($"服务端处理错误：{resMsg.Msg}", resMsg.Data);
+                  }
+                  if (resMsg.Outs != null && resMsg.Outs.Count > 0)
+                  {
+                      foreach (var kv in resMsg.Outs)
+                      {
+                          var p = allArgs[kv.Key];
+                          var value = kv.Value;
+                          if (p.Name.EndsWith("&"))
+                          {
+                              var name = p.Name.Replace("&", "");
+                              var type2 = Type.GetType(name);
+                              value = value.ToString().ToObject(type2);
+                          }
+                          args[kv.Key] = value;
+                      }
+                  }
+                  if (!string.IsNullOrEmpty(resMsg.Token))
+                  {
+                      clientConnect.TokenInfo.Token = resMsg.Token;
+                  }
+                  var generType = returnType;
+                  if (methodInfo.IsAsync)
+                  {
+                      generType = returnType.GenericTypeArguments[0];
+                  }
+                  //转换为实际的数据类型
+                  return resMsg.GetData(generType);
+              };
+
             if (returnType == typeof(void))
             {
                 result = null;
@@ -94,6 +95,7 @@ namespace CRL.DynamicWebApi
             }
             if (methodInfo.IsAsync)
             {
+                var asynResult = SendRequestAsync(pollyAttr, httpRequest, url, "POST", json, $"{ServiceName}.{method.Name}", dataCall);
                 var task = methodInfo.TaskCreater();
                 task.ResultCreater = async () =>
                 {
@@ -103,7 +105,7 @@ namespace CRL.DynamicWebApi
             }
             else
             {
-                result = asynResult.Result;
+                result = SendRequest(pollyAttr, httpRequest, url, "POST", json, $"{ServiceName}.{method.Name}", dataCall);
             }
            
             return true;

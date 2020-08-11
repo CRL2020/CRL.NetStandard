@@ -39,7 +39,7 @@ namespace CRL.Core.ApiProxy
             if (serviceAttribute != null && serviceAttribute.ContentType != ContentType.NONE)
             {
                 contentType = serviceAttribute.ContentType;
-                if(!string.IsNullOrEmpty(serviceAttribute.Name))
+                if (!string.IsNullOrEmpty(serviceAttribute.Name))
                 {
                     serviceName = serviceAttribute.Name;
                 }
@@ -160,36 +160,38 @@ namespace CRL.Core.ApiProxy
                 generType = returnType.GenericTypeArguments[0];
             }
             var pollyAttr = serviceInfo.GetAttribute<PollyAttribute>();
-            var asynResult = SendRequestAsync(pollyAttr, request, url, httpMethod.ToString(), postArgs, $"{ServiceName}.{methodInfo.MethodInfo.Name}", (msg) =>
-            {
-                apiClientConnect.OnAfterRequest?.Invoke(url, msg);
-                object returnObj;
-                try
-                {
-                    if (responseContentType == ContentType.JSON)
-                    {
-                        returnObj = SerializeHelper.DeserializeFromJson(msg, generType);
-                    }
-                    else if (responseContentType == ContentType.XML)
-                    {
-                        returnObj = SerializeHelper.XmlDeserialize(generType, msg, apiClientConnect.Encoding);
-                    }
-                    else
-                    {
-                        returnObj = msg;
-                    }
-                }
-                catch (Exception ero)
-                {
-                    var eroMsg = $"反序列化为{generType.Name}时出错:" + ero.Message;
-                    Core.EventLog.Error(eroMsg + " " + msg);
-                    throw new Exception(eroMsg);
-                }
-                //转换为实际的数据类型
-                return returnObj;
-            });
+            Func<string, object> dataCall = (msg) =>
+             {
+                 apiClientConnect.OnAfterRequest?.Invoke(url, msg);
+                 object returnObj;
+                 try
+                 {
+                     if (responseContentType == ContentType.JSON)
+                     {
+                         returnObj = SerializeHelper.DeserializeFromJson(msg, generType);
+                     }
+                     else if (responseContentType == ContentType.XML)
+                     {
+                         returnObj = SerializeHelper.XmlDeserialize(generType, msg, apiClientConnect.Encoding);
+                     }
+                     else
+                     {
+                         returnObj = msg;
+                     }
+                 }
+                 catch (Exception ero)
+                 {
+                     var eroMsg = $"反序列化为{generType.Name}时出错:" + ero.Message;
+                     Core.EventLog.Error(eroMsg + " " + msg);
+                     throw new Exception(eroMsg);
+                 }
+                 //转换为实际的数据类型
+                 return returnObj;
+             };
+
             if (methodInfo.IsAsync)
             {
+                var asynResult = SendRequestAsync(pollyAttr, request, url, httpMethod.ToString(), postArgs, $"{ServiceName}.{methodInfo.MethodInfo.Name}", dataCall);
                 var task = methodInfo.TaskCreater();
                 task.ResultCreater = async () =>
                 {
@@ -197,7 +199,7 @@ namespace CRL.Core.ApiProxy
                 };
                 return task.InvokeAsync();
             }
-            return asynResult.Result;
+            return SendRequest(pollyAttr, request, url, httpMethod.ToString(), postArgs, $"{ServiceName}.{methodInfo.MethodInfo.Name}", dataCall);
         }
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {

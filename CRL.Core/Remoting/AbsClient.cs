@@ -125,11 +125,26 @@ namespace CRL.Core.Remoting
 
         protected async Task<T> SendRequestAsync<T>(PollyAttribute pollyAttr, Request.ImitateWebRequest request, string url, string httpMethod, string postArgs, string pollyKey, Func<string, T> dataCall)
         {
-            var pollyCtx = new Polly.Context();
+            //var pollyCtx = new Polly.Context();
             //var response = await request.SendDataAsync(url, httpMethod.ToString(), postArgs);
             var pollyData = await PollyExtension.InvokeAsync(pollyAttr, async () =>
             {
                 var res = await request.SendDataAsync(url, httpMethod.ToString(), postArgs);
+                return new PollyExtension.PollyData<string>() { Data = res };
+            }, pollyKey);
+            if (!string.IsNullOrEmpty(pollyData.Error))
+            {
+                ThrowError(pollyData.Error, "500");
+            }
+            //转换为指定的类型
+            return dataCall(pollyData.Data);
+        }
+        protected T SendRequest<T>(PollyAttribute pollyAttr, Request.ImitateWebRequest request, string url, string httpMethod, string postArgs, string pollyKey, Func<string, T> dataCall)
+        {
+            //var pollyCtx = new Polly.Context();
+            var pollyData = PollyExtension.Invoke(pollyAttr, () =>
+            {
+                var res = request.SendData(url, httpMethod.ToString(), postArgs, out string url2);
                 return new PollyExtension.PollyData<string>() { Data = res };
             }, pollyKey);
             if (!string.IsNullOrEmpty(pollyData.Error))
