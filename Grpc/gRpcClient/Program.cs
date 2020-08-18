@@ -15,6 +15,8 @@ namespace gRpcClient
         static IServiceProvider provider;
         static Program()
         {
+            //CRL.Class2Proto.ConvertTest.Test();
+
             var builder = new ConfigurationBuilder();
 
             var configuration = builder.Build();
@@ -33,7 +35,6 @@ namespace gRpcClient
 
             provider = services.BuildServiceProvider();
         }
-
 
         static void Main(string[] args)
         {            

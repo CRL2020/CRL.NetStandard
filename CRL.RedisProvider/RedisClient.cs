@@ -148,7 +148,27 @@ namespace CRL.RedisProvider
             }
             return result;
         }
+        /// <summary>
+        /// 递减
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="type"></param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public long Decrement(string key, string type, TimeSpan timeOut, int num = 1)
+        {
+            key = string.Format("Increment_{0}", key);
+            var exis = ContainsKey(key);
 
+            var result = new StackExchangeRedisHelper(_type,_id).GetDatabase().HashDecrement(key, type, num);
+            if (!exis)
+            {
+                //自动失效,清理垃圾数据
+                KSetEntryIn(key, timeOut);
+            }
+
+            return result;
+        }
         #region 消息订阅发布
         public void Pubblish<T>(T obj)
         {       //只限当前进程

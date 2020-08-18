@@ -56,8 +56,8 @@ namespace GrpcService1
                     DeregisterCriticalServiceAfter = "90m"
                 }
             };
-            consulClient.DeregisterService(info.ID);
-            var a = consulClient.RegisterService(info);
+            //consulClient.DeregisterService(info.ID);
+            //var a = consulClient.RegisterService(info);
 
         }
     }

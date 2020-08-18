@@ -1,0 +1,46 @@
+syntax = "proto3";
+option csharp_namespace = "gRPC.StockService.order";
+package order;
+service gRPCIOrderService {
+    rpc AddGoodsStock(ListResponseGoodsDTO) returns (ResponseModelDTO);
+    rpc CutsGoodsStock(ListResponseGoodsDTO) returns (ResponseModelDTO);
+}
+message ResponseGoodsDTO {
+    string spid = 1;
+    string shpgg = 2;
+    string dw = 3;
+    string shpchd = 4;
+    string jixing = 5;
+    string pizhwh = 6;
+    float kcshl = 7;
+    string sxrq = 8;
+    string youxq = 9;
+    float zdshj = 10;
+    int32 rowindex = 11;
+    string leibie = 12;
+    string OrgId = 13;
+    string LastUpdate = 14;
+    string TypeId = 15;
+    int32 IsInvalid = 16;
+    string pihao = 17;
+    int32 Classify = 18;
+    string SalesmanNo = 19;
+    string BatchCode = 20;
+    string Hw = 21;
+    string Huowname = 22;
+    string pk_batchcode = 23;
+    double nlocknum = 24;
+    double xcl = 25;
+    string warehousename = 26;
+    string stockstate = 27;
+    string isAdvisable = 28;
+    bool IsTwoVote = 29;
+}
+message ListResponseGoodsDTO {
+    repeated ResponseGoodsDTO Data = 1;
+}
+message ResponseModelDTO {
+    int32 Code = 1;
+    string Msg = 2;
+    string Data = 3;
+}
