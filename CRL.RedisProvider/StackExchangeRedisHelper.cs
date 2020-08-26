@@ -128,7 +128,7 @@ namespace CRL.RedisProvider
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public bool Set(string key, object value, TimeSpan expireIn)
+        public bool Set(string key, object value, TimeSpan? expireIn)
         {
             key = MergeKey(key);
             return GetDatabase().StringSet(key, Serialize(value), expireIn);
@@ -420,6 +420,20 @@ namespace CRL.RedisProvider
         public long ListLength(string key)
         {
             return GetDatabase().ListLength(key);
+        }
+
+        public bool BatchRemove(string keyPattern)
+        {
+            var result = GetDatabase().ScriptEvaluate(LuaScript.Prepare(
+                //Redis的keys模糊查询：
+                " local ks = redis.call('KEYS', @keypattern) " + //local ks为定义一个局部变量，其中用于存储获取到的keys
+                " for i=1,#ks,5000 do " +    //#ks为ks集合的个数, 语句的意思： for(int i = 1; i <= ks.Count; i+=5000)
+                "     redis.call('del', unpack(ks, i, math.min(i+4999, #ks))) " + //Lua集合索引值从1为起始，unpack为解包，获取ks集合中的数据，每次5000，然后执行删除
+                " end " +
+                " return true "
+                ),
+                new { keypattern = keyPattern });
+            return true;
         }
     }
 }

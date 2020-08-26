@@ -78,6 +78,12 @@ namespace CRLTest.Code
             var list = new List<ProductData>() { p };
             BatchInsert(list, true);
         }
-
+        public void testArgs()
+        {
+            var db = DBExtend;
+            var sql = "select * from ProductData where OrderId=@OrderId";
+            db.AddParam("OrderId", null);
+            var result = db.ExecList<ProductData>(sql);
+        }
     }
 }

@@ -119,7 +119,7 @@ namespace CRL.RedisProvider
             new StackExchangeRedisHelper(_type, _id).GetDatabase().KeyExpire(key, expiresTime);
         }
 
-        public void KSet(string key, object obj, TimeSpan timeSpan)
+        public void KSet(string key, object obj, TimeSpan? timeSpan)
         {
             new StackExchangeRedisHelper(_type, _id).Set(key, obj, timeSpan);
         }
@@ -294,7 +294,10 @@ namespace CRL.RedisProvider
             var a = str.GetHashCode();
             return new StackExchangeRedisHelper(_type, _id).GetDatabase();
         }
-
+        public bool BatchRemove(string keyPattern)
+        {
+            return new StackExchangeRedisHelper(_type, _id).BatchRemove(keyPattern);
+        }
     }
 
 }
