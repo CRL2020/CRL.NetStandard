@@ -232,7 +232,8 @@ namespace CRL.MemoryDataCache
             //double runTime;
             //var list = ObjectConvert.DataReaderToObjectList(reader, type, mapping, out runTime);
 
-            var classType = Type.GetType($"CRL.LambdaQuery.Mapping.QueryInfo`1, CRL");
+            //var classType = Type.GetType($"CRL.LambdaQuery.Mapping.QueryInfo`1, CRL");
+            var classType = typeof(LambdaQuery.Mapping.QueryInfo<>);
             var constructedType = classType.MakeGenericType(type);
             var queryInfo = Activator.CreateInstance(constructedType, new object[] { false, query, mapping, null });
 

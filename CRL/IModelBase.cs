@@ -169,28 +169,7 @@ namespace CRL
         {
             return null;
         }
-        #region redis
-        internal bool UseRedis()
-        {
-            return !string.IsNullOrEmpty(GetRedisHashKey());
-        }
-        /// <summary>
-        /// 重写获到HashId
-        /// </summary>
-        /// <returns></returns>
-        public virtual string GetRedisHashId()
-        {
-            return "";
-        }
-        /// <summary>
-        /// 重写获取Key
-        /// </summary>
-        /// <returns></returns>
-        public virtual string GetRedisHashKey()
-        {
-            return "";
-        }
-        #endregion
+        
         #endregion
         /// <summary>
         /// 手动跟踪对象状态,使更新时能识别

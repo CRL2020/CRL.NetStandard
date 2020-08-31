@@ -121,24 +121,24 @@ namespace CRL
         {
             return "";
         }
-        protected string GetHashId(IModel obj)
+        protected string GetHashId(T obj)
         {
-            var str = obj.GetRedisHashId();
-            if(string.IsNullOrEmpty(str))
+            var str = GetRedisHashId(obj);
+            if (string.IsNullOrEmpty(str))
             {
                 return "";
             }
-            var hashId = string.Format("{0}_{1}", obj.GetType().Name, obj.GetRedisHashId());
+            var hashId = string.Format("{0}_{1}", obj.GetType().Name, GetRedisHashId(obj));
             return hashId;
         }
-        protected void SetToRedis(IModel obj, TimeSpan? timeOut = null)
+        protected void SetToRedis(T obj, TimeSpan? timeOut = null)
         {
             var hashId = GetHashId(obj);
-            if(string.IsNullOrEmpty(hashId))
+            if (string.IsNullOrEmpty(hashId))
             {
                 return;
             }
-            var key = obj.GetRedisHashKey();
+            var key = GetRedisHashKey(obj);
             RedisClient.HSet(hashId, key, obj);
             if (timeOut != null)
             {
@@ -156,7 +156,7 @@ namespace CRL
             {
                 return RedisClient.Remove(hashId);
             }
-            var key = obj.GetRedisHashKey();
+            var key = GetRedisHashKey(obj);
             return RedisClient.HRemove(hashId, key);
         }
         protected T GetFromRedis(T obj)
@@ -166,7 +166,7 @@ namespace CRL
             {
                 return default(T);
             }
-            var key = obj.GetRedisHashKey();
+            var key = GetRedisHashKey(obj);
             if (string.IsNullOrEmpty(key))
             {
                 return default(T);
@@ -192,7 +192,7 @@ namespace CRL
             {
                 return false;
             }
-            var key = obj.GetRedisHashKey();
+            var key = GetRedisHashKey(obj);
             return RedisClient.HContainsKey(hashId, key);
         }
         protected long GetHashCount(T obj)
@@ -209,7 +209,7 @@ namespace CRL
         /// 更新所有数据到REDIS 
         /// 仅测试
         /// </summary>
-        public int UpdateAllDataToRedis(Expression<Func<T, bool>> expression= null)
+        public int UpdateAllDataToRedis(Expression<Func<T, bool>> expression = null)
         {
             var query = GetLambdaQuery();
             if (expression == null)
@@ -417,10 +417,7 @@ namespace CRL
             
             db.InsertFromObj(p);
             //redis
-            if (p.UseRedis())
-            {
-                SetToRedis(p);
-            }
+            SetToRedis(p);
         }
         
         /// <summary>
@@ -454,12 +451,15 @@ namespace CRL
             db.BatchInsert(list, keepIdentity);
             //redis
             var obj = list.First();
-            if (obj.UseRedis())
+            if (obj is T)
             {
-                foreach (var item in list)
+                System.Threading.Tasks.Task.Run(() =>
                 {
-                    SetToRedis(item);
-                }
+                    foreach (var item in list)
+                    {
+                        SetToRedis(item as T);
+                    }
+                });
             }
         }
         #endregion
@@ -565,10 +565,7 @@ namespace CRL
             var db = DBExtend;
             var v = obj.GetpPrimaryKeyValue();
             var n = db.Delete<T>(v);
-            if (obj.UseRedis())
-            {
-                DeleteFromRedis(obj);
-            }
+            DeleteFromRedis(obj);
             return n;
         }
         /// <summary>
@@ -622,9 +619,9 @@ namespace CRL
         {
             var db = DBExtend;
             var n = db.Update(item);
-            if (item.UseRedis())
+            if (item is T)
             {
-                SetToRedis(item);
+                SetToRedis(item as T);
             }
             return n;
         }
