@@ -84,14 +84,14 @@ namespace CRL.LambdaQuery
                     {
                         return ((PropertyInfo)mExp.Member).GetValue(instance, null);
                     }
-                    throw new CRLException("未能解析" + mExp.Member.MemberType);
+                    throw new Exception("未能解析" + mExp.Member.MemberType);
                 case ExpressionType.ArrayIndex:
                     var arryExp = exp as BinaryExpression;
                     var array = GetMemberExpressionValue(arryExp.Left, out isConstant) as Array;
                     var index = (int)((ConstantExpression)arryExp.Right).Value;
                     return array.GetValue(index);
             }
-            throw new CRLException("未能解析" + exp.NodeType);
+            throw new Exception("未能解析" + exp.NodeType);
         }
     }
 

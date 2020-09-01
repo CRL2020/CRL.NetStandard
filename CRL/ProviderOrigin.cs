@@ -640,7 +640,7 @@ namespace CRL
             }
             if (items.Count > 2000)
             {
-                throw new CRLException("更新数据行数不能超过2000");
+                throw new Exception("更新数据行数不能超过2000");
             }
             var db = DBExtend;
             return db.Update(items);
@@ -754,7 +754,7 @@ namespace CRL
             var iDic = updateValue as Dictionary<string, object>;
             if (iDic == null)
             {
-                throw new CRLException("无法转换为Dictionary<string, object>");
+                throw new Exception("无法转换为Dictionary<string, object>");
             }
             var dic = new ParameCollection(iDic);
             return db.Update(query as LambdaQuery<T>, dic);

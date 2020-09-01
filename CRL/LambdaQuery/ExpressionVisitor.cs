@@ -93,7 +93,7 @@ namespace CRL.LambdaQuery
             if (parIndex >= 5000)
             {
                 //MSSQL 参数最多2800
-                throw new CRLException("参数计数超过了5000,请确认数据访问对象没有被静态化" + parIndex);
+                throw new Exception("参数计数超过了5000,请确认数据访问对象没有被静态化" + parIndex);
             }
             switch (par1.Type)
             {
@@ -163,7 +163,7 @@ namespace CRL.LambdaQuery
                     var dic = MethodAnalyze.GetMethos(__DBAdapter);
                     if (!dic.ContainsKey(method.MethodName))
                     {
-                        throw new CRLException("LambdaQuery不支持扩展方法" + method.MemberQueryName + "." + method.MethodName);
+                        throw new Exception("LambdaQuery不支持扩展方法" + method.MemberQueryName + "." + method.MethodName);
                     }
                     int newParIndex = parIndex;
                     par = dic[method.MethodName](method, ref newParIndex, AddParame);
@@ -298,7 +298,7 @@ namespace CRL.LambdaQuery
                     var member = be.Left as MemberExpression;
                     if (member == null)
                     {
-                        throw new CRLException(be.Left + "不为MemberExpression");
+                        throw new Exception(be.Left + "不为MemberExpression");
                     }
                     var args = RouteExpressionHandler(be.Right);
                     par1.Data = new CRLExpression.MethodCallObj() { MemberName = member.Member.Name, MethodName = "IsNull", Args = new List<object>() { args.Data }, MemberQueryName= member.Member.Name };
@@ -328,7 +328,7 @@ namespace CRL.LambdaQuery
             }
             else
             {
-                throw new CRLException("不支持此语法解析:" + exp);
+                throw new Exception("不支持此语法解析:" + exp);
             }
         }
         public void AddParame(string name, object value)
@@ -408,7 +408,7 @@ namespace CRL.LambdaQuery
                 var a = TypeCache.GetProperties(type, true).TryGetValue(memberName, out field);
                 if (!a)
                 {
-                    throw new CRLException("类型 " + type.Name + "." + memberName + " 未设置Mapping,请检查查询条件");
+                    throw new Exception("类型 " + type.Name + "." + memberName + " 未设置Mapping,请检查查询条件");
                 }
                 if (field.DefaultCRLExpression != null)
                 {
@@ -591,7 +591,7 @@ namespace CRL.LambdaQuery
                         var valueObj = (ExpressionValueObj)arguments[1];
                         if (valueObj == null)
                         {
-                            throw new CRLException("不支持此语法:" + mcExp);
+                            throw new Exception("不支持此语法:" + mcExp);
                         }
                         memberName = valueObj.member.Name;
                         arguments = new List<object>() { arguments[0] };
@@ -615,7 +615,7 @@ namespace CRL.LambdaQuery
                     {
                         if (arguments[0] is ExpressionValueObj)
                         {
-                            throw new CRLException("不支持这样的语法:" + exp);
+                            throw new Exception("不支持这样的语法:" + exp);
                         }
                     }
                     obj = method.Invoke(args1, arguments.ToArray());
@@ -700,7 +700,7 @@ namespace CRL.LambdaQuery
             {
                 return RouteExpressionHandler(ue.Operand);
             }
-            throw new CRLException("未处理的一元运算" + ue.NodeType);
+            throw new Exception("未处理的一元运算" + ue.NodeType);
             #endregion
         }
         #endregion

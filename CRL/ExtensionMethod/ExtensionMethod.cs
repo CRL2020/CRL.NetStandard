@@ -54,7 +54,7 @@ namespace CRL
         public static bool Like(this string s, string likeString)
         {
             if (string.IsNullOrEmpty(likeString))
-                throw new CRLException("参数值不能为空:likeString");
+                throw new Exception("参数值不能为空:likeString");
             return s.IndexOf(likeString) > -1;
         }
         /// <summary>
@@ -66,7 +66,7 @@ namespace CRL
         public static bool LikeLeft(this string s, string likeString)
         {
             if (string.IsNullOrEmpty(likeString))
-                throw new CRLException("参数值不能为空:likeString");
+                throw new Exception("参数值不能为空:likeString");
             return s.IndexOf(likeString) > -1;
         }
         /// <summary>
@@ -78,7 +78,7 @@ namespace CRL
         public static bool LikeRight(this string s, string likeString)
         {
             if (string.IsNullOrEmpty(likeString))
-                throw new CRLException("参数值不能为空:likeString");
+                throw new Exception("参数值不能为空:likeString");
             return s.IndexOf(likeString) > -1;
         }
 

@@ -73,7 +73,7 @@ namespace CRL.CacheServer
             var data = encode.GetBytes(query);
             if (Connections.Count > 500)
             {
-                throw new CRLException("TcpClientPool连接已超过500");
+                throw new Exception("TcpClientPool连接已超过500");
             }
             Connection connection;
             lock (lockObj)
@@ -97,7 +97,7 @@ namespace CRL.CacheServer
             {
                 //connection.Socket.Dispose();
                 //Connections.Remove(connection);
-                throw new CRLException("连接到缓存服务器时发生错误:" + connection.Socket.LastException.Message);
+                throw new Exception("连接到缓存服务器时发生错误:" + connection.Socket.LastException.Message);
             }
             var response = encode.GetString(result);
             return response;

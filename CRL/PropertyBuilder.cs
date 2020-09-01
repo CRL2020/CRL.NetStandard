@@ -17,44 +17,77 @@ using System.Threading.Tasks;
 namespace CRL
 {
     #region obj
-        enum IndexType
+    enum IndexType
+    {
+        Normal,
+        Unique
+    }
+    class TableIndex
+    {
+        public Type Type;
+        /// <summary>
+        /// 单字段索引
+        /// </summary>
+        public ConcurrentDictionary<string, IndexType> Index = new ConcurrentDictionary<string, IndexType>();
+        /// <summary>
+        /// 联合索引
+        /// </summary>
+        public ConcurrentDictionary<string, UnionIndexItem> UnionIndex = new ConcurrentDictionary<string, UnionIndexItem>();
+    }
+    internal class UnionIndexItem
+    {
+        public List<string> Fields = new List<string>();
+
+        public Attribute.FieldIndexType FieldIndexType;
+        public override string ToString()
         {
-            Normal,
-            Unique
+            return string.Join("_", Fields.OrderBy(b => b));
         }
-        class TableIndex
-        {
-            public Type Type;
-            /// <summary>
-            /// 单字段索引
-            /// </summary>
-            public ConcurrentDictionary<string, IndexType> Index = new ConcurrentDictionary<string, IndexType>();
-            /// <summary>
-            /// 联合索引
-            /// </summary>
-            public ConcurrentDictionary<string, UnionIndexItem> UnionIndex = new ConcurrentDictionary<string, UnionIndexItem>();
-        }
-        internal class UnionIndexItem
-        {
-            public List<string> Fields = new List<string>();
-            public override string ToString()
-            {
-                return string.Join("_", Fields.OrderBy(b => b));
-            }
-        }
+    }
     #endregion
     public abstract class AbsPropertyBuilder
     {
 
-        internal TableIndex indexs = new TableIndex();
+        internal static Dictionary<Type, TableIndex> indexs = new Dictionary<Type, TableIndex>();
+        internal static TableIndex getTableIndex<T>()
+        {
+            var a = indexs.TryGetValue(typeof(T), out var tableIndex);
+            if (a)
+            {
+                return tableIndex;
+            }
+            tableIndex = new TableIndex();
+            indexs.Add(typeof(T), tableIndex);
+            return tableIndex;
+        }
+        internal static void AddUnionIndex<T>(string indexName, List<string> fields, Attribute.FieldIndexType fieldIndexType)
+        {
+            indexName = string.Format("{0}_{1}", typeof(T).Name, indexName);
+            var indexs = getTableIndex<T>();
+            if (indexs.UnionIndex.ContainsKey(indexName))
+            {
+                return;
+            }
+            var unionIndexItem = new UnionIndexItem();
+            for (int i = 0; i < fields.Count(); i++)
+            {
+                var field = fields[i];
+                if (unionIndexItem.Fields.Contains(field))
+                {
+                    throw new Exception("联合索引 " + indexName + " 中已包括字段" + field);
+                }
+                unionIndexItem.Fields.Add(field);
+            }
+            indexs.UnionIndex.TryAdd(indexName, unionIndexItem);
+        }
     }
     /// <summary>
     /// 属性构造
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class PropertyBuilder<T>: AbsPropertyBuilder
+    public class PropertyBuilder<T> : AbsPropertyBuilder
     {
- 
+
         /// <summary>
         /// 设置非聚集索引
         /// </summary>
@@ -66,9 +99,10 @@ namespace CRL
             var m = member.Body as MemberExpression;
             if (m == null)
             {
-                throw new CRLException("应为MemberExpression" + member);
+                throw new Exception("应为MemberExpression" + member);
             }
             var name = m.Member.Name;
+            var indexs = getTableIndex<T>();
             if (indexs.Index.ContainsKey(name))
             {
                 return this;
@@ -87,9 +121,10 @@ namespace CRL
             var m = member.Body as MemberExpression;
             if (m == null)
             {
-                throw new CRLException("应为MemberExpression" + member);
+                throw new Exception("应为MemberExpression" + member);
             }
             var name = m.Member.Name;
+            var indexs = getTableIndex<T>();
             if (indexs.Index.ContainsKey(name))
             {
                 return this;
@@ -104,7 +139,7 @@ namespace CRL
         /// <param name="indexName"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public PropertyBuilder<T> AsUnionIndex<Tresult>(string indexName, Expression<Func<T, Tresult>> expression)
+        public PropertyBuilder<T> AsUnionIndex<Tresult>(string indexName, Expression<Func<T, Tresult>> expression, Attribute.FieldIndexType fieldIndexType = Attribute.FieldIndexType.非聚集)
         {
             if (string.IsNullOrEmpty(indexName))
             {
@@ -113,16 +148,19 @@ namespace CRL
             var type = typeof(T);
 
             var newExpression = expression.Body as NewExpression;
-            if (newExpression ==null)
+            if (newExpression == null)
             {
                 throw new Exception("必须为匿名表达式");
             }
             indexName = string.Format("{0}_{1}", typeof(T).Name, indexName);
+            var indexs = getTableIndex<T>();
             if (indexs.UnionIndex.ContainsKey(indexName))
             {
                 return this;
             }
             var unionIndexItem = new UnionIndexItem();
+            var fields = new List<string>();
+            var table = TypeCache.GetTable(typeof(T));
             for (int i = 0; i < newExpression.Arguments.Count(); i++)
             {
                 var item = newExpression.Arguments[i];
@@ -140,14 +178,10 @@ namespace CRL
                 {
                     throw new Exception(item + "不为MemberExpression");
                 }
-                if (unionIndexItem.Fields.Contains(m.Member.Name))
-                {
-                    throw new Exception("联合索引 " + indexName + " 中已包括字段" + m.Member.Name);
-                }
-                unionIndexItem.Fields.Add(m.Member.Name);
+                table.FieldsDic.TryGetValue(m.Member.Name, out var f);
+                fields.Add(f.MapingName);
             }
-            indexs.UnionIndex.TryAdd(indexName, unionIndexItem);
-
+            AddUnionIndex<T>(indexName, fields, fieldIndexType);
             return this;
         }
     }

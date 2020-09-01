@@ -217,7 +217,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
                 {
                     helper.Execute(s);
                 }
-                catch (Exception ero) { };
+                catch (System.Exception ero) { };
             }
         }
         #endregion
@@ -386,7 +386,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
         }
         #endregion
 
-        public override string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns)
+        public override string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns, Attribute.FieldIndexType fieldIndexType)
         {
             var script = string.Format("create index {1} on {0} ({2}) TABLESPACE users", tableName, indexName, string.Join(",", columns.ToArray()));
             return script;
@@ -450,7 +450,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
             var dic = FieldMaping();
             if (!dic.ContainsKey(fieldType))
             {
-                throw new CRLException(string.Format("没找到对应类型的转换{0} 在字段{1}", fieldType, field));
+                throw new Exception(string.Format("没找到对应类型的转换{0} 在字段{1}", fieldType, field));
             }
             var type = dic[fieldType];
             type = string.Format(type, 100);

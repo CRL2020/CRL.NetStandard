@@ -32,7 +32,7 @@ namespace CRL.LambdaQuery
                 a = configBuilder.LambdaQueryTypeRegister.TryGetValue(DBType.MongoDB, out Type type2);
                 if (!a)
                 {
-                    throw new CRLException("未引用CRL.MongoDB");
+                    throw new Exception("未引用CRL.MongoDB");
                 }
                 var genericType = type2.MakeGenericType(typeof(T));
                 creater = Core.DynamicMethodHelper.CreateCtorFunc<Func<DbContext, LambdaQuery<T>>>(genericType, new Type[] { typeof(DbContext) });

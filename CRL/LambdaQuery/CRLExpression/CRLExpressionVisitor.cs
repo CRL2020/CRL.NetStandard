@@ -77,7 +77,7 @@ namespace CRL.LambdaQuery.CRLExpression
             }
             else
             {
-                throw new CRLException("不支持此语法解析:" + exp);
+                throw new Exception("不支持此语法解析:" + exp);
             }
         }
         #region 按类型解析
@@ -225,7 +225,7 @@ namespace CRL.LambdaQuery.CRLExpression
             {
                 return RouteExpressionHandler(ue.Operand);
             }
-            throw new CRLException("未处理的一元运算" + ue.NodeType);
+            throw new Exception("未处理的一元运算" + ue.NodeType);
             #endregion
         }
         #endregion
@@ -323,7 +323,7 @@ namespace CRL.LambdaQuery.CRLExpression
                 case ExpressionType.Or:
                     return creater.Or(exp, value);
                 default:
-                    throw new CRLException("没有对应的运算方法 " + type);
+                    throw new Exception("没有对应的运算方法 " + type);
             }  
         }
         static Dictionary<string, MethodHandler> CreateLambdaMethodCallCache = new Dictionary<string, MethodHandler>();
@@ -365,7 +365,7 @@ namespace CRL.LambdaQuery.CRLExpression
                     method = creater.Equals;
                     break;
                 default:
-                    throw new CRLException("没有对应的方法 " + methodName);
+                    throw new Exception("没有对应的方法 " + methodName);
             }
             //var a = CreateLambdaMethodCallCache.TryGetValue(methodName, out method);
             ////todo 更多方法解析
@@ -428,7 +428,7 @@ namespace CRL.LambdaQuery.CRLExpression
                     method = creater.ToUpper;
                     break;
                 default:
-                    throw new CRLException("没有对应的方法 " + methodName);
+                    throw new Exception("没有对应的方法 " + methodName);
             }
             return method(propertyName, value);
         }

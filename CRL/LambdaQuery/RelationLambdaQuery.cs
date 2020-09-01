@@ -129,7 +129,7 @@ namespace CRL.LambdaQuery
             GetSelectFieldInfo();
             if (_CurrentSelectFieldCache.mapping.Count() == 0)
             {
-                throw new CRLException("选择的列不能为空");
+                throw new Exception("选择的列不能为空");
             }
             return _CurrentSelectFieldCache.GetQueryFieldString();
         }
@@ -218,7 +218,7 @@ namespace CRL.LambdaQuery
                 string unionType = __ShanrdingUnionType == UnionType.Union ? "union" : "union all";
                 if(tables.Count==0)
                 {
-                    throw new CRLException("未实现ShardingLocation.AllTablePartName");
+                    throw new Exception("未实现ShardingLocation.AllTablePartName");
                 }
                 //var dbExtend = new DBExtend(dbContext); //todo 检查分表是否被创建
                 for (int i = 0; i < tables.Count; i++)

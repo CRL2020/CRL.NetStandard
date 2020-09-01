@@ -123,7 +123,7 @@ namespace CRL
             var proxy = CacheServerSetting.GetCurrentClient(typeof(T));
             if (proxy == null)
             {
-                throw new CRLException("未在服务器上找到对应的数据处理类型:" + typeof(T).FullName);
+                throw new Exception("未在服务器上找到对应的数据处理类型:" + typeof(T).FullName);
             }
             var data = proxy.Query(expression, out total, pageIndex, pageSize);
             return data;

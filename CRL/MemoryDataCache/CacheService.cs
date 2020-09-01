@@ -163,7 +163,7 @@ namespace CRL.MemoryDataCache
                     var ts = DateTime.Now - dataItem.UpdateTime;
                     if (ts.TotalMinutes < 1)
                     {
-                        throw new CRLException($"缓存[{typeof(TItem)}]创建中...");
+                        throw new Exception($"缓存[{typeof(TItem)}]创建中...");
                     }
                 }
             }

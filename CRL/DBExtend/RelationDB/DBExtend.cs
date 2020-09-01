@@ -220,7 +220,7 @@ namespace CRL.DBExtend.RelationDB
         {
             if (currentTransStatus != TranStatus.未开始)
             {
-                throw new CRLException("事务开始失败,已有未完成的事务");
+                throw new Exception("事务开始失败,已有未完成的事务");
             }
             transDb = GetDBHelper();
             transDb.BeginTran(isolationLevel);
@@ -233,7 +233,7 @@ namespace CRL.DBExtend.RelationDB
         {
             if (currentTransStatus != TranStatus.已开始)
             {
-                throw new CRLException("事务回滚失败,没有需要回滚的事务");
+                throw new Exception("事务回滚失败,没有需要回滚的事务");
             }
             transDb.RollbackTran();
             currentTransStatus = TranStatus.未开始;
@@ -245,7 +245,7 @@ namespace CRL.DBExtend.RelationDB
         {
             if (currentTransStatus != TranStatus.已开始)
             {
-                throw new CRLException("事务提交失败,没有需要提交的事务");
+                throw new Exception("事务提交失败,没有需要提交的事务");
             }
             transDb.CommitTran();
             currentTransStatus = TranStatus.未开始;

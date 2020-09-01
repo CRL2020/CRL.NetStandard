@@ -205,7 +205,7 @@ namespace CRL
             }
             else if (n > 1)
             {
-                throw new CRLException(string.Format("对象{0}设置的主键字段太多 {1}", type.Name, n));
+                throw new Exception(string.Format("对象{0}设置的主键字段太多 {1}", type.Name, n));
             }
             #endregion
             //主键排前面

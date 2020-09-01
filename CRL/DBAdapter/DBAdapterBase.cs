@@ -54,7 +54,7 @@ namespace CRL.DBAdapter
             var exists = configBuilder.DBAdapterBaseRegister.TryGetValue(dbContext.DBHelper.CurrentDBType, out Func<DbContext, DBAdapter.DBAdapterBase> func);
             if (!exists)
             {
-                throw new CRLException("找不到对应的DBAdapte" + dbContext.DBHelper.CurrentDBType);
+                throw new Exception("找不到对应的DBAdapte" + dbContext.DBHelper.CurrentDBType);
             }
             return func(dbContext);
         }
@@ -100,7 +100,7 @@ namespace CRL.DBAdapter
             }
             if (!dic.ContainsKey(type))
             {
-                throw new CRLException(string.Format("找不到对应的字段类型映射 {0} 在 {1}", type, this));
+                throw new Exception(string.Format("找不到对应的字段类型映射 {0} 在 {1}", type, this));
             }
             return dic[type];
         }
@@ -111,7 +111,7 @@ namespace CRL.DBAdapter
         /// <returns></returns>
         public abstract string GetColumnIndexScript(CRL.Attribute.FieldInnerAttribute filed);
 
-        public abstract string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns);
+        public abstract string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns, Attribute.FieldIndexType fieldIndexType);
 
         /// <summary>
         /// 增加列

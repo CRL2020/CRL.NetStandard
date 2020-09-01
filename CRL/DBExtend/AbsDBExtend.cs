@@ -28,7 +28,7 @@ namespace CRL
             var _helper = _dbContext.DBHelper;
             if (_helper == null)
             {
-                throw new CRLException("数据访问对象未实例化,请实现CRL.SettingConfig.GetDbAccess");
+                throw new Exception("数据访问对象未实例化,请实现CRL.SettingConfig.GetDbAccess");
             }
             GUID = Guid.NewGuid();
             __DbHelper = _helper;
@@ -185,12 +185,12 @@ namespace CRL
                     if (p.NotNull && string.IsNullOrEmpty(value))
                     {
                         msg = string.Format("对象{0}属性{1}值不能为空", obj.GetType(), p.MemberName);
-                        throw new CRLException(msg);
+                        throw new Exception(msg);
                     }
                     if (value.Length > p.Length && p.Length < 3000)
                     {
                         msg = string.Format("对象{0}属性{1}长度超过了设定值{2}[{3}]", obj.GetType(), p.MemberName, p.Length, value);
-                        throw new CRLException(msg);
+                        throw new Exception(msg);
                     }
                 }
             }
@@ -200,7 +200,7 @@ namespace CRL
                 string concurrentKey = "insertRepeatedCheck_" + sb.ToString().GetHashCode();
                 if (!ConcurrentControl.Check(concurrentKey, 1))
                 {
-                    throw new CRLException("检测到有重复提交的数据,在" + obj.GetType());
+                    throw new Exception("检测到有重复提交的数据,在" + obj.GetType());
                 }
             }
             //校验数据
@@ -208,7 +208,7 @@ namespace CRL
             if (!string.IsNullOrEmpty(msg))
             {
                 msg = string.Format("数据校验证失败,在类型{0} {1} 请核对校验规则", obj.GetType(), msg);
-                throw new CRLException(msg);
+                throw new Exception(msg);
             }
         }
 
@@ -905,7 +905,7 @@ namespace CRL
             UpdateCacheItem(obj, c);
             if (n == 0)
             {
-                throw new CRLException("更新失败,找不到主键为 " + keyValue + " 的记录");
+                throw new Exception("更新失败,找不到主键为 " + keyValue + " 的记录");
             }
             //obj.CleanChanges();
             return n;

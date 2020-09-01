@@ -41,7 +41,7 @@ namespace CRL.CacheServer
             var result = SendQuery(json);
             if (result.StartsWith("error"))
             {
-                throw new CRLException(result);
+                throw new Exception(result);
             }
             var resultData = SerializeHelper.DeserializeFromJson<ResultData>(result);
             total = resultData.Total;
@@ -70,7 +70,7 @@ namespace CRL.CacheServer
                 var result = SendQuery(json);
                 if (result.StartsWith("error"))
                 {
-                    throw new CRLException(result);
+                    throw new Exception(result);
                 }
             }
             catch(Exception ero)
@@ -89,7 +89,7 @@ namespace CRL.CacheServer
                 var result = SendQuery(json);
                 if (result.StartsWith("error"))
                 {
-                    throw new CRLException(result);
+                    throw new Exception(result);
                 }
                 var setting = SerializeHelper.DeserializeFromJson<List<string>>(result);
                 lock (lockObj)
@@ -105,7 +105,7 @@ namespace CRL.CacheServer
             }
             catch (Exception ero)
             {
-                throw new CRLException(string.Format("分布式缓存:获取服务器{0}设置时发生错误:{1}", Host, ero.Message));
+                throw new Exception(string.Format("分布式缓存:获取服务器{0}设置时发生错误:{1}", Host, ero.Message));
             }
         }
     }

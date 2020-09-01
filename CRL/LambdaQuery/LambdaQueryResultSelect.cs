@@ -97,14 +97,14 @@ namespace CRL.LambdaQuery
             }
             else if (resultSelectorBody is MemberExpression)
             {
-                throw new CRLException("请返回匿名类型" + resultSelectorBody);
+                throw new Exception("请返回匿名类型" + resultSelectorBody);
             }
             else if (resultSelectorBody is ParameterExpression)
             {
                 return db.QueryResult<TResult>(BaseQuery);
             }
        
-            throw new CRLException("ToList不支持此表达式 " + resultSelectorBody);
+            throw new Exception("ToList不支持此表达式 " + resultSelectorBody);
         }
         /// <summary>
         /// 返回动态类型

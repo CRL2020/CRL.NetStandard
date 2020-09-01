@@ -181,7 +181,7 @@ namespace CRL.LambdaQuery
                 var a = allFields[mExp.Expression.Type].TryGetValue(mExp.Member.Name, out f);
                 if (!a)
                 {
-                    throw new CRLException("找不到可筛选的属性" + mExp.Member.Name + " 在" + mExp.Expression.Type);
+                    throw new Exception("找不到可筛选的属性" + mExp.Member.Name + " 在" + mExp.Expression.Type);
                 }
                 var f2 = f.GetFieldMapping(__DBAdapter, GetPrefix(f.ModelType), withTablePrefix, "");
                 return new SelectFieldInfo(f2);
@@ -189,7 +189,7 @@ namespace CRL.LambdaQuery
             }
             else
             {
-                throw new CRLException("不支持此语法解析:" + expressionBody);
+                throw new Exception("不支持此语法解析:" + expressionBody);
             }
         }
         class MemberBindingObj
@@ -266,7 +266,7 @@ namespace CRL.LambdaQuery
                     var a2 = allFields[memberExpression.Expression.Type].TryGetValue(memberExpression.Member.Name, out f);
                     if (!a2)
                     {
-                        throw new CRLException("找不到可筛选的属性" + memberExpression.Member.Name + " 在" + memberExpression.Expression.Type);
+                        throw new Exception("找不到可筛选的属性" + memberExpression.Member.Name + " 在" + memberExpression.Expression.Type);
                     }
                     Attribute.FieldMapping _f2;
                     if (memberName != memberExpression.Member.Name)//按有别名算
@@ -298,7 +298,7 @@ namespace CRL.LambdaQuery
                 }
                 else
                 {
-                    throw new CRLException("不支持此语法解析:" + item);
+                    throw new Exception("不支持此语法解析:" + item);
                 }
             }
             var selectFieldItem = new SelectFieldInfo(resultFields);
@@ -334,7 +334,7 @@ namespace CRL.LambdaQuery
             var dic = MethodAnalyze.GetMethos(__DBAdapter);
             if (!dic.ContainsKey(methodCallObj.MethodName))
             {
-                throw new CRLException("LambdaQuery不支持扩展方法" + methodCallObj.MemberQueryName + "." + methodCallObj.MethodName);
+                throw new Exception("LambdaQuery不支持扩展方法" + methodCallObj.MemberQueryName + "." + methodCallObj.MethodName);
             }
             int newParIndex = __DbContext.parIndex;
 

@@ -96,11 +96,11 @@ namespace CRL.DBExtend.RelationDB
             var query1 = query as RelationLambdaQuery<T>;
             if (query1.__GroupFields!= null)
             {
-                throw new CRLException("delete不支持group查询");
+                throw new Exception("delete不支持group查询");
             }
             if (query1.__Relations != null && query1.__Relations.Count > 1)
             {
-                throw new CRLException("delete关联不支持多次");
+                throw new Exception("delete关联不支持多次");
             }
             //query1._IsRelationUpdate = true;
             var sb = new StringBuilder();

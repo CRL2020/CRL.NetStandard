@@ -228,13 +228,13 @@ namespace CRL
                         {
                             ac.SetValue2(detailItem, values);
                         }
-                        catch (Exception ero)
+                        catch (System.Exception ero)
                         {
                             var value = reader.GetValue(ac.ValueIndex);
                             reader.Close();
                             reader.Dispose();
                             var columnType = ac.FieldAttribute;
-                            throw new CRLException($"反射赋值时发生错误,在:{mainType }  字段:{columnType.MapingName} [{value}] 类型:{columnType.PropertyType },请检查数据库字段类型与对象是否一致");
+                            throw new Exception($"反射赋值时发生错误,在:{mainType }  字段:{columnType.MapingName} [{value}] 类型:{columnType.PropertyType },请检查数据库字段类型与对象是否一致");
                         }
                     }
                     #region 剩下的放索引
@@ -263,11 +263,11 @@ namespace CRL
                 }
                 #endregion
             }
-            catch( Exception ero)
+            catch(System.Exception ero)
             {
                 reader.Close();
                 reader.Dispose();
-                throw new CRLException("转换数据时发生错误:" + ero.Message);
+                throw new Exception("转换数据时发生错误:" + ero.Message);
             }
             reader.Close();
             reader.Dispose();
@@ -339,7 +339,7 @@ namespace CRL
                 {
                     detailItem = objCreater(dataContainer);
                 }
-                catch(Exception ero)
+                catch(System.Exception ero)
                 {
                     var columnType = dataContainer._GetCurrentColumnName();
                     object dataValue = null;
@@ -351,7 +351,7 @@ namespace CRL
                     reader.Close();
                     reader.Dispose();
                     queryInfo = null;
-                    throw new CRLException($"反射赋值时发生错误,在:{type }  字段:{columnType.name} 类型:{columnType.typeName } 值:[{dataValue}],请检查数据库字段类型与对象是否一致 {ero.Message}");
+                    throw new Exception($"反射赋值时发生错误,在:{type }  字段:{columnType.name} 类型:{columnType.typeName } 值:[{dataValue}],请检查数据库字段类型与对象是否一致 {ero.Message}");
                 }
                 #region 剩下的放索引
                 //按IModel算
@@ -408,10 +408,10 @@ namespace CRL
                     dic.Add(key, value);
                 }
             }
-            catch (Exception ero)
+            catch (System.Exception ero)
             {
                 reader.Close();
-                throw new CRLException("转换为字典时发生错误" + ero.Message);
+                throw new Exception("转换为字典时发生错误" + ero.Message);
             }
             reader.Close();
             return dic;

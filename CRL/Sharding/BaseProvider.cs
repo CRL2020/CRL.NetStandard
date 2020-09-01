@@ -78,7 +78,7 @@ namespace CRL.Sharding
             var first = list.First() as TModel;
             if (first == null)
             {
-                throw new CRLException("数据不为" + typeof(TModel));
+                throw new Exception("数据不为" + typeof(TModel));
             }
             SetLocation(first);
             base.BatchInsert(list, keepIdentity);

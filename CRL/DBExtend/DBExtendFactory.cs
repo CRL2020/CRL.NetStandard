@@ -27,7 +27,7 @@ namespace CRL
             var a = configBuilder.AbsDBExtendRegister.TryGetValue(dbType, out Func<DbContext, AbsDBExtend> func);
             if (!a)
             {
-                throw new CRLException($"未找到AbsDBExtend {dbType}");
+                throw new Exception($"未找到AbsDBExtend {dbType}");
             }
             return func(_dbContext);
         }

@@ -48,7 +48,7 @@ namespace CRL
             var exists = configBuilder.DBHelperRegister.TryGetValue(_DBType, out Func<string, DBHelper> func);
             if (!exists)
             {
-                throw new CRLException("未配置对应的数据库类型:" + _DBType);
+                throw new Exception("未配置对应的数据库类型:" + _DBType);
             }
             return func(_connectionString);
         }
@@ -118,7 +118,7 @@ namespace CRL
                     return act;
                 }
             }
-            throw new CRLException($"未找到对应的数据访问实现");
+            throw new Exception($"未找到对应的数据访问实现");
         }
 
         #endregion

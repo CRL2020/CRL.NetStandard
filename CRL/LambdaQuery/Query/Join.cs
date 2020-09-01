@@ -51,7 +51,7 @@ namespace CRL.LambdaQuery
         {
             if(!resultSelect.BaseQuery.__FromDbContext)
             {
-                throw new CRLException("关联需要由LambdaQuery.CreateQuery创建");
+                throw new Exception("关联需要由LambdaQuery.CreateQuery创建");
             }
             var query2 = new LambdaQueryViewJoin<T, TJoinResult>(this, resultSelect);
             //var innerType = typeof(TSource);

@@ -353,7 +353,7 @@ namespace CRLTest.Code
             var a2 = item.SupplierName == item2.SupplierName && item.SupplierName == guid;
             if (!a2)
             {
-                throw new Exception("更新缓存失败");
+                throw new System.Exception("更新缓存失败");
             }
             #endregion
 
@@ -372,7 +372,7 @@ namespace CRLTest.Code
             }, out error);
             if (result)
             {
-                throw new Exception("事务未回滚");
+                throw new System.Exception("事务未回滚");
             }
             #endregion
             Console.WriteLine("TestUpdate finish");

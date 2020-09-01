@@ -50,7 +50,7 @@ namespace CRL
             string result = "";
             if (string.IsNullOrEmpty(item.ColumnType))
             {
-                throw new CRLException("ColumnType is null");
+                throw new Exception("ColumnType is null");
             }
             string str = dbAdapter.GetCreateColumnScript(item);
             string indexScript = "";
@@ -128,7 +128,7 @@ namespace CRL
             info.DefaultValue = defaultValue;
             if (info.ColumnType.Contains("{0}"))
             {
-                throw new CRLException(string.Format("属性:{0} 需要指定长度 ColumnType:{1}", info.MemberName, info.ColumnType));
+                throw new Exception(string.Format("属性:{0} 需要指定长度 ColumnType:{1}", info.MemberName, info.ColumnType));
             }
         }
         /// <summary>
@@ -178,19 +178,19 @@ namespace CRL
             {
                 return list2;
             }
-            var buld = obj.BuildIndex();
+            var indexDic = AbsPropertyBuilder.indexs;
             var table = TypeCache.GetTable(type);
-            if (buld != null)
+            var a = indexDic.TryGetValue(type, out var tableIndex);
+            if (a)
             {
-                var indexs = buld.indexs;
-                foreach(var item in indexs.Index)
+                foreach (var item in tableIndex.Index)
                 {
                     var field = new Attribute.FieldInnerAttribute() { TableName = table.TableName, MapingName = item.Key, FieldIndexType = item.Value == IndexType.Normal ? Attribute.FieldIndexType.非聚集 : Attribute.FieldIndexType.非聚集唯一 };
                     list2.Add(dbAdapter.GetColumnIndexScript(field));
                 }
-                foreach(var item in indexs.UnionIndex)
+                foreach (var item in tableIndex.UnionIndex)
                 {
-                    list2.Add(dbAdapter.GetColumnUnionIndexScript(table.TableName, item.Key, item.Value.Fields));
+                    list2.Add(dbAdapter.GetColumnUnionIndexScript(table.TableName, item.Key, item.Value.Fields, item.Value.FieldIndexType));
                 }
             }
             return list2;
@@ -256,7 +256,7 @@ namespace CRL
                 {
                     message = "创建表时发生错误 类型{0} {1}\r\n";
                     message = string.Format(message, type, ero.Message);
-                    throw new CRLException(message);
+                    throw new Exception(message);
                     //return false;
                 }
                 //EventLog.Log(message, "", false);

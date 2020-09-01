@@ -87,7 +87,7 @@ namespace CRL
             Type type =typeof(T);
             PropertyInfo propertyInfo = type.GetProperty(sortName);
             if (propertyInfo == null)
-                throw new CRLException("找不到属性" + sortName);
+                throw new Exception("找不到属性" + sortName);
             ParameterExpression parameter = Expression.Parameter(type, "");
             Expression body = Expression.Property(parameter, propertyInfo);
             Expression sourceExpression = data.AsQueryable().Expression;

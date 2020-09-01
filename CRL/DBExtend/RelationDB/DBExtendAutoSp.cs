@@ -30,7 +30,7 @@ namespace CRL.DBExtend.RelationDB
         {
             if (!_DBAdapter.CanCompileSP)
             {
-                throw new CRLException("当前数据库不支持动态编译");
+                throw new Exception("当前数据库不支持动态编译");
             }
             sql = _DBAdapter.SqlFormat(sql);
             var dbName = dbContext.DBHelper.DatabaseName;
@@ -95,10 +95,10 @@ namespace CRL.DBExtend.RelationDB
                     string log = string.Format("创建存储过程:{0}\r\n{1}", sp, spScript);
                     EventLog.Log(log, "sqlToSp", false);
                 }
-                catch (Exception ero)
+                catch (System.Exception ero)
                 {
                     //RecoveryParams();
-                    throw new CRLException("动态创建存储过程时发生错误:" + ero.Message);
+                    throw new Exception("动态创建存储过程时发生错误:" + ero.Message);
                 }
             }
             return sp;

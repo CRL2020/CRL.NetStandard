@@ -267,7 +267,7 @@ namespace CRL.LambdaQuery
             var inner = typeQuery.OriginType;
             if (__Relations.ContainsKey(typeQuery))
             {
-                throw new CRLException(string.Format("关联查询已包含关联对象 {0} {1}", inner,condition));
+                throw new Exception(string.Format("关联查询已包含关联对象 {0} {1}", inner,condition));
                 return;
             }
             //if (__MainType == inner)
@@ -315,7 +315,7 @@ namespace CRL.LambdaQuery
         {
             if (unionType == UnionType.None)
             {
-                throw new CRLException("没有指定UnionType");
+                throw new Exception("没有指定UnionType");
             }
             __Unions = __Unions ?? new List<UnionQuery>();
             __Unions.Add(new UnionQuery() { query = query2, unionType = unionType });

@@ -78,7 +78,7 @@ namespace CRL
             }
             if (FromCache)//当是缓存时
             {
-                CRLException.Throw("缓存对象不能调用");
+                throw new Exception("缓存对象不能调用");
             }
             var _relationExp = CreaterelationExp(expression);
 
@@ -227,7 +227,7 @@ namespace CRL
             var a = Datas.TryGetValue(key.ToLower(), out obj);
             if (!a)
             {
-                throw new CRLException(string.Format("对象:{0}不存在索引值:{1}", GetType(), key));
+                throw new Exception(string.Format("对象:{0}不存在索引值:{1}", GetType(), key));
             }
             return obj;
         }
@@ -339,7 +339,7 @@ namespace CRL
             var origin = this.OriginClone;
             if (origin == null && check)
             {
-                throw new CRLException("_originClone为空,请确认此对象是由查询创建");
+                throw new Exception("_originClone为空,请确认此对象是由查询创建");
             }
             foreach (var f in fields.Values)
             {

@@ -464,7 +464,7 @@ namespace CRL.MySql
             }
             if (!castDic.ContainsKey(fieldType))
             {
-                throw new Exception(string.Format("没找到对应类型的转换{0} 在字段{1}", fieldType, field));
+                throw new System.Exception(string.Format("没找到对应类型的转换{0} 在字段{1}", fieldType, field));
             }
             var type = castDic[fieldType];
             //type = string.Format(type, 100);
@@ -489,7 +489,7 @@ namespace CRL.MySql
         {
             return string.Format("?{0}{1}", name, index);
         }
-        public override string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns)
+        public override string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns, Attribute.FieldIndexType fieldIndexType)
         {
             var script = string.Format("create index `{1}` on `{0}` ({2})", tableName, indexName, string.Join(",", columns.ToArray()));
             return script;

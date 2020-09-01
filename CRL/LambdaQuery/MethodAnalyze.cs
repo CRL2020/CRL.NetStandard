@@ -25,7 +25,7 @@ namespace CRL.LambdaQuery
             dBAdapter = _dBAdapter;
             if (dBAdapter == null)
             {
-                throw new CRLException("dBAdapter尚未初始化");
+                throw new Exception("dBAdapter尚未初始化");
             }
         }
 
@@ -230,7 +230,7 @@ namespace CRL.LambdaQuery
             var args = methodInfo.Args;
             if (args.Count < 2)
             {
-                throw new CRLException("Substring扩展方法需要两个参数,index,length");
+                throw new Exception("Substring扩展方法需要两个参数,index,length");
             }
             return dBAdapter.SubstringFormat(field, (int)args[0], (int)args[1]);
             //return string.Format(" SUBSTRING({0},{1},{2})", field, args[0], args[1]);
@@ -451,7 +451,7 @@ namespace CRL.LambdaQuery
                 var list = par2 as IEnumerable<string>;
                 if (list.Count() == 0)
                 {
-                    throw new CRLException("in 参数为空");
+                    throw new Exception("in 参数为空");
                 }
                 var max = list.Count() > 1000;//超出直接拼字符串
                 foreach (var s in list)
@@ -480,7 +480,7 @@ namespace CRL.LambdaQuery
                 var length = list.Count();
                 if (length == 0)
                 {
-                    throw new CRLException("in 参数为空");
+                    throw new Exception("in 参数为空");
                 }
                 var max = length > 1000;//超出直接拼字符串
                 foreach (var s in list)

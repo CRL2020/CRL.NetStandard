@@ -70,7 +70,7 @@ namespace CRL.Set
         {
             if (_dbContext == null)
             {
-                CRLException.Throw("_dbContext为空");
+                throw new Exception("_dbContext为空");
             }
             var db = DBExtendFactory.CreateDBExtend(_dbContext);
             return db;

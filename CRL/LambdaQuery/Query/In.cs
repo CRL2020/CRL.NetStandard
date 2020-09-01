@@ -97,7 +97,7 @@ namespace CRL.LambdaQuery
         {
             if (!query.BaseQuery.__FromDbContext)
             {
-                throw new CRLException("关联需要由LambdaQuery.CreateQuery创建");
+                throw new Exception("关联需要由LambdaQuery.CreateQuery创建");
             }
             var baseQuery = query.BaseQuery;
             QueryParames.AddRange(baseQuery.QueryParames);

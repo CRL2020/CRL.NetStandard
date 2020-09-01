@@ -32,7 +32,7 @@ namespace CRL.Mongo.MongoDBEx
             {
                 if (item.Key.StartsWith("$"))
                 {
-                    throw new CRLException("MongoDB不支持累加" + item.Key);
+                    throw new Exception("MongoDB不支持累加" + item.Key);
                 }
                 updateSet = updateSet.Set(item.Key, item.Value);
             }
@@ -44,11 +44,11 @@ namespace CRL.Mongo.MongoDBEx
         {
             if (query1.__GroupFields != null)
             {
-                throw new CRLException("update不支持group查询");
+                throw new Exception("update不支持group查询");
             }
             if (query1.__Relations != null && query1.__Relations.Count > 1)
             {
-                throw new CRLException("update关联不支持多次");
+                throw new Exception("update关联不支持多次");
             }
             if (setValue.Count == 0)
             {

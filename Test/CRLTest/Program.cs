@@ -43,7 +43,7 @@ namespace CRLTest
                     item.Invoke(instance, null);
                     Console.WriteLine($"{item.Name} ok");
                 }
-                catch(Exception ero)
+                catch(System.Exception ero)
                 {
                     Console.WriteLine($"{item.Name} error {ero.Message}");
                 }

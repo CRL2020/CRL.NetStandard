@@ -45,15 +45,15 @@ namespace CRL.Dynamic
                 {
                     object[] values = new object[columns.Count];
                     reader.GetValues(values);
-                    var d = getRow(columns, values);
+                    var d = DynamicObjConvert.getRow(columns, values);
                     list.Add(d);
                 }
                 #endregion
             }
-            catch(Exception ero)
+            catch(System.Exception ero)
             {
                 reader.Close();
-                throw new CRLException("读取数据时发生错误:" + ero.Message);
+                throw new Exception("读取数据时发生错误:" + ero.Message);
             }
             reader.Close();
             runTime = (DateTime.Now - time).TotalMilliseconds;

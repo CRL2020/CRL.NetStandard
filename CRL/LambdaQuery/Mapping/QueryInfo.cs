@@ -160,7 +160,7 @@ namespace CRL.LambdaQuery.Mapping
             {
                 if(string.IsNullOrEmpty(mp.ResultName))
                 {
-                    throw new CRLException("ResultName为空,请检查mapping创建" + mp);
+                    throw new Exception("ResultName为空,请检查mapping创建" + mp);
                 }
                 if (!queryFields.ContainsKey(mp.ResultName.ToLower()))
                 {
@@ -179,7 +179,7 @@ namespace CRL.LambdaQuery.Mapping
                 var method2 = DataContainer.GetMethod(pro.PropertyType);
                 if (method2 == null)
                 {
-                    throw new CRLException($"找不到对应类型的解析方法{pro.Name} {pro.PropertyType} ");
+                    throw new Exception($"找不到对应类型的解析方法{pro.Name} {pro.PropertyType} ");
                 }
                 generator.Emit(OpCodes.Call, method2);
                 generator.Emit(OpCodes.Callvirt, pro.GetSetMethod());

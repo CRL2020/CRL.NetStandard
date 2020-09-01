@@ -33,7 +33,7 @@ namespace CRL
             var table = TypeCache.GetTable(type);
             if (table.PrimaryKey.PropertyType != id.GetType())
             {
-                throw new CRLException("参数类型与主键类型定义不一致");
+                throw new Exception("参数类型与主键类型定义不一致");
             }
             var parameter = Expression.Parameter(type, "b");
             //创建常数 
