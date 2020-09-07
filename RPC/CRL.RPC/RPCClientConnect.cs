@@ -17,7 +17,7 @@ namespace CRL.RPC
             port = _port;
         }
 
-        public override T GetClient<T>()
+        public override T GetClient<T>(Dictionary<string, object> requestHeads = null)
         {
             var type = typeof(T);
             var serviceName = type.Name;

@@ -21,19 +21,14 @@ namespace ApiProxyTest
 
             //clientConnect.UseConsulDiscover("http://127.0.0.1:8500", "serviceName");//使用consul发现服务
             //clientConnect.UseOcelotApiGateway("http://127.0.0.1:3400");//直接使用ocelot网关
-            clientConnect.UseOcelotApiGatewayDiscover("http://localhost:3400", "serviceName");//使用ocelot网关发现服务
+            //clientConnect.UseOcelotApiGatewayDiscover("http://localhost:3400", "serviceName");//使用ocelot网关发现服务
 
-            clientConnect.UseBeforRequest((request, members, url) =>
-            {
-                //如果需要设置发送头信息
-                request.SetHead("token", "test");
-            });
             clientConnect.UseAfterRequest((url, content) =>
             {
                 Console.WriteLine($"response is {content}");
             });
             //https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
-            var client = clientConnect.GetClient<IToken>();
+            var client = clientConnect.GetClient<IToken>(new Dictionary<string, object>() { { "token", "123" } });
             client.Test(new args()
             {
                 name = "args",

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,9 +12,15 @@ namespace CRL.Core.Remoting
     public class serviceInfo
     {
         public static System.Collections.Concurrent.ConcurrentDictionary<string, Type> apiPrefixCache = new System.Collections.Concurrent.ConcurrentDictionary<string, Type>();
+        static ConcurrentDictionary<Type, serviceInfo> serviceInfoCache = new ConcurrentDictionary<Type, serviceInfo>();
         public static serviceInfo GetServiceInfo(Type type, bool initObjCtor = false)
         {
-            var info = new serviceInfo()
+            var a = serviceInfoCache.TryGetValue(type,out var info);
+            if(a)
+            {
+                return info;
+            }
+            info = new serviceInfo()
             {
                 ServiceType = type,
                 Attributes = type.GetCustomAttributes().ToList(),
@@ -46,6 +53,7 @@ namespace CRL.Core.Remoting
             info.Methods = methodInfoList;
             info.ServiceAttribute = type.GetCustomAttribute<ServiceAttribute>() ?? new ServiceAttribute();
             apiPrefixCache.TryAdd(info.ServiceAttribute.ApiPrefix, type);
+            serviceInfoCache.TryAdd(type, info);
             return info;
         }
         internal Type ServiceType;

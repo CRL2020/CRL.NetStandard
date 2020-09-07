@@ -17,6 +17,7 @@ namespace CRL.Core.ApiProxy
 {
     class ApiClient : AbsClient
     {
+        internal Dictionary<string, object> requestHeads;
         public ApiClient(AbsClientConnect _clientConnect) : base(_clientConnect)
         {
 
@@ -111,13 +112,20 @@ namespace CRL.Core.ApiProxy
                 }
             }
             #endregion
-            try
+            //try
+            //{
+            //    apiClientConnect.OnBeforRequest?.Invoke(request, members, url);
+            //}
+            //catch (Exception ero)
+            //{
+            //    throw new Exception("设置请求头信息时发生错误:" + ero.Message);
+            //}
+            if (requestHeads != null)
             {
-                apiClientConnect.OnBeforRequest?.Invoke(request, members, url);
-            }
-            catch (Exception ero)
-            {
-                throw new Exception("设置请求头信息时发生错误:" + ero.Message);
+                foreach (var kv in requestHeads)
+                {
+                    request.SetHead(kv.Key, kv.Value);
+                }
             }
             string postArgs = "";
             if (httpMethod != HttpMethod.GET)

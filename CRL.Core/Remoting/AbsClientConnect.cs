@@ -25,7 +25,7 @@ namespace CRL.Core.Remoting
         {
 
         }
-        public abstract T GetClient<T>() where T : class;
+        public abstract T GetClient<T>(Dictionary<string, object> requestHeads = null) where T : class;
 
         //internal bool useJwtToken = false;
         /// <summary>

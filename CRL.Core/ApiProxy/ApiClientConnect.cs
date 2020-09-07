@@ -14,18 +14,18 @@ namespace CRL.Core.ApiProxy
     {
         string host;
 
-        internal Action<ImitateWebRequest, Dictionary<string, object>,string> OnBeforRequest;
+        //internal Action<ImitateWebRequest, Dictionary<string, object>,string> OnBeforRequest;
         internal Action<string,string> OnAfterRequest;
         internal string Apiprefix = "api";
         internal Encoding Encoding = Encoding.UTF8;
-        /// <summary>
-        /// 发送前处理
-        /// </summary>
-        public ApiClientConnect UseBeforRequest(Action<ImitateWebRequest, Dictionary<string, object>,string> action)
-        {
-            OnBeforRequest = action;
-            return this;
-        }
+        ///// <summary>
+        ///// 发送前处理
+        ///// </summary>
+        //public ApiClientConnect UseBeforRequest(Action<ImitateWebRequest, Dictionary<string, object>,string> action)
+        //{
+        //    OnBeforRequest = action;
+        //    return this;
+        //}
         /// <summary>
         /// 发送后回调
         /// </summary>
@@ -56,30 +56,31 @@ namespace CRL.Core.ApiProxy
         /// <typeparam name="T"></typeparam>
         /// <param name="gatewayPrefix"></param>
         /// <returns></returns>
-        public T GetClient<T>(string gatewayPrefix) where T : class
+        public T GetClient<T>(string gatewayPrefix, Dictionary<string, object> requestHeads) where T : class
         {
             var type = typeof(T);
-            var serviceName = type.Name;
-            var key = string.Format("{0}_{1}", host, serviceName);
-            var a = _services.TryGetValue(key, out object instance);
-            if (a)
-            {
-                return instance as T;
-            }
+            //var serviceName = type.Name;
+            //var key = string.Format("{0}_{1}", host, serviceName);
+            //var a = _services.TryGetValue(key, out object instance);
+            //if (a)
+            //{
+            //    return instance as T;
+            //}
             var info = serviceInfo.GetServiceInfo(type);
             var client = new ApiClient(this)
             {
                 HostAddress = new HostAddress() { address = host, serviceNamePrefix = gatewayPrefix },
                 serviceInfo = info,
+                requestHeads = requestHeads
             };
             //创建代理
-            instance = client.ActLike<T>();
-            _services[key] = instance;
+            var instance = client.ActLike<T>();
+            //_services[key] = instance;
             return instance as T;
         }
-        public override T GetClient<T>()
+        public override T GetClient<T>(Dictionary<string, object> requestHeads = null)
         {
-            return GetClient<T>("");
+            return GetClient<T>("", requestHeads);
         }
     }
 }

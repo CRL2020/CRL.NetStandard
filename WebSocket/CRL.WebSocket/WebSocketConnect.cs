@@ -31,7 +31,7 @@ namespace CRL.WebSocket
             port = _port;
             Start();
         }
-        public override T GetClient<T>()
+        public override T GetClient<T>(Dictionary<string, object> requestHeads = null)
         {
             var type = typeof(T);
             var serviceName = typeof(T).Name;
