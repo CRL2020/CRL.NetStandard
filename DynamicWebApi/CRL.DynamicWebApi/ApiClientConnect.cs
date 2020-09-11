@@ -42,7 +42,7 @@ namespace CRL.DynamicWebApi
             _services[key] = instance;
             return instance as T;
         }
-        public override T GetClient<T>()
+        public override T GetClient<T>(Dictionary<string, object> requestHeads = null)
         {
             return GetClient<T>("");
         }

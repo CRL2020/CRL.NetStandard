@@ -5,6 +5,7 @@
 * 主页 http://www.cnblogs.com/hubro
 * 在线文档 http://crl.changqidongli.com/
 */
+using CRL.Attribute;
 using CRL.DBAccess;
 using CRL.DBAdapter;
 using System;
@@ -157,7 +158,7 @@ namespace CRL.Mongo
         {
             return name;
         }
-        public override string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns)
+        public override string GetColumnUnionIndexScript(string tableName, string indexName, List<string> columns, FieldIndexType fieldIndexType)
         {
             throw new NotImplementedException();
         }

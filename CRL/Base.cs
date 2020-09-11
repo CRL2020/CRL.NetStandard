@@ -285,7 +285,7 @@ namespace CRL
             //dic.Add("表达式方法解析缓存", LambdaQuery.ExpressionVisitor.MethodCallExpressionCache.Count);
             //dic.Add("表达式属性解析缓存", LambdaQuery.ExpressionVisitor.MemberExpressionCache.Count);
             dic.Add("对象字段筛选缓存", LambdaQuery.LambdaQueryBase.queryFieldCache.Count);
-            dic.Add("对象映射列缓存", ObjectConvert.columnCache.Count);
+            dic.Add("对象映射列缓存", ObjectConvert.leftColumnCache.Count);
             dic.Add("IModel对象缓存", MemoryDataCache.CacheService.CacheCount);
             dic.Add("SQL查询监视缓存", allSqlCache.Count());
             return dic;

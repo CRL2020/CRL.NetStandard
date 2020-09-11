@@ -23,6 +23,7 @@ namespace CRLTest
             CRLInit.Init();
 
         label1:
+            TestAll();
             Console.WriteLine("ok");
             Console.ReadLine();
             goto label1;

@@ -8,6 +8,7 @@
 using CRL.LambdaQuery.Mapping;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -279,8 +280,8 @@ namespace CRL
         #endregion
         #region 返回指定类型
 
-        internal static Dictionary<string, Dictionary<string, int>> columnCache = new Dictionary<string, Dictionary<string, int>>();
-        internal static Dictionary<string, Dictionary<string, ColumnType>> queryColumnCache = new Dictionary<string, Dictionary<string, ColumnType>>();
+        internal static ConcurrentDictionary<string, Dictionary<string, int>> leftColumnCache = new ConcurrentDictionary<string, Dictionary<string, int>>();
+        internal static ConcurrentDictionary<string, Dictionary<string, ColumnType>> queryColumnCache = new ConcurrentDictionary<string, Dictionary<string, ColumnType>>();
         /// <summary>
         /// 返回指定类型,支持强类型和匿名类型
         /// </summary>
@@ -297,9 +298,8 @@ namespace CRL
                 return list;
             }
             string columnCacheKey = queryInfo.selectKey;
-            var leftColumns = new Dictionary<string, int>();
-            var dicColumns = new Dictionary<string, ColumnType>();
-            var a = columnCache.TryGetValue(columnCacheKey, out leftColumns);
+            var a = queryColumnCache.TryGetValue(columnCacheKey, out var dicColumns);
+            leftColumnCache.TryGetValue(columnCacheKey, out var leftColumns);
             if (!a)
             {
                 leftColumns = new Dictionary<string, int>();
@@ -322,10 +322,9 @@ namespace CRL
                     }
                     dicColumns.Add(name, new ColumnType() { name = name, index = i, typeName = proType.Name });
                 }
-                columnCache[columnCacheKey] = leftColumns;
-                queryColumnCache[columnCacheKey] = dicColumns;
+                leftColumnCache.TryAdd(columnCacheKey, leftColumns);
+                queryColumnCache.TryAdd(columnCacheKey, dicColumns);
             }
-            dicColumns = queryColumnCache[columnCacheKey];
             queryInfo.CreateObjCreater(dicColumns);
             var objCreater = queryInfo.GetObjCreater();
             int leftColumnCount = leftColumns.Count;
