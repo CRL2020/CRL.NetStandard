@@ -60,7 +60,7 @@ namespace CRL
             indexs.Add(typeof(T), tableIndex);
             return tableIndex;
         }
-        internal static void AddUnionIndex<T>(string indexName, List<string> fields, Attribute.FieldIndexType fieldIndexType)
+        public static void AddUnionIndex<T>(string indexName, List<string> fields, Attribute.FieldIndexType fieldIndexType)
         {
             indexName = string.Format("{0}_{1}", typeof(T).Name, indexName);
             var indexs = getTableIndex<T>();

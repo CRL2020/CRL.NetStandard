@@ -22,7 +22,7 @@ namespace CRL.Set
     }
     public class DbEntities<T> : DbSet<T> where T : IModel, new()
     {
-        internal DbEntities(string name, DbContext dbContext, Expression<Func<T, bool>> relationExp) : base(name, dbContext)
+        internal DbEntities(string name, DbContextInner dbContext, Expression<Func<T, bool>> relationExp) : base(name, dbContext)
         {
             _relationExp = relationExp;
         }

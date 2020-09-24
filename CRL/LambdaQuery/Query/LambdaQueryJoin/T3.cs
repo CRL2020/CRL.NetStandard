@@ -1,9 +1,5 @@
 /**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
+* EFCore.QueryExtensions
 */
 using System;
 using System.Collections.Generic;
@@ -20,7 +16,7 @@ namespace CRL.LambdaQuery
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="T2"></typeparam>
     /// <typeparam name="T3"></typeparam>
-    public sealed class LambdaQueryJoin<T, T2, T3> 
+    public sealed class LambdaQueryJoin<T, T2, T3> : ILambdaQueryJoin<T, T2, T3>
     {
         LambdaQueryBase BaseQuery;
         internal LambdaQueryJoin(LambdaQueryBase query)
@@ -34,7 +30,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3> Where(Expression<Func<T, T2, T3, bool>> expression)
+        public ILambdaQueryJoin<T, T2, T3> Where(Expression<Func<T, T2, T3, bool>> expression)
         {
             BaseQuery.__Where(expression.Body);
             return this;
@@ -44,7 +40,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3> JoinAfter(Expression<Func<T3, bool>> expression)
+        public ILambdaQueryJoin<T, T2, T3> JoinAfter(Expression<Func<T3, bool>> expression)
         {
             BaseQuery.__JoinAfter<T3>(expression.Body);
             return this;
@@ -55,7 +51,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3> SelectField<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
+        public ILambdaQueryJoin<T, T2, T3> SelectField<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
         {
             //在关联两次以上,可调用以下方法指定关联对象获取对应的字段
             BaseQuery.__SelectField(resultSelector.Parameters, resultSelector.Body);
@@ -67,7 +63,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public LambdaQueryResultSelect<TResult> Select<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
+        public ILambdaQueryResultSelect<TResult> Select<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
         {
             SelectField(resultSelector);
             return new LambdaQueryResultSelect<TResult>(BaseQuery, resultSelector.Body);
@@ -79,7 +75,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3> SelectAppendValue<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
+        public ILambdaQueryJoin<T, T2, T3> SelectAppendValue<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
         {
             BaseQuery.__SelectAppendValue(resultSelector.Parameters, resultSelector.Body);
             return this;
@@ -90,7 +86,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3> GroupBy<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
+        public ILambdaQueryJoin<T, T2, T3> GroupBy<TResult>(Expression<Func<T, T2, T3, TResult>> resultSelector)
         {
             //在关联两次以上,可调用以下方法指定关联对象获取对应的字段
             BaseQuery.__GroupBy(resultSelector.Parameters, resultSelector.Body);
@@ -102,7 +98,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3> OrderBy<TResult>(Expression<Func<T, T2, T3, TResult>> expression, bool desc = true)
+        public ILambdaQueryJoin<T, T2, T3> OrderBy<TResult>(Expression<Func<T, T2, T3, TResult>> expression, bool desc = true)
         {
             BaseQuery.__OrderBy(expression.Parameters, expression.Body, desc);
             return this;
@@ -114,7 +110,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="joinType"></param>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2, T3, T4> Join<T4>(Expression<Func<T, T2, T3,T4, bool>> expression, JoinType joinType = JoinType.Inner)
+        public ILambdaQueryJoin<T, T2, T3, T4> Join<T4>(Expression<Func<T, T2, T3, T4, bool>> expression, JoinType joinType = JoinType.Inner)
         {
             var query2 = new LambdaQueryJoin<T, T2, T3, T4>(BaseQuery);
             BaseQuery.__Join<T4>(expression.Body, joinType);

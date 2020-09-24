@@ -24,14 +24,14 @@ namespace CRL.LambdaQuery
     /// Lamada表达式查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract partial class LambdaQuery<T> : LambdaQueryBase, ILambdaQuery<T> where T : IModel, new()
+    public abstract partial class LambdaQuery<T> : LambdaQueryBase, ILambdaQuery<T> where T : class
     {
         /// <summary>
         /// lambda查询
         /// </summary>
         /// <param name="_dbContext"></param>
         /// <param name="_useTableAliasesName">查询是否生成表别名,在更新和删除时用</param>
-        public LambdaQuery(DbContext _dbContext, bool _useTableAliasesName = true) : base()
+        public LambdaQuery(DbContextInner _dbContext, bool _useTableAliasesName = true) : base()
         {
             __DbContext = _dbContext;
             __MainType = typeof(T);
@@ -79,7 +79,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="top"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Top(int top)
+        public ILambdaQuery<T> Top(int top)
         {
             TakeNum = top;
             return this;
@@ -89,7 +89,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="top"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Take(int top)
+        public ILambdaQuery<T> Take(int top)
         {
             TakeNum = top;
             return this;
@@ -99,7 +99,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expireMinute"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Expire(int expireMinute)
+        public ILambdaQuery<T> Expire(int expireMinute)
         {
             __ExpireMinute = expireMinute;
             return this;
@@ -110,7 +110,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="_nolock"></param>
         /// <returns></returns>
-        public LambdaQuery<T> WithNoLock(bool _nolock = true)
+        public ILambdaQuery<T> WithNoLock(bool _nolock = true)
         {
             __WithNoLock = _nolock;
             return this;
@@ -121,7 +121,7 @@ namespace CRL.LambdaQuery
         /// <param name="pageSize"></param>
         /// <param name="pageIndex"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Page(int pageSize = 15, int pageIndex = 1)
+        public ILambdaQuery<T> Page(int pageSize = 15, int pageIndex = 1)
         {
             TakeNum = pageSize;
             SkipPage = pageIndex;
@@ -138,7 +138,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        //public LambdaQuery<T> UseInJoin(int count = 20)
+        //public ILambdaQuery<T> UseInJoin(int count = 20)
         //{
         //    __AutoInJoin = count;
         //    return this;
@@ -148,7 +148,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="compileSp"></param>
         /// <returns></returns>
-        public LambdaQuery<T> CompileToSp(bool compileSp)
+        public ILambdaQuery<T> CompileToSp(bool compileSp)
         {
             __CompileSp = compileSp;
             return this;
@@ -158,7 +158,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="trackingModel"></param>
         /// <returns></returns>
-        public LambdaQuery<T> WithTrackingModel(bool trackingModel = true)
+        public ILambdaQuery<T> WithTrackingModel(bool trackingModel = true)
         {
             __TrackingModel = trackingModel;
             return this;
@@ -168,7 +168,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="unionType"></param>
         /// <returns></returns>
-        public LambdaQuery<T> ShardingUnion(UnionType unionType)
+        public ILambdaQuery<T> ShardingUnion(UnionType unionType)
         {
             __ShanrdingUnionType = unionType;
             return this;
@@ -183,7 +183,7 @@ namespace CRL.LambdaQuery
         /// <typeparam name="TResult"></typeparam>
         /// <param name="resultSelector">为空则选择所有</param>
         /// <returns></returns>
-        public LambdaQueryResultSelect<TResult> Select<TResult>(Expression<Func<T, TResult>> resultSelector = null)
+        public ILambdaQueryResultSelect<TResult> Select<TResult>(Expression<Func<T, TResult>> resultSelector = null)
         {
             if (resultSelector == null)
             {
@@ -200,7 +200,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="resultSelectorBody"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Select(Expression resultSelectorBody)
+        public ILambdaQuery<T> Select(Expression resultSelectorBody)
         {
             if (resultSelectorBody is ParameterExpression)
             {
@@ -219,9 +219,9 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <typeparam name="T2"></typeparam>
         /// <returns></returns>
-        public LambdaQuery<T2> CreateQuery<T2>() where T2 : IModel, new()
+        public ILambdaQuery<T2> CreateQuery<T2>() where T2 : class
         {
-            var query = LambdaQueryFactory.CreateLambdaQuery<T2>(__DbContext);
+            var query = LambdaQueryFactory.CreateLambdaQuery<T2>(__DbContext) as LambdaQuery<T2>;
             //重新排列前辍
             query.__Prefixs.Clear();
             query.__Prefixs[typeof(T)] = __Prefixs[typeof(T)];
@@ -238,13 +238,13 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression">最好用变量代替属性或方法</param>
         /// <returns></returns>
-        public abstract LambdaQuery<T> Where(Expression<Func<T, bool>> expression);
+        public abstract ILambdaQuery<T> Where(Expression<Func<T, bool>> expression);
         /// <summary>
         /// 按字符串
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Where(string expression)
+        public ILambdaQuery<T> Where(string expression)
         {
             if (Condition.Length > 0)
             {
@@ -260,7 +260,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="boolEx"></param>
         /// <returns></returns>
-        public LambdaQuery<T> WhereIf(Expression<Func<T, bool>> expression, bool boolEx)
+        public ILambdaQuery<T> WhereIf(Expression<Func<T, bool>> expression, bool boolEx)
         {
             if (boolEx)
             {
@@ -273,7 +273,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> WhereNotNull(Expression<Func<T, bool>> expression)
+        public ILambdaQuery<T> WhereNotNull(Expression<Func<T, bool>> expression)
         {
             bool isNullValue;
             var be = expression.Body as BinaryExpression;
@@ -300,14 +300,14 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="desc">是否倒序</param>
         /// <returns></returns>
-        public abstract LambdaQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool desc = true);
+        public abstract ILambdaQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool desc = true);
 
         /// <summary>
         /// 传入字符串排序
         /// </summary>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        public LambdaQuery<T> OrderBy(string orderBy)
+        public ILambdaQuery<T> OrderBy(string orderBy)
         {
             if (__QueryOrderBy != "")
             {
@@ -321,7 +321,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public abstract LambdaQuery<T> OrderByPrimaryKey(bool desc);
+        public abstract ILambdaQuery<T> OrderByPrimaryKey(bool desc);
         #endregion
 
         #region OR
@@ -330,7 +330,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public abstract LambdaQuery<T> Or(Expression<Func<T, bool>> expression);
+        public abstract ILambdaQuery<T> Or(Expression<Func<T, bool>> expression);
         #endregion
 
 

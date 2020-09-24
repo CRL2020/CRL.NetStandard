@@ -14,7 +14,7 @@ namespace CRL.NetCore
     {
         public static void AddCRL<T>(this IServiceCollection services) where T : class, IDBLocationCreator
         {
-            services.AddSingleton<ISettingConfigBuilder, SettingConfigBuilder>();
+            services.AddSingleton<IDbConfigRegister, DBConfigRegister>();
             services.AddSingleton<IDBLocationCreator, T>();
         }
         public static void UseCRL(this IServiceProvider provider)

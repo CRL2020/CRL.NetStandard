@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace CRL.LambdaQuery
 {
-    public abstract partial class LambdaQuery<T> where T : IModel, new()
+    public abstract partial class LambdaQuery<T>
     {
         #region 获取一条记录
 
@@ -40,7 +40,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public TResult ToSingle<TResult>()where TResult : class,new()
+        public TResult ToSingle<TResult>()where TResult : class
         {
             return Top(1).ToList<TResult>().FirstOrDefault();
         }
@@ -69,7 +69,7 @@ namespace CRL.LambdaQuery
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
         public List<TResult> ToList<TResult>()
-            where TResult : class,new()
+            where TResult : class
         {
             var db = DBExtendFactory.CreateDBExtend(__DbContext);
             return db.QueryResult<TResult>(this);

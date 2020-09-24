@@ -50,12 +50,12 @@ namespace CRL
         /// <param name="type"></param>
         /// <param name="dbContext"></param>
         /// <returns></returns>
-        public static string GetTableName(Type type, DbContext dbContext)
+        public static string GetTableName(Type type, DbContextInner dbContext)
         {
             var tableName = GetTable(type).TableName;
             return GetTableName(tableName, dbContext);
         }
-        public static string GetTableName(string tableName, DbContext dbContext)
+        public static string GetTableName(string tableName, DbContextInner dbContext)
         {
             if (dbContext != null && dbContext.UseSharding)
             {
@@ -216,6 +216,12 @@ namespace CRL
             }
             table.Fields = list;
             table.FieldsDic = fieldDic;
+        }
+        internal static object GetpPrimaryKeyValue(object obj)
+        {
+            var primaryKey = GetTable(obj.GetType()).PrimaryKey;
+            var keyValue = primaryKey?.GetValue(obj);
+            return keyValue;
         }
     }
 }

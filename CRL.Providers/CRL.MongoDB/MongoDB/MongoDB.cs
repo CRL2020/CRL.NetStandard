@@ -21,11 +21,11 @@ namespace CRL.Mongo.MongoDBEx
 {
     public sealed partial class MongoDBExt : AbsDBExtend
     {
-        public MongoDBExt(DbContext _dbContext)
+        public MongoDBExt(DbContextInner _dbContext)
             : base(_dbContext)
         {
         }
-        protected override LambdaQuery<TModel> CreateLambdaQuery<TModel>()
+        protected override ILambdaQuery<TModel> CreateLambdaQuery<TModel>()
         {
             return new MongoDBLambdaQuery<TModel>(dbContext);
         }

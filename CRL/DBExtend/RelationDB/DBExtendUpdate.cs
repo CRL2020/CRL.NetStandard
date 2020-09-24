@@ -22,7 +22,7 @@ namespace CRL.DBExtend.RelationDB
         /// <param name="setValue"></param>
         /// <param name="joinType"></param>
         /// <returns></returns>
-        string ForamtSetValue<T>(ParameCollection setValue, Type joinType = null) where T : IModel
+        string ForamtSetValue<T>(ParameCollection setValue, Type joinType = null) where T : class
         {
             //string tableName = TypeCache.GetTableName(typeof(T), dbContext);
             string setString = "";
@@ -105,7 +105,7 @@ namespace CRL.DBExtend.RelationDB
         /// <param name="setValue"></param>
         /// <param name="where"></param>
         /// <returns></returns>
-        internal int Update<TModel>(ParameCollection setValue, string where) where TModel : IModel, new()
+        internal int Update<TModel>(ParameCollection setValue, string where) where TModel : class
         {
             CheckTableCreated<TModel>();
             Type type = typeof(TModel);
@@ -157,7 +157,7 @@ namespace CRL.DBExtend.RelationDB
         /// <param name="query"></param>
         /// <param name="updateValue"></param>
         /// <returns></returns>
-        public override int Update<TModel>(LambdaQuery<TModel> query, ParameCollection updateValue)
+        public override int Update<TModel>(ILambdaQuery<TModel> query, ParameCollection updateValue)
         {
             var query1 = query as RelationLambdaQuery<TModel>;
             if (query1.__GroupFields != null)
@@ -214,12 +214,24 @@ namespace CRL.DBExtend.RelationDB
                 {
                     continue;
                 }
+                var c2 = new ParameCollection();
+                foreach (var kv in c)
+                {
+                    var a = table.FieldsDic.TryGetValue(kv.Key, out var field);
+                    var key = kv.Key;
+                    var val = kv.Value;
+                    if (a)
+                    {
+                        key = field.MapingName;
+                    }
+                    c2.Add(key, val);
+                }
                 index += 1;
                 var keyValue = primaryKey.GetValue(obj);
                 var keyParme = _DBAdapter.GetParamName(primaryKey.MapingName, index);
                 var where = $" where {_DBAdapter.KeyWordFormat(primaryKey.MapingName)}={keyParme}";
                 db.AddParam(keyParme, keyValue);
-                var setString = string.Join(",", c.Select(b => string.Format("{0}='{1}'", _DBAdapter.KeyWordFormat(b.Key), b.Value)));
+                var setString = string.Join(",", c2.Select(b => string.Format("{0}='{1}'", _DBAdapter.KeyWordFormat(b.Key), b.Value)));
                 string sql = _DBAdapter.GetUpdateSql(table.TableName, setString, where);
                 sb.AppendLine(sql + ";");
             }

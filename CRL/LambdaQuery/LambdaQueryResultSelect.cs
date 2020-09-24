@@ -1,9 +1,5 @@
 /**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
+* EFCore.QueryExtensions
 */
 using System;
 using System.Collections.Generic;
@@ -18,10 +14,10 @@ namespace CRL.LambdaQuery
     /// 返回强类型选择结果查询
     /// </summary>
     /// <typeparam name="TResult"></typeparam>
-    public sealed class LambdaQueryResultSelect<TResult>
+    public sealed class LambdaQueryResultSelect<TResult> : ILambdaQueryResultSelect<TResult>
     {
         Expression resultSelectorBody;
-        internal Type InnerType
+        public Type InnerType
         {
             get
             {
@@ -30,11 +26,11 @@ namespace CRL.LambdaQuery
         }
         internal LambdaQueryResultSelect(LambdaQueryBase query, Expression _resultSelectorBody)
         {
-            resultSelectorBody=_resultSelectorBody;
+            resultSelectorBody = _resultSelectorBody;
             BaseQuery = query;
 
         }
-        internal LambdaQueryBase BaseQuery;
+        public LambdaQueryBase BaseQuery { get; set; }
         /// <summary>
         /// 联合查询
         /// 会清除父查询的排序
@@ -43,7 +39,7 @@ namespace CRL.LambdaQuery
         /// <param name="resultSelect"></param>
         /// <param name="unionType"></param>
         /// <returns></returns>
-        public LambdaQueryResultSelect<TResult> Union<TResult2>(LambdaQueryResultSelect<TResult2> resultSelect, UnionType unionType = UnionType.UnionAll)
+        public ILambdaQueryResultSelect<TResult> Union<TResult2>(ILambdaQueryResultSelect<TResult2> resultSelect, UnionType unionType = UnionType.UnionAll)
         {
             BaseQuery.CleanOrder();//清除OrderBy
             BaseQuery.AddUnion(resultSelect.BaseQuery, unionType);
@@ -58,7 +54,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public LambdaQueryResultSelect<TResult> OrderBy<TResult2>(Expression<Func<TResult, TResult2>> expression, bool desc = true)
+        public ILambdaQueryResultSelect<TResult> OrderBy<TResult2>(Expression<Func<TResult, TResult2>> expression, bool desc = true)
         {
             var parameters = expression.Parameters.Select(b => b.Type).ToArray();
             var fields = BaseQuery.GetSelectField(false, expression.Body, false, parameters).mapping;
@@ -89,7 +85,7 @@ namespace CRL.LambdaQuery
                 resultSelectorBody = memberInitExp.NewExpression;
             }
             var db = DBExtendFactory.CreateDBExtend(BaseQuery.__DbContext);
-            
+
             if (resultSelectorBody is NewExpression)
             {
                 var newExpression = resultSelectorBody as NewExpression;
@@ -103,7 +99,7 @@ namespace CRL.LambdaQuery
             {
                 return db.QueryResult<TResult>(BaseQuery);
             }
-       
+
             throw new Exception("ToList不支持此表达式 " + resultSelectorBody);
         }
         /// <summary>
@@ -111,7 +107,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <returns></returns>
         public List<dynamic> ToDynamic()
-        { 
+        {
             var db = DBExtendFactory.CreateDBExtend(BaseQuery.__DbContext);
             return db.QueryDynamic(BaseQuery);
         }
@@ -120,11 +116,11 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQueryResultSelect<TResult> HavingCount(Expression<Func<TResult, bool>> expression)
+        public ILambdaQueryResultSelect<TResult> HavingCount(Expression<Func<TResult, bool>> expression)
         {
             BaseQuery.GetPrefix(typeof(TResult));
-            var crlExpression = BaseQuery.__Visitor.RouteExpressionHandler(expression.Body);
-            BaseQuery.mongoHavingCount = crlExpression;
+            var CRLExpression = BaseQuery.__Visitor.RouteExpressionHandler(expression.Body);
+            BaseQuery.mongoHavingCount = CRLExpression;
             return this;
         }
     }

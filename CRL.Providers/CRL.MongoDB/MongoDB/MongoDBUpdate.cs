@@ -5,6 +5,7 @@
 * 主页 http://www.cnblogs.com/hubro
 * 在线文档 http://crl.changqidongli.com/
 */
+using CRL.LambdaQuery;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -40,8 +41,9 @@ namespace CRL.Mongo.MongoDBEx
             return (int)result.ModifiedCount;
 
         }
-        public override int Update<TModel>(LambdaQuery.LambdaQuery<TModel> query1, ParameCollection setValue)
+        public override int Update<TModel>(ILambdaQuery<TModel> iQuery, ParameCollection setValue)
         {
+            var query1= iQuery as MongoDBLambdaQuery<TModel>;
             if (query1.__GroupFields != null)
             {
                 throw new Exception("update不支持group查询");

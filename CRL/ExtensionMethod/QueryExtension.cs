@@ -72,7 +72,7 @@ namespace CRL
             obj.DbContext.CheckNull("DbContext");
             //var dbContext = getDbContext<T>(obj.DbContext.DBLocation.ManageName);
             var db = DBExtendFactory.CreateDBExtend(obj.DbContext);
-            return db.Delete<T>(obj.GetpPrimaryKeyValue());
+            return db.Delete<T>(TypeCache.GetpPrimaryKeyValue(obj));
         }
     }
 }

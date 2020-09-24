@@ -29,9 +29,9 @@ namespace CRL.Set
         //    }
         //}
         //#endregion
-        internal DbContext _dbContext;
+        internal DbContextInner _dbContext;
         internal Expression<Func<T, bool>> _relationExp = null;
-        public DbSet(string name, DbContext dbContext)
+        public DbSet(string name, DbContextInner dbContext)
         {
             _dbContext = dbContext;
             _dbContext._DbSets.Add(name, this);

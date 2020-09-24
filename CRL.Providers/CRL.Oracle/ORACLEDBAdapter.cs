@@ -17,7 +17,7 @@ namespace CRL.Oracle
 {
     internal class ORACLEDBAdapter : DBAdapterBase
     {
-        public ORACLEDBAdapter(DbContext _dbContext)
+        public ORACLEDBAdapter(DbContextInner _dbContext)
             : base(_dbContext)
         {
         }
@@ -161,7 +161,7 @@ namespace CRL.Oracle
         /// </summary>
         /// <param name="fields"></param>
         /// <param name="tableName"></param>
-        public override void CreateTable(DbContext dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
+        public override void CreateTable(DbContextInner dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
         {
             var helper = dbContext.DBHelper;
             var lines = new List<string>();
@@ -232,7 +232,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
         /// </summary>
         /// <param name="details"></param>
         /// <param name="keepIdentity"></param>
-        public override void BatchInsert(DbContext dbContext, System.Collections.IList details, bool keepIdentity = false)
+        public override void BatchInsert(DbContextInner dbContext, System.Collections.IList details, bool keepIdentity = false)
         {
             var helper = dbContext.DBHelper;
             foreach (var item in details)
@@ -248,7 +248,7 @@ end ;", triggerName, tableName, sequenceName, primaryKey);
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override object InsertObject<T>(DbContext dbContext, T obj)
+        public override object InsertObject<T>(DbContextInner dbContext, T obj)
         {
             Type type = obj.GetType();
             var helper = dbContext.DBHelper;

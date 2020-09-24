@@ -19,7 +19,7 @@ namespace CRL.Mongo
     internal class MongoDBAdapter : DBAdapterBase
     {
         static bool inited = false;
-        public MongoDBAdapter(DbContext _dbContext)
+        public MongoDBAdapter(DbContextInner _dbContext)
             : base(_dbContext)
         {
             if (!inited)
@@ -84,12 +84,12 @@ namespace CRL.Mongo
             throw new NotImplementedException();
         }
 
-        public override void CreateTable(DbContext dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
+        public override void CreateTable(DbContextInner dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
         {
             throw new NotImplementedException();
         }
 
-        public override void BatchInsert(DbContext dbContext, System.Collections.IList details, bool keepIdentity = false)
+        public override void BatchInsert(DbContextInner dbContext, System.Collections.IList details, bool keepIdentity = false)
         {
             throw new NotImplementedException();
         }
@@ -99,7 +99,7 @@ namespace CRL.Mongo
             throw new NotImplementedException();
         }
 
-        public override object InsertObject<T>(DbContext dbContext, T obj)
+        public override object InsertObject<T>(DbContextInner dbContext, T obj)
         {
             throw new NotImplementedException();
         }

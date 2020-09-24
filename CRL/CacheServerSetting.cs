@@ -5,6 +5,7 @@
 * 主页 http://www.cnblogs.com/hubro
 * 在线文档 http://crl.changqidongli.com/
 */
+using CRL.CacheServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +17,13 @@ namespace CRL
     {
         #region 缓存服务器
         internal static List<string> ServerTypeSetting = new List<string>();
-        internal static Dictionary<string, ExpressionDealDataHandler> CacheServerDealDataRules = new Dictionary<string, ExpressionDealDataHandler>();
+        internal static Dictionary<string, Func<Command, ResultData>> CacheServerDealDataRules = new Dictionary<string, Func<Command, ResultData>>();
         /// <summary>
         /// 服务端清加数据处理规则
         /// </summary>
         /// <param name="type"></param>
         /// <param name="handler"></param>
-        public static void AddCacheServerDealDataRule(Type type, ExpressionDealDataHandler handler)
+        public static void AddCacheServerDealDataRule(Type type, Func<Command, ResultData> handler)
         {
             CacheServerDealDataRules.Add(type.FullName, handler);
             ServerTypeSetting.Add(type.FullName);

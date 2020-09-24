@@ -17,7 +17,7 @@ namespace CRL.DBAdapter
 
     internal class MSSQLDBAdapter : DBAdapterBase
     {
-        public MSSQLDBAdapter(DbContext _dbContext)
+        public MSSQLDBAdapter(DbContextInner _dbContext)
             : base(_dbContext)
         {
         }
@@ -170,7 +170,7 @@ end", spName, script);
         /// <param name="fields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override void CreateTable(DbContext dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
+        public override void CreateTable(DbContextInner dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
         {
             var defaultValues = new List<string>();
             string script = string.Format("create table [{0}] (\r\n", tableName);
@@ -233,7 +233,7 @@ end", spName, script);
         /// </summary>
         /// <param name="details"></param>
         /// <param name="keepIdentity"></param>
-        public override void BatchInsert(DbContext dbContext, System.Collections.IList details, bool keepIdentity = false)
+        public override void BatchInsert(DbContextInner dbContext, System.Collections.IList details, bool keepIdentity = false)
         {
             if (details.Count == 0)
                 return;
@@ -300,7 +300,7 @@ end", spName, script);
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override object InsertObject<T>(DbContext dbContext, T obj)
+        public override object InsertObject<T>(DbContextInner dbContext, T obj)
         {
             Type type = obj.GetType();
             var helper = dbContext.DBHelper;
@@ -575,7 +575,7 @@ set  nocount  on
 
     internal class MSSQL2000DBAdapter : MSSQLDBAdapter
     {
-        public MSSQL2000DBAdapter(DbContext _dbContext)
+        public MSSQL2000DBAdapter(DbContextInner _dbContext)
             : base(_dbContext)
         {
         }
@@ -589,7 +589,7 @@ set  nocount  on
         /// <param name="fields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override void CreateTable(DbContext dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
+        public override void CreateTable(DbContextInner dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
         {
             var helper = dbContext.DBHelper;
             var defaultValues = new List<string>();

@@ -96,7 +96,7 @@ namespace CRL
         /// <param name="procedureName"></param>
         /// <param name="templateParame"></param>
         /// <returns></returns>
-        internal static string SqlToProcedure(string template, DbContext dbContext, string sql, string procedureName, Dictionary<string, string> templateParame = null)
+        internal static string SqlToProcedure(string template, DbContextInner dbContext, string sql, string procedureName, Dictionary<string, string> templateParame = null)
         {
             var adpater = DBAdapter.DBAdapterBase.GetDBAdapterBase(dbContext);
             template = template.Trim();

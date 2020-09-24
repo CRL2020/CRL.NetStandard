@@ -15,14 +15,14 @@ using System.Threading.Tasks;
 
 namespace CRL.LambdaQuery
 {
-    public sealed partial class RelationLambdaQuery<T> : LambdaQuery<T> where T : IModel, new()
+    public sealed partial class RelationLambdaQuery<T> : LambdaQuery<T> where T : class
     {
         /// <summary>
         /// lambda查询
         /// </summary>
         /// <param name="_dbContext"></param>
         /// <param name="_useTableAliasesName">查询是否生成表别名,在更新和删除时用</param>
-        public RelationLambdaQuery(DbContext _dbContext, bool _useTableAliasesName = true)
+        public RelationLambdaQuery(DbContextInner _dbContext, bool _useTableAliasesName = true)
             : base(_dbContext, _useTableAliasesName)
         {
            
@@ -33,7 +33,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression">最好用变量代替属性或方法</param>
         /// <returns></returns>
-        public override LambdaQuery<T> Where(Expression<Func<T, bool>> expression)
+        public override ILambdaQuery<T> Where(Expression<Func<T, bool>> expression)
         {
             if (expression == null)
                 return this;
@@ -46,7 +46,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="desc">是否倒序</param>
         /// <returns></returns>
-        public override LambdaQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool desc = true)
+        public override ILambdaQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool desc = true)
         {
             __OrderBy(expression.Parameters, expression.Body, desc);
             return this;
@@ -56,7 +56,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public override LambdaQuery<T> OrderByPrimaryKey(bool desc)
+        public override ILambdaQuery<T> OrderByPrimaryKey(bool desc)
         {
             var key = TypeCache.GetTable(typeof(T)).PrimaryKey;
             if (key == null)
@@ -72,7 +72,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public override LambdaQuery<T> Or(Expression<Func<T, bool>> expression)
+        public override ILambdaQuery<T> Or(Expression<Func<T, bool>> expression)
         {
             __Or(expression.Body);
             return this;

@@ -23,7 +23,13 @@ namespace CRLTest
             CRLInit.Init();
 
         label1:
+            //Code.TestAll.TestUpdate();
             TestAll();
+            //TestRedis.Insert();
+            //Console.WriteLine("begin Remove");
+            //Console.ReadLine();
+
+            //TestRedis.Remove();
             Console.WriteLine("ok");
             Console.ReadLine();
             goto label1;

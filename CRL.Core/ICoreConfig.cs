@@ -70,7 +70,11 @@ namespace CRL.Core
         public void Save()
         {
             string file = RequestHelper.GetFilePath(confgiFile);
-            System.IO.File.WriteAllText(file, this.ToJson());
+            try
+            {
+                System.IO.File.WriteAllText(file, this.ToJson());
+            }
+            catch { }
         }
     }
 }

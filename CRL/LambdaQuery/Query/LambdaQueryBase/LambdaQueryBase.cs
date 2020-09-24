@@ -68,7 +68,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         public List<Attribute.FieldMapping> __GroupFields;
         public Dictionary<TypeQuery, JoinInfo> __Relations;
-        internal DbContext __DbContext;
+        internal DbContextInner __DbContext;
         internal DBAdapter.DBAdapterBase __DBAdapter;
         public bool __DistinctFields = false;
         /// <summary>

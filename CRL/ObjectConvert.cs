@@ -136,7 +136,14 @@ namespace CRL
                 //Nullable<T> 可空属性
                 type = type.GenericTypeArguments[0];
             }
-            return Convert.ChangeType(value, type);
+            try
+            {
+                return Convert.ChangeType(value, type);
+            }
+            catch
+            {
+                return null;
+            }
         }
         
         /// <summary>
@@ -421,20 +428,15 @@ namespace CRL
         /// <typeparam name="TItem"></typeparam>
         /// <param name="list"></param>
         /// <returns></returns>
-        internal static Dictionary<string, TItem> ConvertToDictionary<TItem>(IEnumerable list) where TItem : IModel
+        internal static Dictionary<string, TItem> ConvertToDictionary<TItem>(IEnumerable list) where TItem : class
         {
             var dic = new Dictionary<string, TItem>();
             foreach (var item in list)
             {
                 var model = item as TItem;
-                var keyValue = model.GetpPrimaryKeyValue().ToString();
+                var keyValue = TypeCache.GetpPrimaryKeyValue(item)?.ToString();
                 if (!dic.ContainsKey(keyValue))
                 {
-                    model.FromCache = true;
-                    if (SettingConfig.AutoTrackingModel)
-                    {
-                        model.SetOriginClone();
-                    }
                     dic.Add(keyValue, model);
                 }
             }

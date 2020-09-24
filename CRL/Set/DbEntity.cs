@@ -22,8 +22,8 @@ namespace CRL.Set
     public class DbEntity<T> where T : IModel, new()
     {
         Expression<Func<T, bool>> _relationExp;
-        DbContext _dbContext;
-        internal DbEntity(DbContext dbContext, Expression<Func<T, bool>> relationExp)
+        DbContextInner _dbContext;
+        internal DbEntity(DbContextInner dbContext, Expression<Func<T, bool>> relationExp)
         {
             _dbContext = dbContext;
             _relationExp = relationExp;

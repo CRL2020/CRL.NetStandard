@@ -302,7 +302,7 @@ namespace CRLTest.Code
             CRL.ParameCollection c = new CRL.ParameCollection();
             c["ProductName"] = "product1";
             Code.ProductDataManage.Instance.Update(b => b.Id == 4, c);
-            //按对象差异更新
+
             var p = new Code.ProductData() { Id = 4 };
             //手动修改值时,指定修改属性以在Update时识别,分以下几种形式
             p.Change(b => b.BarCode);//表示值被更改了

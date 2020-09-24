@@ -26,14 +26,14 @@ namespace CRL.Mongo.MongoDBEx
     /// </summary>
     public sealed partial class MongoDBExt
     {
-        List<dynamic> GetDynamicResult<TModel>(LambdaQuery<TModel> query1) where TModel : IModel, new()
+        List<dynamic> GetDynamicResult<TModel>(ILambdaQuery<TModel> iQuery) where TModel : class
         {
-            var query = query1 as MongoDBLambdaQuery<TModel>;
+            var query = iQuery as MongoDBLambdaQuery<TModel>;
             //var selectField = query.__QueryFields;
-            var selectField = query1.GetFieldMapping();
+            var selectField = query.GetFieldMapping();
             var collection = GetCollection<TModel>();
-            var pageIndex = query1.SkipPage-1;
-            var pageSize = query1.TakeNum;
+            var pageIndex = query.SkipPage-1;
+            var pageSize = query.TakeNum;
             var skip = 0;
             long rowNum = 0;
             if (query.TakeNum > 0)
@@ -167,7 +167,7 @@ namespace CRL.Mongo.MongoDBEx
                     //rowNum = collection.Count(query.__MongoDBFilter);//todo 总行数
                 }
                 //var str = aggregate.ToString();
-                query1.__QueryReturn = () =>
+                query.__QueryReturn = () =>
                 {
                     return aggregate.ToString();
                 };
@@ -372,17 +372,17 @@ namespace CRL.Mongo.MongoDBEx
         }
         #endregion
 
-        public override List<TModel> QueryOrFromCache<TModel>(LambdaQueryBase query1, out string cacheKey)
+        public override List<TModel> QueryOrFromCache<TModel>(ILambdaQuery<TModel> iQuery, out string cacheKey)
         {
             cacheKey = "none";
-            var query = query1 as MongoDBLambdaQuery<TModel>;
+            var query = iQuery as MongoDBLambdaQuery<TModel>;
             var collection = GetCollection<TModel>();
             long rowNum = 0;
             var query2 = collection.Find(query.__MongoDBFilter).Sort(query._MongoDBSort);
             if (query.TakeNum > 0)
             {
-                var pageIndex = query1.SkipPage-1;
-                var pageSize = query1.TakeNum;
+                var pageIndex = query.SkipPage-1;
+                var pageSize = query.TakeNum;
                 var skip = pageSize * pageIndex;
                 if (skip > 0)
                 {
@@ -397,10 +397,10 @@ namespace CRL.Mongo.MongoDBEx
                 rowNum = result.Count();
             }
             query.__RowCount = (int)rowNum;
-            SetOriginClone(result);
+            //SetOriginClone(result);
             return result;
         }
-        public override Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(LambdaQuery<TModel> query)
+        public override Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(ILambdaQuery<TModel> query)
         {
             var dic = new Dictionary<TKey, TValue>();
             var result = GetDynamicResult(query);
@@ -419,7 +419,7 @@ namespace CRL.Mongo.MongoDBEx
             }
             return dic;
         }
-        public override dynamic QueryScalar<TModel>(LambdaQuery<TModel> query)
+        public override dynamic QueryScalar<TModel>(ILambdaQuery<TModel> query)
         {
             var result = GetDynamicResult(query);
             if (result.Count == 0)

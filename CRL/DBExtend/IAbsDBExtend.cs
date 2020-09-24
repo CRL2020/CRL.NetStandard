@@ -20,7 +20,7 @@ namespace CRL
 
         void AddParam(string name, object value);
 
-        void BatchInsert<TModel>(List<TModel> details, bool keepIdentity = false) where TModel : IModel, new();
+        void BatchInsert<TModel>(List<TModel> details, bool keepIdentity = false) where TModel : class;
 
         void BeginTran(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
 
@@ -30,19 +30,19 @@ namespace CRL
 
         void CommitTran();
 
-        int Count<TType>(Expression<Func<TType, bool>> expression, bool compileSp = false) where TType : IModel, new();
+        int Count<TType>(Expression<Func<TType, bool>> expression, bool compileSp = false) where TType : class;
 
         void CreateTableIndex<TModel>();
 
-        int Delete<T>(LambdaQuery<T> query) where T : IModel, new();
+        int Delete<T>(ILambdaQuery<T> query) where T : class;
 
         int Delete<TModel, TJoin>(Expression<Func<TModel, TJoin, bool>> expression)
-            where TModel : IModel, new()
-            where TJoin : IModel, new();
+            where TModel : class
+            where TJoin : class;
 
-        int Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : IModel, new();
+        int Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : class;
 
-        int Delete<TModel>(object id) where TModel : IModel, new();
+        int Delete<TModel>(object id) where TModel : class;
 
         Dictionary<TKey, TValue> ExecDictionary<TKey, TValue>(string sql);
 
@@ -58,34 +58,34 @@ namespace CRL
 
         int Execute(string sql);
 
-        //TType GetFunction<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> selectField, FunctionType functionType, bool compileSp = false) where TModel : IModel, new();
+        //TType GetFunction<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> selectField, FunctionType functionType, bool compileSp = false) where TModel : class;
         object GetOutParam(string name);
 
         //T GetOutParam<T>(string name);
         int GetReturnValue();
 
-        void InsertFromObj<TModel>(TModel obj) where TModel : IModel, new();
-        TType Max<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : IModel, new();
+        void InsertFromObj<TModel>(TModel obj) where TModel : class;
+        TType Max<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : class;
 
-        TType Min<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : IModel, new();
+        TType Min<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : class;
 
         List<dynamic> QueryDynamic(LambdaQueryBase query);
 
-        TModel QueryItem<TModel>(Expression<Func<TModel, bool>> expression, bool idDest = true, bool compileSp = false) where TModel : IModel, new();
+        TModel QueryItem<TModel>(Expression<Func<TModel, bool>> expression, bool idDest = true, bool compileSp = false) where TModel : class;
 
-        TModel QueryItem<TModel>(object id) where TModel : IModel, new();
+        TModel QueryItem<TModel>(object id) where TModel : class;
 
-        List<TModel> QueryList<TModel>(Expression<Func<TModel, bool>> expression = null, bool compileSp = false) where TModel : IModel, new();
+        List<TModel> QueryList<TModel>(Expression<Func<TModel, bool>> expression = null, bool compileSp = false) where TModel : class;
 
-        List<TModel> QueryList<TModel>(LambdaQuery<TModel> query) where TModel : IModel, new();
+        List<TModel> QueryList<TModel>(ILambdaQuery<TModel> query) where TModel : class;
 
-        List<TModel> QueryOrFromCache<TModel>(LambdaQueryBase query, out string cacheKey) where TModel : IModel, new();
+        List<TModel> QueryOrFromCache<TModel>(ILambdaQuery<TModel> query, out string cacheKey) where TModel : class;
 
         List<TResult> QueryResult<TResult>(LambdaQueryBase query);
 
         List<TResult> QueryResult<TResult>(LambdaQueryBase query, NewExpression newExpression);
 
-        dynamic QueryScalar<TModel>(LambdaQuery<TModel> query) where TModel : IModel, new();
+        dynamic QueryScalar<TModel>(ILambdaQuery<TModel> query) where TModel : class;
 
         void RollbackTran();
 
@@ -99,28 +99,28 @@ namespace CRL
 
         object RunScalar(string sp);
 
-        //void SetOriginClone<TModel>(List<TModel> list) where TModel : IModel, new();
+        //void SetOriginClone<TModel>(List<TModel> list) where TModel : class;
         //void SetParam(string name, object value);
-        TType Sum<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : IModel, new();
+        TType Sum<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : class;
 
-        Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(LambdaQuery<TModel> query) where TModel : IModel, new();
+        Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(ILambdaQuery<TModel> query) where TModel : class;
 
         //string ToString();
         int Update<TModel, TJoin>(Expression<Func<TModel, TJoin, bool>> expression, ParameCollection updateValue)
-            where TModel : IModel, new()
-            where TJoin : IModel, new();
+            where TModel : class
+            where TJoin : class;
 
-        int Update<TModel>(Expression<Func<TModel, bool>> expression, dynamic updateValue) where TModel : IModel, new();
+        int Update<TModel>(Expression<Func<TModel, bool>> expression, dynamic updateValue) where TModel : class;
 
-        int Update<TModel>(Expression<Func<TModel, bool>> expression, ParameCollection setValue) where TModel : IModel, new();
+        int Update<TModel>(Expression<Func<TModel, bool>> expression, ParameCollection setValue) where TModel : class;
 
-        int Update<TModel>(Expression<Func<TModel, bool>> expression, TModel model) where TModel : IModel, new();
+        int Update<TModel>(Expression<Func<TModel, bool>> expression, TModel model) where TModel : class;
 
-        int Update<TModel>(LambdaQuery<TModel> query, ParameCollection updateValue) where TModel : IModel, new();
+        int Update<TModel>(ILambdaQuery<TModel> query, ParameCollection updateValue) where TModel : class;
 
-        int Update<TModel>(List<TModel> objs) where TModel : IModel, new();
+        int Update<TModel>(List<TModel> objs) where TModel : class;
 
-        int Update<TModel>(TModel obj) where TModel : IModel, new();
+        int Update<TModel>(TModel obj) where TModel : class;
 
     }
 }

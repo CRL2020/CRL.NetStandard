@@ -260,7 +260,7 @@ namespace CRL
         /// 数据访问上下文
         /// </summary>
         /// <returns></returns>
-        internal abstract DbContext GetDbContext();
+        internal abstract DbContextInner GetDbContext();
 
         /// <summary>
         /// 当前数据访定位
@@ -563,7 +563,7 @@ namespace CRL
         public int Delete(T obj)
         {
             var db = DBExtend;
-            var v = obj.GetpPrimaryKeyValue();
+            var v = TypeCache.GetpPrimaryKeyValue(obj);
             var n = db.Delete<T>(v);
             DeleteFromRedis(obj);
             return n;

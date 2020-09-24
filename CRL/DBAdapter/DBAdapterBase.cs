@@ -20,7 +20,7 @@ namespace CRL.DBAdapter
         //internal DbContext dbContext;
         //protected DBHelper helper;
         protected DBType dbType;
-        public DBAdapterBase(DbContext _dbContext)
+        public DBAdapterBase(DbContextInner _dbContext)
         {
             //dbContext = _dbContext;
             //helper = dbContext.DBHelper;
@@ -42,21 +42,17 @@ namespace CRL.DBAdapter
         /// </summary>
         /// <param name="dbContext"></param>
         /// <returns></returns>
-        public static DBAdapterBase GetDBAdapterBase(DbContext dbContext)
+        public static DBAdapterBase GetDBAdapterBase(DbContextInner dbContext)
         {
             DBAdapterBase db = null;
             var a = DBAdapterBaseCache.TryGetValue(dbContext.DBHelper.CurrentDBType, out db);
-            if(a)
+            if (a)
             {
                 return db;
             }
-            var configBuilder = SettingConfigBuilder.current;
-            var exists = configBuilder.DBAdapterBaseRegister.TryGetValue(dbContext.DBHelper.CurrentDBType, out Func<DbContext, DBAdapter.DBAdapterBase> func);
-            if (!exists)
-            {
-                throw new Exception("找不到对应的DBAdapte" + dbContext.DBHelper.CurrentDBType);
-            }
-            return func(dbContext);
+            db = DBConfigRegister.GetDBAdapterBase(dbContext);
+            DBAdapterBaseCache.Add(dbContext.DBHelper.CurrentDBType, db);
+            return db;
         }
         public abstract DBType DBType { get; }
         #region 创建结构
@@ -133,7 +129,7 @@ namespace CRL.DBAdapter
         /// </summary>
         /// <param name="fields"></param>
         /// <param name="tableName"></param>
-        public abstract void CreateTable(DbContext dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName);
+        public abstract void CreateTable(DbContextInner dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName);
         #endregion
 
         #region SQL查询
@@ -142,7 +138,7 @@ namespace CRL.DBAdapter
         /// </summary>
         /// <param name="details"></param>
         /// <param name="keepIdentity">否保持自增主键</param>
-        public abstract void BatchInsert(DbContext dbContext, System.Collections.IList details, bool keepIdentity = false);
+        public abstract void BatchInsert(DbContextInner dbContext, System.Collections.IList details, bool keepIdentity = false);
         public abstract string DateTimeFormat(string field,string format);
 
         /// <summary>
@@ -180,10 +176,10 @@ namespace CRL.DBAdapter
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public abstract object InsertObject<T>(DbContext dbContext, T obj);
+        public abstract object InsertObject<T>(DbContextInner dbContext, T obj);
 
         static System.Collections.Concurrent.ConcurrentDictionary<string, string> insertSqlCache = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
-        protected string GetInsertSql(DbContext dbContext, Attribute.TableInnerAttribute table, object obj, bool fillParame = true)
+        protected string GetInsertSql(DbContextInner dbContext, Attribute.TableInnerAttribute table, object obj, bool fillParame = true)
         {
             Type type = obj.GetType();
             var key = string.Format("{0}_{1}", type, fillParame);

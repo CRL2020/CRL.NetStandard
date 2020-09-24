@@ -12,8 +12,8 @@ namespace CRL.MySql
 {
     public class MySqlHelper : DBHelper
     {
-		public MySqlHelper(string content)
-            : base(content)
+		public MySqlHelper(DBAccessBuild dBAccessBuild)
+            : base(dBAccessBuild)
         { }
         public override DBType CurrentDBType
         {

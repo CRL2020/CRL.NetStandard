@@ -17,19 +17,20 @@ namespace CRL.DBExtend.RelationDB
 {
     public sealed partial class DBExtend
     {
-        
+
 
         #region query list
-       
+
         /// <summary>
         /// 使用完整的LamadaQuery查询
         /// </summary>
         /// <typeparam name="TModel"></typeparam>
-        /// <param name="query"></param>
+        /// <param name="iQuery"></param>
         /// <param name="cacheKey">cacheKey</param>
         /// <returns></returns>
-        public override List<TModel> QueryOrFromCache<TModel>(LambdaQueryBase query, out string cacheKey)
+        public override List<TModel> QueryOrFromCache<TModel>(ILambdaQuery<TModel> iQuery, out string cacheKey)
         {
+            var query = iQuery as LambdaQueryBase;
             cacheKey = "";
             CheckTableCreated<TModel>();
             List<TModel> list = new List<TModel>();
@@ -82,10 +83,6 @@ namespace CRL.DBExtend.RelationDB
             }
             ClearParame();
             query.__RowCount = list.Count;
-            if (SettingConfig.AutoTrackingModel && query.__TrackingModel)
-            {
-                SetOriginClone(list);
-            }
             //query = null;
             return list;
         }
@@ -112,11 +109,11 @@ namespace CRL.DBExtend.RelationDB
             return (TType)result;
         }
 
-        public override Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(LambdaQuery<TModel> query)
+        public override Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(ILambdaQuery<TModel> query)
         {
             var dic = SqlStopWatch.ReturnData(() =>
               {
-                  return GetQueryDynamicReader(query);
+                  return GetQueryDynamicReader(query as LambdaQueryBase);
 
               }, (r) =>
               {

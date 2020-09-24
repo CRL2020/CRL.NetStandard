@@ -8,9 +8,9 @@ namespace CRL.MySql
 {
     public static class Extension
     {
-        public static ISettingConfigBuilder UseMySql(this SettingConfigBuilder iBuilder)
+        public static IDbConfigRegister UseMySql(this DBConfigRegister iBuilder)
         {
-            var builder = iBuilder as SettingConfigBuilder;
+            var builder = iBuilder as DBConfigRegister;
             builder.RegisterDBType(DBAccess.DBType.MYSQL, (conn) =>
             {
                 return new MySqlHelper(conn);

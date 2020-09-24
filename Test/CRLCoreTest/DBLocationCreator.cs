@@ -10,8 +10,8 @@ namespace CRLCoreTest
 {
     public class DBLocationCreator : IDBLocationCreator
     {
-        ISettingConfigBuilder _settingConfigBuilder;
-        public DBLocationCreator(ISettingConfigBuilder settingConfigBuilder)
+        IDbConfigRegister _settingConfigBuilder;
+        public DBLocationCreator(IDbConfigRegister settingConfigBuilder)
         {
             _settingConfigBuilder = settingConfigBuilder;
         }

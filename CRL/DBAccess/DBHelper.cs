@@ -35,8 +35,8 @@ namespace CRL.DBAccess
             }
         }
 
-        protected Dictionary<string, object> _params;
-        public Dictionary<string, object> outParams;
+        protected Dictionary<string, object> _params = new Dictionary<string, object>();
+        public Dictionary<string, object> outParams = new Dictionary<string, object>();
         /// <summary>
         /// 新的输出参数集合
         /// </summary>
@@ -91,10 +91,10 @@ namespace CRL.DBAccess
         /// 连接串
         /// </summary>
         public string ConnectionString;
-       /// <summary>
-       /// 输入参数
+        /// <summary>
+        /// 输入参数
         /// 不推荐直接访问此属性,用AddParam方法代替
-       /// </summary>
+        /// </summary>
         public Dictionary<string, object> Params
         {
             get
@@ -178,7 +178,7 @@ namespace CRL.DBAccess
         public void AddOutParam(string name, object value = null)
         {
             if (OutParams == null)
-                OutParams=new Dictionary<string, object>();
+                OutParams = new Dictionary<string, object>();
             name = name.Replace("@", "");
             OutParams.Add(name, value);
         }
@@ -199,7 +199,7 @@ namespace CRL.DBAccess
             }
             return Convert.ToInt32(OutParamsPut[name]);
         }
-        
+
         /// <summary>
         /// 获取OUTPUT的值
         /// </summary>
@@ -207,7 +207,7 @@ namespace CRL.DBAccess
         /// <returns></returns>
         public object GetOutParam(string name)
         {
-            name = name.Replace("@","");
+            name = name.Replace("@", "");
             if (CurrentDataReadCommand != null && !getOutPutValue)
             {
                 GetOutPutValue(CurrentDataReadCommand);
@@ -220,7 +220,7 @@ namespace CRL.DBAccess
             {
                 return;
             }
-            if(cmd.Parameters.Count==0)
+            if (cmd.Parameters.Count == 0)
             {
                 return;
             }
@@ -247,14 +247,20 @@ namespace CRL.DBAccess
 
         #region 结构函数
 
-        public DBHelper(string _connectionString)
+        public DBHelper(DBAccessBuild dBAccessBuild)
         {
-            if(string.IsNullOrEmpty(_connectionString))
+            if (dBAccessBuild._connection != null)
+            {
+                AutoCloseConn = false;
+                currentConn = dBAccessBuild._connection;
+                return;
+            }
+            if (string.IsNullOrEmpty(dBAccessBuild._connectionString))
             {
                 throw new Exception("连接字符串为空");
             }
             _params = new Dictionary<string, object>();
-            ConnectionString = _connectionString;
+            ConnectionString = dBAccessBuild._connectionString;
         }
         #endregion
 
@@ -263,7 +269,7 @@ namespace CRL.DBAccess
         /// <summary>
         /// 当前数据库类型
         /// </summary>
-        public abstract DBType CurrentDBType { get;}
+        public abstract DBType CurrentDBType { get; }
         protected abstract DbCommand createCmd_(string cmdText, DbConnection conn);
         protected abstract DbCommand createCmd_();
         protected abstract DbDataAdapter createDa_(string cmdText, DbConnection conn);
@@ -275,10 +281,10 @@ namespace CRL.DBAccess
         public string Name;
         public override string ToString()
         {
-            return string.Format("{0} {1}",DatabaseName,Name);
+            return string.Format("{0} {1}", DatabaseName, Name);
         }
         #region 私有方法
-        void CreateConn()
+        protected void GetOrCreateConn()
         {
             if (currentConn == null)
             {
@@ -293,15 +299,15 @@ namespace CRL.DBAccess
                 }
             }
         }
-      
-        void LogCommand(DbCommand cmd,Exception error)
+
+        void LogCommand(DbCommand cmd, Exception error)
         {
             if (!LogError)
                 return;
             string str = error.Message;
             if (cmd != null)//可能为空
             {
-                str += string.Format("\r\n在库{0} 类型:{1} 语句:{2} 参数:\r\n", DatabaseName,cmd.CommandType, cmd.CommandText);
+                str += string.Format("\r\n在库{0} 类型:{1} 语句:{2} 参数:\r\n", DatabaseName, cmd.CommandType, cmd.CommandText);
                 List<string> list = new List<string>();
                 foreach (DbParameter a in cmd.Parameters)
                 {
@@ -318,7 +324,7 @@ namespace CRL.DBAccess
         private int do_(string text, CommandType type)
         {
             var time = DateTime.Now;
-            CreateConn();
+            GetOrCreateConn();
             DbCommand cmd = createCmd_(text, currentConn);
             cmd.CommandTimeout = 180;
             if (_trans != null)
@@ -348,7 +354,7 @@ namespace CRL.DBAccess
         private DataSet doDateSet_(string text, CommandType type)
         {
             var time = DateTime.Now;
-            CreateConn();
+            GetOrCreateConn();
             DbDataAdapter da = createDa_(text, currentConn);
             if (_trans != null)
             {
@@ -376,7 +382,7 @@ namespace CRL.DBAccess
         private object doScalar_(string text, CommandType type)
         {
             var time = DateTime.Now;
-            CreateConn();
+            GetOrCreateConn();
             DbCommand cmd = createCmd_(text, currentConn);
             if (_trans != null)
             {
@@ -410,7 +416,7 @@ namespace CRL.DBAccess
         private DbDataReader doDataReader_(string text, CommandType type)
         {
             var time = DateTime.Now;
-            CreateConn();
+            GetOrCreateConn();
             getOutPutValue = false;
             CurrentDataReadCommand = null;
             CurrentDataReadCommand = createCmd_(text, currentConn);
@@ -453,9 +459,9 @@ namespace CRL.DBAccess
             if (currentConn != null)
             {
                 currentConn.Close();
-                currentConn.Dispose();
+                //currentConn.Dispose();
             }
-            currentConn = null;
+            //currentConn = null;
         }
         /// <summary>
         /// 执行一条sql语句，返回影响行数
@@ -484,7 +490,7 @@ namespace CRL.DBAccess
         {
             return ExecDataSet(sql).Tables[0];
         }
-        
+
         /// <summary>
         /// 执行一个存储过程，返回DataTable
         /// </summary>
@@ -561,7 +567,7 @@ namespace CRL.DBAccess
             {
                 throw new Exception("事务已启动");
             }
-            CreateConn();
+            GetOrCreateConn();
             _trans = currentConn.BeginTransaction();
         }
         public void BeginTran(IsolationLevel isolationLevel)
@@ -570,7 +576,7 @@ namespace CRL.DBAccess
             {
                 throw new Exception("事务已启动");
             }
-            CreateConn();
+            GetOrCreateConn();
             _trans = currentConn.BeginTransaction(isolationLevel);
         }
         /// <summary>

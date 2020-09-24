@@ -16,20 +16,9 @@ namespace CRL
 {
     public class DBExtendFactory
     {
-        public static AbsDBExtend CreateDBExtend(DbContext _dbContext)
+        public static AbsDBExtend CreateDBExtend(DbContextInner _dbContext)
         {
-            var configBuilder = SettingConfigBuilder.current;
-            var dbType = _dbContext.DBHelper.CurrentDBType;
-            if (_dbContext.DataBaseArchitecture == DataBaseArchitecture.Relation)
-            {
-                return new DBExtend.RelationDB.DBExtend(_dbContext);
-            }
-            var a = configBuilder.AbsDBExtendRegister.TryGetValue(dbType, out Func<DbContext, AbsDBExtend> func);
-            if (!a)
-            {
-                throw new Exception($"未找到AbsDBExtend {dbType}");
-            }
-            return func(_dbContext);
+            return DBConfigRegister.CreateDBExtend(_dbContext);
         }
     }
 }

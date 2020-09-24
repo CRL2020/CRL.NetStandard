@@ -58,7 +58,7 @@ namespace CRL.MemoryDataCache
             return new List<string>();
         }
 
-        internal static void DeleteCacheItem<TItem>(string typeKey, string[] keys) where TItem : IModel
+        internal static void DeleteCacheItem<TItem>(string typeKey, string[] keys) where TItem : class
         {
             if (!cacheDatas.ContainsKey(typeKey))
                 return;
@@ -75,7 +75,7 @@ namespace CRL.MemoryDataCache
         /// <param name="obj"></param>
         /// <param name="c"></param>
         /// <param name="checkInsert"></param>
-        internal static void UpdateCacheItem<TItem>(string typeKey, TItem obj, ParameCollection c = null, bool checkInsert = false) where TItem : IModel
+        internal static void UpdateCacheItem<TItem>(string typeKey, TItem obj, ParameCollection c = null, bool checkInsert = false) where TItem : class
         {
             if (obj == null)
             {
@@ -89,7 +89,11 @@ namespace CRL.MemoryDataCache
             {
                 return;
             }
-            var keyValue = obj.GetpPrimaryKeyValue().ToString();
+            var keyValue = TypeCache.GetpPrimaryKeyValue(obj)?.ToString();
+            if (string.IsNullOrEmpty(keyValue))
+            {
+                return;
+            }
             if (!data.ContainsKey(keyValue))
             {
                 if (checkInsert)
@@ -125,11 +129,11 @@ namespace CRL.MemoryDataCache
                 }
             }
             //CacheUpdated(data.Type.Name);
-            string log = string.Format("更新缓存中的一项 [{0}]", obj.GetModelKey());
-            EventLog.Log(log, "DataCache", false);
+            //string log = string.Format("更新缓存中的一项 [{0}]", obj.GetModelKey());
+            //EventLog.Log(log, "DataCache", false);
         }
 
-        internal static Dictionary<string, TItem> GetCacheList<TItem>(string query, IEnumerable<Attribute.FieldMapping> mapping, int timeOut, DBHelper helper, out string key) where TItem : IModel, new()
+        internal static Dictionary<string, TItem> GetCacheList<TItem>(string query, IEnumerable<Attribute.FieldMapping> mapping, int timeOut, DBHelper helper, out string key) where TItem : class
         {
             Type type = typeof(TItem);
             var typeKey = string.Format("{0}_{1}", type.FullName, helper.DatabaseName.ToLower());
@@ -271,7 +275,7 @@ namespace CRL.MemoryDataCache
                 }
             }
         }
-        internal static Dictionary<string, TItem> GetCacheItem<TItem>(string key) where TItem : IModel
+        internal static Dictionary<string, TItem> GetCacheItem<TItem>(string key) where TItem : class
         {
             if (!cacheDatas.ContainsKey(key))
             {

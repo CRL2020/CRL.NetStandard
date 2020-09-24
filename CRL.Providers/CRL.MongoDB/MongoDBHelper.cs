@@ -9,9 +9,10 @@ namespace CRL.Mongo
     public class MongoDBHelper : DBHelper
     {
         string _dataBaseName;
-        public MongoDBHelper(string _connectionString)
-            : base(_connectionString)
+        public MongoDBHelper(DBAccessBuild dBAccessBuild)
+            : base(dBAccessBuild)
         {
+            var _connectionString = dBAccessBuild._connectionString;
             var lastIndex = _connectionString.LastIndexOf("/");
             var dataBaseName = _connectionString.Substring(lastIndex + 1);//like mongodb://localhost:27017/db1
             _dataBaseName = dataBaseName;

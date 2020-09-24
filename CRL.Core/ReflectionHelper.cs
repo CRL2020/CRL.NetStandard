@@ -19,7 +19,7 @@ namespace CRL.Core
 
     public static class ReflectionHelper
     {
-        static Dictionary<Type, object> ReflectionInfoCache = new Dictionary<Type, object>(50);
+        static System.Collections.Concurrent.ConcurrentDictionary<Type, object> ReflectionInfoCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, object>();
         public static ReflectionInfo<TObject> GetInfo<TObject>(System.Reflection.ConstructorInfo constructor = null) where TObject : class
         {
             var type = typeof(TObject);
@@ -31,7 +31,7 @@ namespace CRL.Core
             else
             {
                 var refInfo = new ReflectionInfo<TObject>(type);
-                ReflectionInfoCache[type] = refInfo;
+                ReflectionInfoCache.TryAdd(type, refInfo);
                 return refInfo;
             }
         }

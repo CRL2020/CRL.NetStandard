@@ -8,9 +8,9 @@ namespace CRL.Mongo
 {
     public static class Extension
     {
-        public static ISettingConfigBuilder UseMongoDB(this ISettingConfigBuilder iBuilder)
+        public static IDbConfigRegister UseMongoDB(this IDbConfigRegister iBuilder)
         {
-            var builder = iBuilder as SettingConfigBuilder;
+            var builder = iBuilder as DBConfigRegister;
             builder.RegisterDBType(DBAccess.DBType.MongoDB, (conn) =>
             {
                 return new MongoDBHelper(conn);

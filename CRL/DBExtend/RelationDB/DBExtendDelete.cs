@@ -22,7 +22,7 @@ namespace CRL.DBExtend.RelationDB
         /// <typeparam name="TModel"></typeparam>
         /// <param name="where"></param>
         /// <returns></returns>
-        internal int Delete<TModel>(string where) where TModel : IModel, new()
+        internal int Delete<TModel>(string where) where TModel : class
         {
             CheckTableCreated<TModel>();
             string table = TypeCache.GetTableName(typeof(TModel), dbContext);
@@ -91,7 +91,7 @@ namespace CRL.DBExtend.RelationDB
         /// <typeparam name="T"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public override int Delete<T>(LambdaQuery<T> query)
+        public override int Delete<T>(ILambdaQuery<T> query)
         {
             var query1 = query as RelationLambdaQuery<T>;
             if (query1.__GroupFields!= null)
@@ -130,7 +130,7 @@ namespace CRL.DBExtend.RelationDB
 
         #endregion
 
-        void DeleteCacheItem<TModel>(string[] ids) where TModel : IModel, new()
+        void DeleteCacheItem<TModel>(string[] ids) where TModel : class
         {
             var updateModel = MemoryDataCache.CacheService.GetCacheTypeKey(typeof(TModel), __DbHelper.DatabaseName);
             foreach (var key in updateModel)

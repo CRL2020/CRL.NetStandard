@@ -1,9 +1,5 @@
 /**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
+* EFCore.QueryExtensions
 */
 using System;
 using System.Collections.Generic;
@@ -19,17 +15,16 @@ namespace CRL.LambdaQuery
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TJoinResult"></typeparam>
-    public sealed class LambdaQueryViewJoin<T, TJoinResult>
-        where T : IModel, new()
+    public sealed class LambdaQueryViewJoin<T, TJoinResult> : ILambdaQueryViewJoin<T, TJoinResult> where T : class
     {
         LambdaQueryBase BaseQuery;
-        LambdaQueryResultSelect<TJoinResult> resultSelect;
+        ILambdaQueryResultSelect<TJoinResult> resultSelect;
         /// <summary>
         /// 关联查询分支
         /// </summary>
         /// <param name="query"></param>
         /// <param name="_resultSelect"></param>
-        internal LambdaQueryViewJoin(LambdaQuery<T> query, LambdaQueryResultSelect<TJoinResult> _resultSelect)
+        internal LambdaQueryViewJoin(LambdaQuery<T> query, ILambdaQueryResultSelect<TJoinResult> _resultSelect)
         {
             BaseQuery = query;
             resultSelect = _resultSelect;
@@ -40,7 +35,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public LambdaQueryResultSelect<TJoinResult2> Select<TJoinResult2>(Expression<Func<T, TJoinResult, TJoinResult2>> resultSelector)
+        public ILambdaQueryResultSelect<TJoinResult2> Select<TJoinResult2>(Expression<Func<T, TJoinResult, TJoinResult2>> resultSelector)
             where TJoinResult2 : class
         {
             var parameters = resultSelector.Parameters.Select(b => b.Type).ToArray();
@@ -67,9 +62,9 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public LambdaQuery<T> SelectAppendValue<TJoinResult2>(Expression<Func<TJoinResult, TJoinResult2>> resultSelector)
+        public ILambdaQuery<T> SelectAppendValue<TJoinResult2>(Expression<Func<TJoinResult, TJoinResult2>> resultSelector)
         {
-            if (BaseQuery._CurrentSelectFieldCache==null)
+            if (BaseQuery._CurrentSelectFieldCache == null)
             {
                 BaseQuery.SelectAll(false);
             }
@@ -95,7 +90,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public LambdaQueryViewJoin<T, TJoinResult> OrderBy<TResult>(Expression<Func<TJoinResult, TResult>> expression, bool desc = true)
+        public ILambdaQueryViewJoin<T, TJoinResult> OrderBy<TResult>(Expression<Func<TJoinResult, TResult>> expression, bool desc = true)
         {
             BaseQuery.__OrderBy(expression.Parameters, expression.Body, desc);
             return this;

@@ -25,11 +25,11 @@ namespace CRL
     public abstract class BaseProvider<T> : ProviderOrigin<T>
         where T : IModel, new()
     {
-        internal override DbContext GetDbContext()
+        internal override DbContextInner GetDbContext()
         {
             dbLocation.ManageName = ManageName;
-            var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
-            var dbContext = new DbContext(helper, dbLocation);
+            var helper = DBConfigRegister.GetDBHelper(dbLocation);
+            var dbContext = new DbContextInner(helper, dbLocation);
 
             return dbContext;
         }

@@ -21,14 +21,14 @@ namespace CRL.Set
         {
             _dbContext = getDbContext(ManageName);
         }
-        DbContext getDbContext(string manageName)
+        DbContextInner getDbContext(string manageName)
         {
             var dbLocation = new CRL.DBLocation() { DataAccessType = DataAccessType.Default, ManageType = GetType(), ManageName = manageName };
-            var helper = SettingConfig.GetDBAccessBuild(dbLocation).GetDBHelper();
-            var dbContext = new DbContext(helper, dbLocation);
+            var helper = DBConfigRegister.GetDBHelper(dbLocation);
+            var dbContext = new DbContextInner(helper, dbLocation);
             return dbContext;
         }
-        DbContext _dbContext;
+        DbContextInner _dbContext;
         //Dictionary<Type, IDbSet> _DbSets = new Dictionary<Type, IDbSet>();
         protected DbSet<T> GetDbSet<T>() where T : IModel, new()
         {
@@ -42,7 +42,7 @@ namespace CRL.Set
             return set as DbSet<T>;
         }
 
-        bool PackageTrans(DbContext dbContext,TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted)
+        bool PackageTrans(DbContextInner dbContext,TransMethod method, out string error, System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted)
         {
             error = "";
             var db = DBExtendFactory.CreateDBExtend(dbContext);

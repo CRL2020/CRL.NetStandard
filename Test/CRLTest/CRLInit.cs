@@ -10,7 +10,7 @@ namespace CRLTest
     {
         public static void Init()
         {
-            var builder = CRL.SettingConfigBuilder.CreateInstance();
+            var builder = CRL.DBConfigRegister.CreateInstance();
             builder.UseMongoDB();
 
             var configBuilder = new CRL.Core.ConfigBuilder();

@@ -1,9 +1,5 @@
 /**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
+* EFCore.QueryExtensions
 */
 using System;
 using System.Collections.Generic;
@@ -25,14 +21,14 @@ namespace CRL.LambdaQuery
         Full
     }
 
-    public abstract partial class LambdaQuery<T> : LambdaQueryBase where T : IModel, new()
+    public abstract partial class LambdaQuery<T> : LambdaQueryBase where T :class
     {
         /// <summary>
         /// 创建一个JOIN查询分支
         /// </summary>
         /// <typeparam name="T2">关联类型</typeparam>
         /// <returns></returns>
-        public LambdaQueryJoin<T, T2> Join<T2>(Expression<Func<T, T2, bool>> expression,JoinType joinType = JoinType.Inner) 
+        public ILambdaQueryJoin<T, T2> Join<T2>(Expression<Func<T, T2, bool>> expression,JoinType joinType = JoinType.Inner) 
         {
             var query2 = new LambdaQueryJoin<T, T2>(this);
             __Join<T2>(expression.Body, joinType);
@@ -47,7 +43,7 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="joinType"></param>
         /// <returns></returns>
-        public LambdaQueryViewJoin<T, TJoinResult> Join<TJoinResult>(LambdaQueryResultSelect<TJoinResult> resultSelect, Expression<Func<T, TJoinResult, bool>> expression, JoinType joinType = JoinType.Inner) 
+        public ILambdaQueryViewJoin<T, TJoinResult> Join<TJoinResult>(ILambdaQueryResultSelect<TJoinResult> resultSelect, Expression<Func<T, TJoinResult, bool>> expression, JoinType joinType = JoinType.Inner) 
         {
             if(!resultSelect.BaseQuery.__FromDbContext)
             {
@@ -57,7 +53,7 @@ namespace CRL.LambdaQuery
             //var innerType = typeof(TSource);
             var innerType = resultSelect.InnerType;
 
-            var prefix1 = GetPrefix(innerType);
+            //var prefix1 = GetPrefix(innerType);
             var prefix2 = GetPrefix(typeof(TJoinResult));
             var typeQuery = new TypeQuery(innerType, prefix2);
             var baseQuery = resultSelect.BaseQuery;

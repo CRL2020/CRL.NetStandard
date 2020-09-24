@@ -1,9 +1,5 @@
 /**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
+* EFCore.QueryExtensions
 */
 using System;
 using System.Collections.Generic;
@@ -14,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CRL.LambdaQuery
 {
-    public abstract partial class LambdaQuery<T> : LambdaQueryBase where T : IModel, new()
+    public abstract partial class LambdaQuery<T> : LambdaQueryBase where T :class
     {
         #region 按完整子查询
         /// <summary>
@@ -24,7 +20,7 @@ namespace CRL.LambdaQuery
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Exists<TResult>(LambdaQueryResultSelect<TResult> query)
+        public ILambdaQuery<T> Exists<TResult>(ILambdaQueryResultSelect<TResult> query)
         {
             return InnerSelect(null, query, "exists");
         }
@@ -36,7 +32,7 @@ namespace CRL.LambdaQuery
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public LambdaQuery<T> NotExists<TResult>(LambdaQueryResultSelect<TResult> query)
+        public ILambdaQuery<T> NotExists<TResult>(ILambdaQueryResultSelect<TResult> query)
         {
             return InnerSelect(null, query, "not exists");
         }
@@ -49,7 +45,7 @@ namespace CRL.LambdaQuery
         /// <param name="query"></param>
         /// <param name="outField"></param>
         /// <returns></returns>
-        public LambdaQuery<T> In<TResult>(LambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
+        public ILambdaQuery<T> In<TResult>(ILambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
         {
             return InnerSelect(outField, query, "in");
         }
@@ -62,7 +58,7 @@ namespace CRL.LambdaQuery
         /// <param name="query"></param>
         /// <param name="outField"></param>
         /// <returns></returns>
-        public LambdaQuery<T> NotIn<TResult>(LambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
+        public ILambdaQuery<T> NotIn<TResult>(ILambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
         {
             return InnerSelect(outField, query, "not in");
         }
@@ -75,7 +71,7 @@ namespace CRL.LambdaQuery
         /// <param name="query"></param>
         /// <param name="outField"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Equal<TResult>(LambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
+        public ILambdaQuery<T> Equal<TResult>(ILambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
         {
             return InnerSelect(outField, query, "=");
         }
@@ -88,12 +84,12 @@ namespace CRL.LambdaQuery
         /// <param name="query"></param>
         /// <param name="outField"></param>
         /// <returns></returns>
-        public LambdaQuery<T> NotEqual<TResult>(LambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
+        public ILambdaQuery<T> NotEqual<TResult>(ILambdaQueryResultSelect<TResult> query, Expression<Func<T, TResult>> outField)
         {
             return InnerSelect(outField, query, "!=");
         }
 
-        LambdaQuery<T> InnerSelect<TResult>(Expression<Func<T, TResult>> outField, LambdaQueryResultSelect<TResult> query, string type, string innerJoinSql = "")
+        ILambdaQuery<T> InnerSelect<TResult>(Expression<Func<T, TResult>> outField, ILambdaQueryResultSelect<TResult> query, string type, string innerJoinSql = "")
         {
             if (!query.BaseQuery.__FromDbContext)
             {
@@ -108,7 +104,7 @@ namespace CRL.LambdaQuery
             var query2 = baseQuery.GetQuery();
             return InnerSelect(outField, query2, type);
         }
-        LambdaQuery<T> InnerSelect<TResult>(Expression<Func<T, TResult>> outField, string query, string type)
+        ILambdaQuery<T> InnerSelect<TResult>(Expression<Func<T, TResult>> outField, string query, string type)
         {
             MemberExpression m1 = null;
             //object 会生成UnaryExpression表达式 Convert(b=>b.UserId)
@@ -140,8 +136,8 @@ namespace CRL.LambdaQuery
         }
         #endregion
         #region 表达式关联
-        LambdaQuery<T> InnerSelect2<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
-    Expression<Func<T, TInner, bool>> expression, string type) where TInner : IModel, new()
+        ILambdaQuery<T> InnerSelect2<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
+    Expression<Func<T, TInner, bool>> expression, string type) where TInner :class
         {
             MemberExpression m2 = null;
             if (innerField.Body is UnaryExpression)
@@ -170,8 +166,8 @@ namespace CRL.LambdaQuery
         /// <param name="innerField"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Exists<TInner>(Expression<Func<TInner, object>> innerField,
-Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
+        public ILambdaQuery<T> Exists<TInner>(Expression<Func<TInner, object>> innerField,
+Expression<Func<T, TInner, bool>> expression) where TInner :class
         {
             return InnerSelect2<TInner>(null, innerField, expression, "exists");
         }
@@ -183,8 +179,8 @@ Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
         /// <param name="innerField"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> NotExists<TInner>(Expression<Func<TInner, object>> innerField,
-Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
+        public ILambdaQuery<T> NotExists<TInner>(Expression<Func<TInner, object>> innerField,
+Expression<Func<T, TInner, bool>> expression) where TInner :class
         {
             return InnerSelect2<TInner>(null, innerField, expression, "not exists");
         }
@@ -198,8 +194,8 @@ Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
         /// <param name="innerField"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> In<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
-    Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
+        public ILambdaQuery<T> In<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
+    Expression<Func<T, TInner, bool>> expression) where TInner :class
         {
             return InnerSelect2<TInner>(outField, innerField, expression, "in");
         }
@@ -212,8 +208,8 @@ Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
         /// <param name="innerField"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> NotIn<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
-Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
+        public ILambdaQuery<T> NotIn<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
+Expression<Func<T, TInner, bool>> expression) where TInner :class
         {
             return InnerSelect2<TInner>(outField, innerField, expression, "not in");
         }
@@ -226,8 +222,8 @@ Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
         /// <param name="innerField"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> Equal<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
-Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
+        public ILambdaQuery<T> Equal<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
+Expression<Func<T, TInner, bool>> expression) where TInner :class
         {
             return InnerSelect2<TInner>(outField, innerField, expression, "=");
         }
@@ -240,8 +236,8 @@ Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
         /// <param name="innerField"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public LambdaQuery<T> NotEqual<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
-Expression<Func<T, TInner, bool>> expression) where TInner : IModel, new()
+        public ILambdaQuery<T> NotEqual<TInner>(Expression<Func<T, object>> outField, Expression<Func<TInner, object>> innerField,
+Expression<Func<T, TInner, bool>> expression) where TInner :class
         {
             return InnerSelect2<TInner>(outField, innerField, expression, "!=");
         }

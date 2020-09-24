@@ -16,14 +16,14 @@ namespace CRL
     /// <summary>
     /// 数据访问上下文
     /// </summary>
-    public class DbContext
+    public class DbContextInner
     {
         /// <summary>
         /// 数据访问上下文
         /// </summary>
         /// <param name="dbHelper"></param>
         /// <param name="dbLocation"></param>
-        public DbContext(DBHelper dbHelper, DBLocation dbLocation)
+        public DbContextInner(DBHelper dbHelper, DBLocation dbLocation)
         {
             DBHelper = dbHelper;
             DBLocation = dbLocation;
@@ -55,7 +55,7 @@ namespace CRL
         internal DBHelper GetDBHelper(DataAccessType accessType = DataAccessType.Default)
         {
             DBLocation.DataAccessType = accessType;
-            var helper = SettingConfig.GetDBAccessBuild(DBLocation).GetDBHelper();
+            var helper = DBConfigRegister.GetDBHelper(DBLocation);
             return helper;
         }
         internal Dictionary<string, Set.IDbSet> _DbSets = new Dictionary<string, Set.IDbSet>();

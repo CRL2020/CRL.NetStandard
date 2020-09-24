@@ -18,20 +18,20 @@ using CRL.LambdaQuery;
 using CRL.LambdaQuery.CRLExpression;
 namespace CRL.Mongo
 {
-    public sealed partial class MongoDBLambdaQuery<T> : LambdaQuery<T> where T : IModel, new()
+    public sealed partial class MongoDBLambdaQuery<T> : LambdaQuery<T> where T : class
     {         
         /// <summary>
         /// lambda查询
         /// </summary>
         /// <param name="_dbContext"></param>
-        public MongoDBLambdaQuery(DbContext _dbContext)
+        public MongoDBLambdaQuery(DbContextInner _dbContext)
             : base(_dbContext, false)
         {
            
         }
 
         internal FilterDefinition<T> __MongoDBFilter = new BsonDocument();
-        public override LambdaQuery<T> Where(System.Linq.Expressions.Expression<Func<T, bool>> expression)
+        public override ILambdaQuery<T> Where(System.Linq.Expressions.Expression<Func<T, bool>> expression)
         {
             if (expression == null)
                 return this;
@@ -208,7 +208,7 @@ namespace CRL.Mongo
 
         #endregion
         internal SortDefinition<T> _MongoDBSort = new BsonDocument();
-        public override LambdaQuery<T> OrderBy<TResult>(System.Linq.Expressions.Expression<Func<T, TResult>> expression, bool desc = true)
+        public override ILambdaQuery<T> OrderBy<TResult>(System.Linq.Expressions.Expression<Func<T, TResult>> expression, bool desc = true)
         {
             //var sortBuild = Builders<T>.Sort;
             var parameters = expression.Parameters.Select(b => b.Type).ToArray();
@@ -224,7 +224,7 @@ namespace CRL.Mongo
             return this;
         }
 
-        public override LambdaQuery<T> OrderByPrimaryKey(bool desc)
+        public override ILambdaQuery<T> OrderByPrimaryKey(bool desc)
         {
             //var sortBuild = Builders<T>.Sort;
             var field = TypeCache.GetTable(typeof(T)).PrimaryKey;
@@ -239,7 +239,7 @@ namespace CRL.Mongo
             return this;
         }
 
-        public override LambdaQuery<T> Or(System.Linq.Expressions.Expression<Func<T, bool>> expression)
+        public override ILambdaQuery<T> Or(System.Linq.Expressions.Expression<Func<T, bool>> expression)
         {
             var crlExpression = FormatExpression(expression.Body);
             var filterData = RouteCRLExpression(crlExpression);

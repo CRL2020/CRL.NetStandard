@@ -18,7 +18,7 @@ namespace CRL.MySql
 {
     internal class MySQLDBAdapter : DBAdapterBase
     {
-        public MySQLDBAdapter(DbContext _dbContext)
+        public MySQLDBAdapter(DbContextInner _dbContext)
             : base(_dbContext)
         {
         }
@@ -163,7 +163,7 @@ namespace CRL.MySql
         /// <param name="fields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override void CreateTable(DbContext dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
+        public override void CreateTable(DbContextInner dbContext, List<Attribute.FieldInnerAttribute> fields, string tableName)
         {
             var helper = dbContext.DBHelper;
             var defaultValues = new List<string>();
@@ -205,7 +205,7 @@ namespace CRL.MySql
         /// </summary>
         /// <param name="details"></param>
         /// <param name="keepIdentity"></param>
-        public override void BatchInsert(DbContext dbContext, System.Collections.IList details, bool keepIdentity = false)
+        public override void BatchInsert(DbContextInner dbContext, System.Collections.IList details, bool keepIdentity = false)
         {
             if (details.Count == 0)
                 return;
@@ -248,7 +248,7 @@ namespace CRL.MySql
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override object InsertObject<T>(DbContext dbContext, T obj)
+        public override object InsertObject<T>(DbContextInner dbContext, T obj)
         {
             Type type = obj.GetType();
             var helper = dbContext.DBHelper;

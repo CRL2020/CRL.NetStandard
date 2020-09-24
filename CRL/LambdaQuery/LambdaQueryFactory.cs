@@ -17,9 +17,9 @@ namespace CRL.LambdaQuery
     public class LambdaQueryFactory
     {
         static System.Collections.Concurrent.ConcurrentDictionary<Type, object> mongoQueryCreaters = new System.Collections.Concurrent.ConcurrentDictionary<Type, object>();
-        public static LambdaQuery<T> CreateLambdaQuery<T>(DbContext _dbContext) where T : IModel, new()
+        public static LambdaQuery<T> CreateLambdaQuery<T>(DbContextInner _dbContext) where T : class
         {
-            var configBuilder = SettingConfigBuilder.current;
+            //var configBuilder = DBConfigRegister.current;
             var _DBType = _dbContext.DBHelper.CurrentDBType;
             if (_DBType != DBType.MongoDB)
             {
@@ -29,16 +29,12 @@ namespace CRL.LambdaQuery
             var a = mongoQueryCreaters.TryGetValue(type, out object creater);
             if (!a)
             {
-                a = configBuilder.LambdaQueryTypeRegister.TryGetValue(DBType.MongoDB, out Type type2);
-                if (!a)
-                {
-                    throw new Exception("未引用CRL.MongoDB");
-                }
-                var genericType = type2.MakeGenericType(typeof(T));
-                creater = Core.DynamicMethodHelper.CreateCtorFunc<Func<DbContext, LambdaQuery<T>>>(genericType, new Type[] { typeof(DbContext) });
+                var typeMongo = DBConfigRegister.GetLambdaQueryType(DBType.MongoDB);
+                var genericType = typeMongo.MakeGenericType(typeof(T));
+                creater = Core.DynamicMethodHelper.CreateCtorFunc<Func<DbContextInner, LambdaQuery<T>>>(genericType, new Type[] { typeof(DbContextInner) });
                 mongoQueryCreaters.TryAdd(type, creater);
             }
-            var func = (Func<DbContext, LambdaQuery<T>>)creater;
+            var func = (Func<DbContextInner, LambdaQuery<T>>)creater;
             return func(_dbContext);
         }
     }

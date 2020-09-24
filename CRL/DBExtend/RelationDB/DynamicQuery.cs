@@ -210,10 +210,11 @@ namespace CRL.DBExtend.RelationDB
         /// 返回首列结果
         /// </summary>
         /// <typeparam name="TModel"></typeparam>
-        /// <param name="query"></param>
+        /// <param name="iQuery"></param>
         /// <returns></returns>
-        public override dynamic QueryScalar<TModel>(LambdaQuery<TModel> query)
+        public override dynamic QueryScalar<TModel>(ILambdaQuery<TModel> iQuery)
         {
+            var query = iQuery as LambdaQueryBase;
             query.TakeNum = 1;
             //using (var reader = GetQueryDynamicReader(query))
             //{

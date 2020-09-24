@@ -218,7 +218,7 @@ namespace CRL
         /// <param name="db"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        internal static bool CreateTable(Type type, AbsDBExtend db, out string message)
+        public static bool CreateTable(Type type, AbsDBExtend db, out string message)
         {
             var dbAdapter = db._DBAdapter;
             message = "";

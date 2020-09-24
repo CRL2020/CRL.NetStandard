@@ -18,8 +18,8 @@ namespace CRL.DBAccess
                 return DBType.MSSQL2000;
             }
         }
-        public Sql2000Helper(string content)
-            : base(content)
+        public Sql2000Helper(DBAccessBuild dBAccessBuild)
+            : base(dBAccessBuild)
         { }
     }
     public  class SqlHelper:DBHelper 
@@ -28,8 +28,8 @@ namespace CRL.DBAccess
         /// 根据参数类型实例化
         /// </summary>
         /// <param name="_connectionString">内容</param>
-		public SqlHelper(string _connectionString)
-            : base(_connectionString)
+		public SqlHelper(DBAccessBuild dBAccessBuild)
+            : base(dBAccessBuild)
         { }
         
         static Dictionary<string, string> formatCache = new Dictionary<string, string>();

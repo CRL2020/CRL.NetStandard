@@ -27,7 +27,7 @@ namespace CRLTest.Code
         }
         protected override CRL.LambdaQuery.ILambdaQuery<ProductData> CacheQuery()
         {
-            return GetLambdaQuery().Where(b => b.Id < 1000).Expire(5);
+            return GetLambdaQuery().Expire(5);
         }
         /// <summary>
         /// 对象被更新时,是否通知缓存服务器

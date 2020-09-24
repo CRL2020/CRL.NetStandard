@@ -19,7 +19,7 @@ namespace CRL.LambdaQuery
 {
     internal class ExpressionVisitor
     {
-        DbContext dbContext
+        DbContextInner dbContext
         {
             get
             {

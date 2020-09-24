@@ -13,8 +13,8 @@ namespace CRL.Oracle
 {
     public class OracleHelper : DBHelper
     {
-        public OracleHelper(string content)
-            : base(content)
+        public OracleHelper(DBAccessBuild dBAccessBuild)
+            : base(dBAccessBuild)
         { }
         public override DBType CurrentDBType
         {

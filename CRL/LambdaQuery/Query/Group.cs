@@ -1,9 +1,5 @@
 /**
-* CRL 快速开发框架 V5
-* Copyright (c) 2019 Hubro All rights reserved.
-* GitHub https://github.com/hubro-xx/CRL5
-* 主页 http://www.cnblogs.com/hubro
-* 在线文档 http://crl.changqidongli.com/
+* EFCore.QueryExtensions
 */
 using System;
 using System.Collections.Generic;
@@ -18,14 +14,14 @@ using System.Text.RegularExpressions;
 
 namespace CRL.LambdaQuery
 {
-    public class GroupQuery<T> 
+    public class GroupQuery<T> : IGroupQuery<T>
     {
         LambdaQueryBase BaseQuery;
         internal GroupQuery(LambdaQueryBase query)
         {
             BaseQuery = query;
         }
-        public LambdaQueryResultSelect<TResult> Select<TResult>(Expression<Func<T, TResult>> resultSelector)
+        public ILambdaQueryResultSelect<TResult> Select<TResult>(Expression<Func<T, TResult>> resultSelector)
         {
             BaseQuery.__SelectField(resultSelector.Parameters, resultSelector.Body);
             return new LambdaQueryResultSelect<TResult>(BaseQuery, resultSelector.Body);
@@ -36,7 +32,7 @@ namespace CRL.LambdaQuery
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public GroupQuery<T> GroupHaving(Expression<Func<T, bool>> expression)
+        public IGroupQuery<T> GroupHaving(Expression<Func<T, bool>> expression)
         {
             BaseQuery.__GroupHaving(expression.Body);
             return this;
@@ -48,20 +44,20 @@ namespace CRL.LambdaQuery
         /// <param name="expression"></param>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public GroupQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool desc = true)
+        public IGroupQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool desc = true)
         {
             BaseQuery.__OrderBy(expression.Parameters, expression.Body, desc);
             return this;
         }
     }
-    public abstract partial class LambdaQuery<T> : LambdaQueryBase where T : IModel, new()
+    public abstract partial class LambdaQuery<T> : LambdaQueryBase where T :class
     {
         /// <summary>
         /// 设置GROUP
         /// </summary>
         /// <param name="resultSelector">like b=>new{b.Name,b.Id}</param>
         /// <returns></returns>
-        public GroupQuery<T> GroupBy<TResult>(Expression<Func<T, TResult>> resultSelector)
+        public IGroupQuery<T> GroupBy<TResult>(Expression<Func<T, TResult>> resultSelector)
         {
             var parameters = resultSelector.Parameters.Select(b => b.Type).ToArray();
             var fields = GetSelectField(false, resultSelector.Body, false, parameters).mapping;

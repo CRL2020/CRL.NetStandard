@@ -18,7 +18,7 @@ namespace CRL.Mongo.MongoDBEx
     public sealed partial class MongoDBExt
     {
 
-        public override int Delete<T>(LambdaQuery.LambdaQuery<T> query1)
+        public override int Delete<T>(ILambdaQuery<T> query1)
         {
             var query = query1 as MongoDBLambdaQuery<T>;
             var collection = GetCollection<T>();

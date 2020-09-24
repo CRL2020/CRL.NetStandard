@@ -55,7 +55,7 @@ namespace CRL.Attribute
         }
 
         /// <summary>
-        /// 自增主键
+        /// 主键
         /// </summary>
         public FieldInnerAttribute PrimaryKey
         {

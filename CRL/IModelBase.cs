@@ -70,7 +70,7 @@ namespace CRL
             where TJoin : IModel, new()
         {
             var type = typeof(TJoin);
-            var name = $"ents_{type}_{GetpPrimaryKeyValue()}";
+            var name = $"ents_{type}_{TypeCache.GetpPrimaryKeyValue(this)}";
             var a = DbContext._DbSets.TryGetValue(name, out IDbSet set2);
             if (a)
             {
@@ -176,12 +176,11 @@ namespace CRL
         /// </summary>
         public void BeginTracking()
         {
-            OriginClone = Clone();
             Changes = new ParameCollection();
         }
 
         //internal string ManageName;
-        internal DbContext DbContext;
+        internal DbContextInner DbContext;
         #region 索引
 
         [System.Xml.Serialization.XmlIgnore]
@@ -245,21 +244,6 @@ namespace CRL
 
 
         #region 更新值判断
-        /// <summary>
-        /// 存放原始克隆
-        /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
-        [NonSerialized]
-        internal object OriginClone = null;
-        internal object GetOriginClone()
-        {
-            return OriginClone;
-        }
-        internal void SetOriginClone()
-        {
-            OriginClone = null;
-            OriginClone = Clone();
-        }
 
         //[System.Xml.Serialization.XmlIgnore]
         //[NonSerialized]
@@ -297,22 +281,17 @@ namespace CRL
         internal void CleanChanges()
         {
             Changes.Clear();
-            if (SettingConfig.UsePropertyChange)
-            {
-                return;
-            }
-            OriginClone = Clone();
         }
         /// <summary>
         /// 获取被修改的字段
         /// </summary>
         /// <returns></returns>
-        public ParameCollection GetUpdateField(DBAdapter.DBAdapterBase dBAdapterBase= null, bool check = true)
+        public ParameCollection GetUpdateField(DBAdapter.DBAdapterBase dBAdapterBase = null, bool check = true)
         {
             var c = new ParameCollection();
-            var fields = TypeCache.GetProperties(GetType(), true);
             if (this.GetChanges().Count > 0)//按手动指定更改
             {
+                var fields = TypeCache.GetProperties(GetType(), true);
                 foreach (var item in this.GetChanges())
                 {
                     var key = item.Key.Replace("$", "");
@@ -334,23 +313,6 @@ namespace CRL
                     c[item.Key] = value;
                 }
                 return c;
-            }
-            //按对象对比
-            var origin = this.OriginClone;
-            if (origin == null && check)
-            {
-                throw new Exception("_originClone为空,请确认此对象是由查询创建");
-            }
-            foreach (var f in fields.Values)
-            {
-                if (f.IsPrimaryKey)
-                    continue;
-                var originValue = f.GetValue(origin);
-                var currentValue = f.GetValue(this);
-                if (!Equals(originValue, currentValue))
-                {
-                    c.Add(f.MapingName, currentValue);
-                }
             }
             return c;
         }
@@ -379,19 +341,6 @@ namespace CRL
             return MemberwiseClone();
         }
 
-        internal string GetModelKey()
-        {
-            var type = GetType();
-            var tab = TypeCache.GetTable(type);
-            var modelKey = string.Format("{0}_{1}", type, tab.PrimaryKey.GetValue(this));
-            return modelKey;
-        }
-        internal object GetpPrimaryKeyValue()
-        {
-            var primaryKey = TypeCache.GetTable(GetType()).PrimaryKey;
-            var keyValue = primaryKey.GetValue(this);
-            return keyValue;
-        }
         #region 动态字典,效果同索引
         //private Dynamic.DynamicViewDataDictionary _dynamicViewDataDictionary;
 

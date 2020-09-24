@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Text;
 using CRL.Core;
 using CRL.DBAccess;
+using CRL.LambdaQuery;
 //using MongoDB.Driver.Linq;
 
 namespace CRL
@@ -22,7 +23,7 @@ namespace CRL
         /// 构造DBExtend
         /// </summary>
         /// <param name="_dbContext"></param>
-        public AbsDBExtend(DbContext _dbContext)
+        public AbsDBExtend(DbContextInner _dbContext)
         {
             dbContext = _dbContext;
             var _helper = _dbContext.DBHelper;
@@ -62,7 +63,7 @@ namespace CRL
         /// </summary>
         /// <typeparam name="TModel"></typeparam>
         /// <returns></returns>
-        protected abstract LambdaQuery.LambdaQuery<TModel> CreateLambdaQuery<TModel>() where TModel : IModel, new();
+        protected abstract ILambdaQuery<TModel> CreateLambdaQuery<TModel>() where TModel : class;
         #region 属性
         /// <summary>
         /// 数据库架构类型
@@ -108,8 +109,8 @@ namespace CRL
         }
         internal AbsDBExtend copyDBExtend()
         {
-            var helper = SettingConfig.GetDBAccessBuild(dbContext.DBLocation).GetDBHelper();
-            var dbContext2 = new DbContext(helper, dbContext.DBLocation);
+            var helper = DBConfigRegister.GetDBHelper(dbContext.DBLocation);
+            var dbContext2 = new DbContextInner(helper, dbContext.DBLocation);
             //dbContext2.ShardingMainDataIndex = dbContext.ShardingMainDataIndex;
             dbContext2.UseSharding = dbContext.UseSharding;
             return DBExtendFactory.CreateDBExtend(dbContext2);
@@ -159,18 +160,18 @@ namespace CRL
         /// lockObj
         /// </summary>
         static protected object lockObj = new object();
-        public DbContext dbContext;
+        public DbContextInner dbContext;
         #endregion
         /// <summary>
         /// 检测数据
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="checkRepeated"></param>
-        internal void CheckData(IModel obj, bool checkRepeated)
+        internal void CheckData(object obj, bool checkRepeated)
         {
             //var types = CRL.TypeCache.GetProperties(obj.GetType(), true).Values;
             var types = TypeCache.GetTable(obj.GetType()).Fields;
-            string msg;
+            string msg = "";
             var sb = new StringBuilder();
             //检测数据约束
             foreach (Attribute.FieldInnerAttribute p in types)
@@ -204,7 +205,10 @@ namespace CRL
                 }
             }
             //校验数据
-            msg = obj.CheckData();
+            if (obj is IModel)
+            {
+                msg = (obj as IModel).CheckData();
+            }
             if (!string.IsNullOrEmpty(msg))
             {
                 msg = string.Format("数据校验证失败,在类型{0} {1} 请核对校验规则", obj.GetType(), msg);
@@ -221,7 +225,7 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="expression"></param>
         /// <param name="c"></param>
-        internal void UpdateCacheItem<TModel>(Expression<Func<TModel, bool>> expression, ParameCollection c) where TModel : IModel, new()
+        internal void UpdateCacheItem<TModel>(Expression<Func<TModel, bool>> expression, ParameCollection c) where TModel : class
         {
             if (DataBaseArchitecture == CRL.DataBaseArchitecture.NotRelation)
             {
@@ -253,7 +257,7 @@ namespace CRL
         /// <param name="newObj"></param>
         /// <param name="c"></param>
         /// <param name="checkInsert"></param>
-        internal void UpdateCacheItem<TModel>(TModel newObj, ParameCollection c, bool checkInsert = false) where TModel : IModel, new()
+        internal void UpdateCacheItem<TModel>(TModel newObj, ParameCollection c, bool checkInsert = false) where TModel : class
         {
             if (DataBaseArchitecture == CRL.DataBaseArchitecture.NotRelation)
             {
@@ -265,7 +269,6 @@ namespace CRL
             {
                 MemoryDataCache.CacheService.UpdateCacheItem(key, newObj, c, checkInsert);
             }
-            NotifyCacheServer(newObj);
             //Type type = typeof(TModel);
             //if (TypeCache.ModelKeyCache.ContainsKey(type))
             //{
@@ -273,26 +276,7 @@ namespace CRL
             //    MemoryDataCache.UpdateCacheItem(key,newObj);
             //}
         }
-        /// <summary>
-        /// 通知缓存服务器
-        /// </summary>
-        /// <typeparam name="TModel"></typeparam>
-        /// <param name="newObj"></param>
-        void NotifyCacheServer<TModel>(TModel newObj) where TModel : IModel
-        {
-            if (DataBaseArchitecture == CRL.DataBaseArchitecture.NotRelation)
-            {
-                //非关系型没有缓存
-                return;
-            }
-            if (!OnUpdateNotifyCacheServer)
-                return;
-            var client = CacheServerSetting.GetCurrentClient(typeof(TModel));
-            if (client != null)
-            {
-                client.Update(newObj);
-            }
-        }
+
         #endregion
         /// <summary>
         /// ToString
@@ -417,14 +401,14 @@ namespace CRL
         /// </summary>
         /// <typeparam name="TModel"></typeparam>
         /// <param name="obj"></param>
-        public abstract void InsertFromObj<TModel>(TModel obj) where TModel : CRL.IModel, new();
+        public abstract void InsertFromObj<TModel>(TModel obj) where TModel : class;
         /// <summary>
         /// 批量插入
         /// </summary>
         /// <typeparam name="TModel"></typeparam>
         /// <param name="details"></param>
         /// <param name="keepIdentity"></param>
-        public abstract void BatchInsert<TModel>(List<TModel> details, bool keepIdentity = false) where TModel : CRL.IModel, new();
+        public abstract void BatchInsert<TModel>(List<TModel> details, bool keepIdentity = false) where TModel : class;
         #endregion
 
         #region 删除
@@ -434,7 +418,7 @@ namespace CRL
         /// <typeparam name="T"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public abstract int Delete<T>(CRL.LambdaQuery.LambdaQuery<T> query) where T : CRL.IModel, new();
+        public abstract int Delete<T>(ILambdaQuery<T> query) where T : class;
         /// <summary>
         /// 关联删除
         /// </summary>
@@ -443,8 +427,8 @@ namespace CRL
         /// <param name="expression"></param>
         /// <returns></returns>
         public int Delete<TModel, TJoin>(Expression<Func<TModel, TJoin, bool>> expression)
-            where TModel : CRL.IModel, new()
-            where TJoin : CRL.IModel, new()
+            where TModel : class
+            where TJoin : class
         {
             var query = CreateLambdaQuery<TModel>();
             query.Join(expression);
@@ -456,7 +440,7 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public int Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : CRL.IModel, new()
+        public int Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : class
         {
             var query = CreateLambdaQuery<TModel>();
             query.Where(expression);
@@ -468,7 +452,7 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        public int Delete<TModel>(object id) where TModel : CRL.IModel, new()
+        public int Delete<TModel>(object id) where TModel : class
         {
             var query = CreateLambdaQuery<TModel>();
             var exp = Base.GetQueryIdExpression<TModel>(id);
@@ -495,7 +479,7 @@ namespace CRL
         /// <typeparam name="TValue"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public abstract Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(LambdaQuery.LambdaQuery<TModel> query) where TModel : CRL.IModel, new();
+        public abstract Dictionary<TKey, TValue> ToDictionary<TModel, TKey, TValue>(ILambdaQuery<TModel> query) where TModel : class;
 
         /// <summary>
         /// 返回首行首列
@@ -503,7 +487,7 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public abstract dynamic QueryScalar<TModel>(LambdaQuery.LambdaQuery<TModel> query) where TModel : CRL.IModel, new();
+        public abstract dynamic QueryScalar<TModel>(ILambdaQuery<TModel> query) where TModel : class;
         /// <summary>
         /// 返回动态类型
         /// </summary>
@@ -560,7 +544,7 @@ namespace CRL
         /// <param name="expression"></param>
         /// <param name="compileSp"></param>
         /// <returns></returns>
-        public int Count<TType>(Expression<Func<TType, bool>> expression, bool compileSp = false) where TType : IModel, new()
+        public int Count<TType>(Expression<Func<TType, bool>> expression, bool compileSp = false) where TType : class
         {
             return GetFunction(expression, b => 0, FunctionType.COUNT, compileSp);
         }
@@ -577,7 +561,7 @@ namespace CRL
         /// <param name="field"></param>
         /// <param name="compileSp"></param>
         /// <returns></returns>
-        public TType Min<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : IModel, new()
+        public TType Min<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : class
         {
             return GetFunction(expression, field, FunctionType.MIN, compileSp);
         }
@@ -593,7 +577,7 @@ namespace CRL
         /// <param name="field"></param>
         /// <param name="compileSp"></param>
         /// <returns></returns>
-        public TType Max<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : IModel, new()
+        public TType Max<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : class
         {
             return GetFunction(expression, field, FunctionType.MAX, compileSp);
         }
@@ -610,45 +594,19 @@ namespace CRL
         /// <param name="field"></param>
         /// <param name="compileSp"></param>
         /// <returns></returns>
-        public TType Sum<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : IModel, new()
+        public TType Sum<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> field, bool compileSp = false) where TModel : class
         {
             return GetFunction(expression, field, FunctionType.SUM, compileSp);
         }
-        //public TType Sum<TType, TModel>(Expression<Func<TModel, bool>> expression, string field, bool compileSp = false) where TModel : IModel, new()
+        //public TType Sum<TType, TModel>(Expression<Func<TModel, bool>> expression, string field, bool compileSp = false) where TModel : class
         //{
         //    return GetFunction<TType, TModel>(expression, field, FunctionType.SUM, compileSp);
         //}
         #endregion
 
-        public abstract TType GetFunction<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> selectField, FunctionType functionType, bool compileSp = false) where TModel : IModel, new();
+        public abstract TType GetFunction<TType, TModel>(Expression<Func<TModel, bool>> expression, Expression<Func<TModel, TType>> selectField, FunctionType functionType, bool compileSp = false) where TModel : class;
         #endregion
 
-        #region Page
-        ///// <summary>
-        ///// 返回指定类型分页
-        ///// </summary>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="query"></param>
-        ///// <returns></returns>
-        //public abstract List<TResult> Page<TResult>(CRL.LambdaQuery.LambdaQueryBase query);
-
-        ///// <summary>
-        ///// 返回当前类型分页
-        ///// </summary>
-        ///// <typeparam name="TModel"></typeparam>
-        ///// <param name="query"></param>
-        ///// <returns></returns>
-        //public abstract List<TModel> Page<TModel>(CRL.LambdaQuery.LambdaQuery<TModel> query)
-        //    where TModel : CRL.IModel, new();
-
-        ///// <summary>
-        ///// 返回动态对象分页
-        ///// </summary>
-        ///// <typeparam name="TModel"></typeparam>
-        ///// <param name="query"></param>
-        ///// <returns></returns>
-        //public abstract List<dynamic> PageDynamic<TModel>(CRL.LambdaQuery.LambdaQuery<TModel> query) where TModel : CRL.IModel, new();
-        #endregion
 
         #region QueryDynamic
         /// <summary>
@@ -657,15 +615,7 @@ namespace CRL
         /// <param name="query"></param>
         /// <returns></returns>
         public abstract List<dynamic> QueryDynamic(CRL.LambdaQuery.LambdaQueryBase query);
-        ///// <summary>
-        ///// 返回自定义对象
-        ///// </summary>
-        ///// <typeparam name="TModel"></typeparam>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="query"></param>
-        ///// <returns></returns>
-        //public abstract List<TResult> QueryDynamic<TModel, TResult>(CRL.LambdaQuery.LambdaQuery<TModel> query)
-        //    where TModel : CRL.IModel, new();
+
         /// <summary>
         /// 返回指定对象
         /// </summary>
@@ -691,7 +641,7 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TModel QueryItem<TModel>(object id) where TModel : CRL.IModel, new()
+        public TModel QueryItem<TModel>(object id) where TModel : class
         {
             var type = typeof(TModel);
             var table = TypeCache.GetTable(type);
@@ -712,7 +662,7 @@ namespace CRL
         /// <param name="idDest">是否按主键倒序</param>
         /// <param name="compileSp">是否编译成存储过程</param>
         /// <returns></returns>
-        public TModel QueryItem<TModel>(Expression<Func<TModel, bool>> expression, bool idDest = true, bool compileSp = false) where TModel : CRL.IModel, new()
+        public TModel QueryItem<TModel>(Expression<Func<TModel, bool>> expression, bool idDest = true, bool compileSp = false) where TModel : class
         {
             var query = CreateLambdaQuery<TModel>();
             query.Top(1);
@@ -732,7 +682,7 @@ namespace CRL
         /// <param name="expression"></param>
         /// <param name="compileSp">是否编译成储过程</param>
         /// <returns></returns>
-        public List<TModel> QueryList<TModel>(Expression<Func<TModel, bool>> expression = null, bool compileSp = false) where TModel : CRL.IModel, new()
+        public List<TModel> QueryList<TModel>(Expression<Func<TModel, bool>> expression = null, bool compileSp = false) where TModel : class
         {
             var query = CreateLambdaQuery<TModel>();
             query.Where(expression);
@@ -747,13 +697,16 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public List<TModel> QueryList<TModel>(LambdaQuery.LambdaQuery<TModel> query) where TModel : CRL.IModel, new()
+        public List<TModel> QueryList<TModel>(ILambdaQuery<TModel> query) where TModel : class
         {
             string key;
             var list = QueryOrFromCache<TModel>(query, out key);
             list.ForEach(b =>
             {
-                b.DbContext = dbContext;
+                if (b is IModel)
+                {
+                    (b as IModel).DbContext = dbContext;
+                }
             });
             return list;
         }
@@ -764,7 +717,7 @@ namespace CRL
         /// <param name="query"></param>
         /// <param name="cacheKey"></param>
         /// <returns></returns>
-        public abstract List<TModel> QueryOrFromCache<TModel>(LambdaQuery.LambdaQueryBase query, out string cacheKey) where TModel : CRL.IModel, new();
+        public abstract List<TModel> QueryOrFromCache<TModel>(ILambdaQuery<TModel> query, out string cacheKey) where TModel : class;
         #endregion
 
         #region 存储过程
@@ -813,8 +766,8 @@ namespace CRL
         /// <param name="updateValue"></param>
         /// <returns></returns>
         public int Update<TModel, TJoin>(System.Linq.Expressions.Expression<Func<TModel, TJoin, bool>> expression, CRL.ParameCollection updateValue)
-            where TModel : CRL.IModel, new()
-            where TJoin : CRL.IModel, new()
+            where TModel : class
+            where TJoin : class
         {
             var query = CreateLambdaQuery<TModel>();
             query.Join(expression);
@@ -827,7 +780,7 @@ namespace CRL
         /// <param name="query"></param>
         /// <param name="updateValue"></param>
         /// <returns></returns>
-        public abstract int Update<TModel>(LambdaQuery.LambdaQuery<TModel> query, CRL.ParameCollection updateValue) where TModel : CRL.IModel, new();
+        public abstract int Update<TModel>(ILambdaQuery<TModel> query, CRL.ParameCollection updateValue) where TModel : class;
         /// <summary>
         /// 指定条件和参数进行更新
         /// </summary>
@@ -835,7 +788,7 @@ namespace CRL
         /// <param name="expression"></param>
         /// <param name="setValue"></param>
         /// <returns></returns>
-        public int Update<TModel>(Expression<Func<TModel, bool>> expression, CRL.ParameCollection setValue) where TModel : CRL.IModel, new()
+        public int Update<TModel>(Expression<Func<TModel, bool>> expression, CRL.ParameCollection setValue) where TModel : class
         {
             var query = CreateLambdaQuery<TModel>();
             query.Where(expression);
@@ -851,7 +804,7 @@ namespace CRL
         /// <param name="expression"></param>
         /// <param name="model"></param>
         /// <returns></returns>
-        public int Update<TModel>(Expression<Func<TModel, bool>> expression, TModel model) where TModel : CRL.IModel, new()
+        public int Update<TModel>(Expression<Func<TModel, bool>> expression, TModel model) where TModel : class
         {
             var c = GetUpdateField(model);
             if (c.Count == 0)
@@ -860,7 +813,10 @@ namespace CRL
                 //throw new CRLException("更新集合为空");
             }
             var n = Update(expression, c);
-            model.CleanChanges();
+            if (model is IModel)
+            {
+                (model as IModel).CleanChanges();
+            }
             return n;
         }
 
@@ -871,7 +827,7 @@ namespace CRL
         /// <param name="expression"></param>
         /// <param name="updateValue"></param>
         /// <returns></returns>
-        public int Update<TModel>(Expression<Func<TModel, bool>> expression, dynamic updateValue) where TModel : CRL.IModel, new()
+        public int Update<TModel>(Expression<Func<TModel, bool>> expression, dynamic updateValue) where TModel : class
         {
             var properties = updateValue.GetType().GetProperties();
             var c = new ParameCollection();
@@ -888,7 +844,7 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public int Update<TModel>(TModel obj) where TModel : CRL.IModel, new()
+        public int Update<TModel>(TModel obj) where TModel : class
         {
             var c = GetUpdateField(obj);
             if (c.Count == 0)
@@ -916,33 +872,30 @@ namespace CRL
         /// <typeparam name="TModel"></typeparam>
         /// <param name="objs"></param>
         /// <returns></returns>
-        public abstract int Update<TModel>(List<TModel> objs) where TModel : CRL.IModel, new();
+        public abstract int Update<TModel>(List<TModel> objs) where TModel : class;
         #endregion
 
-        /// <summary>
-        /// 创建副本
-        /// </summary>
-        /// <typeparam name="TModel"></typeparam>
-        /// <param name="list"></param>
-        public void SetOriginClone<TModel>(List<TModel> list) where TModel : IModel, new()
-        {
-            if (SettingConfig.UsePropertyChange)
-            {
-                return;
-            }
-            foreach (var item in list)
-            {
-                //item.SetInnerChanges();
-                item.SetOriginClone();
-            }
-        }
-        internal ParameCollection GetUpdateField<TModel>(TModel obj) where TModel : IModel, new()
-        {
-            var c = obj.GetUpdateField(_DBAdapter);
 
-            if (c.Count() > 0 && obj.GetOriginClone() != null)//只有克隆过的才进行检查
+        internal ParameCollection GetUpdateField<TModel>(TModel obj) where TModel : class
+        {
+            ParameCollection c = new ParameCollection();
+            if (obj is IModel)
             {
-                CheckData(obj, false);
+                c = (obj as IModel).GetUpdateField(_DBAdapter);//手动指定变更
+                if (c.Count > 0)
+                {
+                    return c;
+                }
+            }
+
+            var fields = TypeCache.GetProperties(typeof(TModel), true);//全量更新
+            foreach (var f in fields.Values)
+            {
+                if (f.IsPrimaryKey)
+                {
+                    continue;
+                }
+                c.Add(f.MemberName, f.GetValue(obj));
             }
             return c;
 

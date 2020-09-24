@@ -27,13 +27,13 @@ namespace CRL.DBExtend.RelationDB
     /// </summary>
     public sealed partial class DBExtend : AbsDBExtend
     {
-        public DBExtend(DbContext _dbContext)
+        public DBExtend(DbContextInner _dbContext)
             : base(_dbContext)
         {
         }
-        protected override LambdaQuery<TModel> CreateLambdaQuery<TModel>()
+        protected override ILambdaQuery<TModel> CreateLambdaQuery<TModel>()
         {
-            return new RelationLambdaQuery<TModel>(dbContext); 
+            return new RelationLambdaQuery<TModel>(dbContext);
         }
 
 
@@ -253,7 +253,7 @@ namespace CRL.DBExtend.RelationDB
         #endregion
 
         #region 检查表是否被创建
-        internal void CheckTableCreated<T>() where T : IModel, new()
+        internal void CheckTableCreated<T>() where T : class
         {
             CheckTableCreated(typeof(T));
         }
@@ -263,7 +263,7 @@ namespace CRL.DBExtend.RelationDB
         /// </summary>
         public override void CheckTableCreated(Type type)
         {
-            if(SettingConfig.UseReadSeparation)
+            if (SettingConfig.UseReadSeparation)
             {
                 //使用主从分离,不检查表创建
                 return;
@@ -286,7 +286,7 @@ namespace CRL.DBExtend.RelationDB
             tableCheckedCache.TryAdd(typeKey, false);
             //TypeCache.SetDBAdapterCache(type, _DBAdapter);
             var dbName = DatabaseName;
-            var cacheInstance =CRL.ExistsTableCache.ExistsTableCache.Instance;
+            var cacheInstance = CRL.ExistsTableCache.ExistsTableCache.Instance;
             var table = TypeCache.GetTable(type);
             AbsDBExtend db;
             if (!cacheInstance.DataBase.ContainsKey(dbName))
@@ -321,7 +321,7 @@ namespace CRL.DBExtend.RelationDB
                 }
                 string msg;
                 var created = ModelCheck.CreateTable(type, db, out msg);
-       
+
                 cacheInstance.SaveTable(dbName, table, tableName);
                 if (created && initDatas != null)
                 {
@@ -355,7 +355,7 @@ namespace CRL.DBExtend.RelationDB
                 //RecoveryParams();
                 #endregion
             }
-           //二次检查从数据库,对照表结构
+            //二次检查从数据库,对照表结构
             if (!tb.ColumnChecked2)
             {
                 var db2 = copyDBExtend();

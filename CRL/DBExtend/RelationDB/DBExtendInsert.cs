@@ -70,7 +70,7 @@ namespace CRL.DBExtend.RelationDB
                 primaryKey.SetValue(obj, index);
             }
             ClearParame();
-            obj.SetOriginClone();
+            //obj.SetOriginClone();
             UpdateCacheItem<TModel>(obj, null, true);
             //return index;
         }

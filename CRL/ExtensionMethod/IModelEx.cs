@@ -37,16 +37,6 @@ namespace CRL
             return origin.Select(b => (T)b.Clone());
         }
         /// <summary>
-        /// 获取对象原始值
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="origin"></param>
-        /// <returns></returns>
-        public static T GetOrigin<T>(this T origin) where T : IModel
-        {
-            return origin.OriginClone as T;
-        }
-        /// <summary>
         /// 返回分页数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
