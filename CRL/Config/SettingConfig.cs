@@ -22,7 +22,7 @@ namespace CRL
     {
         static SettingConfig()
         {
-            
+            var builder = DBConfigRegister.GetInstance();
         }
 
         /// <summary>

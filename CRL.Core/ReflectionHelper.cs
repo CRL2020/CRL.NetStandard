@@ -20,7 +20,7 @@ namespace CRL.Core
     public static class ReflectionHelper
     {
         static System.Collections.Concurrent.ConcurrentDictionary<Type, object> ReflectionInfoCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, object>();
-        public static ReflectionInfo<TObject> GetInfo<TObject>(System.Reflection.ConstructorInfo constructor = null) where TObject : class
+        public static ReflectionInfo<TObject> GetInfo<TObject>(System.Reflection.ConstructorInfo constructor = null)
         {
             var type = typeof(TObject);
             object info;
@@ -41,7 +41,7 @@ namespace CRL.Core
         void SetValue(object obj, string fieldName, object value);
         object GetValue(object obj, string fieldName);
     }
-    public class ReflectionInfo<TObject>: IReflectionInfo where TObject : class
+    public class ReflectionInfo<TObject>: IReflectionInfo
     {
         public string TableName { get; set; }
 
@@ -201,7 +201,7 @@ namespace CRL.Core
             var ac = GetAccessor(fieldName);
             if (ac != null)
             {
-                ac.Set(obj as TObject, value);
+                ac.Set((TObject)obj, value);
             }
             else
             {
@@ -214,7 +214,7 @@ namespace CRL.Core
             var ac = GetAccessor(fieldName);
             if (ac != null)
             {
-                return ac.Get(obj as TObject);
+                return ac.Get((TObject)obj);
             }
             else
             {

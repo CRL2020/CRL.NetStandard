@@ -10,15 +10,9 @@ namespace CRLTest
     {
         public static void Init()
         {
-            var builder = CRL.DBConfigRegister.CreateInstance();
+            var builder = CRL.DBConfigRegister.GetInstance();
             builder.UseMongoDB();
 
-            var configBuilder = new CRL.Core.ConfigBuilder();
-            configBuilder.UseRedis(t =>
-            {
-                return "Server_204@127.0.0.1:6389";
-            })
-                .UseRedisSession();
             //自定义定位
             builder.RegisterLocation<Code.Sharding.MemberSharding>((t, a) =>
             {
@@ -48,6 +42,11 @@ namespace CRLTest
                 }
                 return new CRL.DBAccessBuild(DBType.MSSQL, "server=.;database=testDb; uid=sa;pwd=123;");
             });
+            //编程方式的索引
+            var propertyBuilder = new CRL.PropertyBuilder<Code.Member>();
+            propertyBuilder.AsIndex(b => b.AccountNo);
+            propertyBuilder.AsUniqueIndex(b => b.Mobile);
+            propertyBuilder.AsUnionIndex("index2", b => new { b.AccountNo, b.Name }, CRL.Attribute.FieldIndexType.非聚集);
         }
     }
 }

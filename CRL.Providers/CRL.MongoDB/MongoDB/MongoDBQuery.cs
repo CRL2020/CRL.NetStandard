@@ -17,6 +17,7 @@ using System.Linq.Expressions;
 using MongoDB.Driver.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using CRL.Core;
 
 namespace CRL.Mongo.MongoDBEx
 {

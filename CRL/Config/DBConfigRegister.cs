@@ -57,16 +57,16 @@ namespace CRL
 
             #region 注册默认数据库类型
             var configBuilder = instance;
-            configBuilder.RegisterDBType(DBType.MSSQL, (conn) =>
+            configBuilder.RegisterDBType(DBType.MSSQL, (dBAccessBuild) =>
             {
-                return new SqlHelper(conn);
+                return new SqlHelper(dBAccessBuild);
             }, (context) =>
             {
                 return new DBAdapter.MSSQLDBAdapter(context);
             });
-            configBuilder.RegisterDBType(DBType.MSSQL2000, (conn) =>
+            configBuilder.RegisterDBType(DBType.MSSQL2000, (dBAccessBuild) =>
             {
-                return new Sql2000Helper(conn);
+                return new Sql2000Helper(dBAccessBuild);
             }, (context) =>
             {
                 return new DBAdapter.MSSQL2000DBAdapter(context);
@@ -79,7 +79,7 @@ namespace CRL
             #endregion
 
         }
-        public static IDbConfigRegister CreateInstance()
+        public static IDbConfigRegister GetInstance()
         {
             return instance;
         }

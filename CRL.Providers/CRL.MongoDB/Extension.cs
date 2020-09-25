@@ -11,9 +11,9 @@ namespace CRL.Mongo
         public static IDbConfigRegister UseMongoDB(this IDbConfigRegister iBuilder)
         {
             var builder = iBuilder as DBConfigRegister;
-            builder.RegisterDBType(DBAccess.DBType.MongoDB, (conn) =>
+            builder.RegisterDBType(DBAccess.DBType.MongoDB, (dBAccessBuild) =>
             {
-                return new MongoDBHelper(conn);
+                return new MongoDBHelper(dBAccessBuild);
             }, (context) =>
             {
                 return new MongoDBAdapter(context);

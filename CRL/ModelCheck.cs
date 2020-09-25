@@ -185,7 +185,7 @@ namespace CRL
             {
                 foreach (var item in tableIndex.Index)
                 {
-                    var field = new Attribute.FieldInnerAttribute() { TableName = table.TableName, MapingName = item.Key, FieldIndexType = item.Value == IndexType.Normal ? Attribute.FieldIndexType.非聚集 : Attribute.FieldIndexType.非聚集唯一 };
+                    var field = new Attribute.FieldInnerAttribute() { TableName = table.TableName, MapingName = item.Key, FieldIndexType = item.Value};
                     list2.Add(dbAdapter.GetColumnIndexScript(field));
                 }
                 foreach (var item in tableIndex.UnionIndex)

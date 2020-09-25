@@ -135,7 +135,11 @@ namespace CRL
         {
             get
             {
-                return __DbHelper.ConnectionString.GetHashCode().ToString();
+                if (!string.IsNullOrEmpty(__DbHelper.ConnectionString))
+                {
+                    return __DbHelper.ConnectionString.GetHashCode().ToString();
+                }
+                return __DbHelper.DatabaseName;
                 //return StringHelper.EncryptMD5(__DbHelper.ConnectionString);
             }
         }

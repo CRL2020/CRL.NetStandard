@@ -5,6 +5,7 @@
 * 主页 http://www.cnblogs.com/hubro
 * 在线文档 http://crl.changqidongli.com/
 */
+using CRL.Attribute;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,18 +18,13 @@ using System.Threading.Tasks;
 namespace CRL
 {
     #region obj
-    enum IndexType
-    {
-        Normal,
-        Unique
-    }
     class TableIndex
     {
         public Type Type;
         /// <summary>
         /// 单字段索引
         /// </summary>
-        public ConcurrentDictionary<string, IndexType> Index = new ConcurrentDictionary<string, IndexType>();
+        public ConcurrentDictionary<string, FieldIndexType> Index = new ConcurrentDictionary<string, FieldIndexType>();
         /// <summary>
         /// 联合索引
         /// </summary>
@@ -60,7 +56,7 @@ namespace CRL
             indexs.Add(typeof(T), tableIndex);
             return tableIndex;
         }
-        public static void AddUnionIndex<T>(string indexName, List<string> fields, Attribute.FieldIndexType fieldIndexType)
+        public static void SetUnionIndex<T>(string indexName, List<string> fields, Attribute.FieldIndexType fieldIndexType)
         {
             indexName = string.Format("{0}_{1}", typeof(T).Name, indexName);
             var indexs = getTableIndex<T>();
@@ -68,7 +64,7 @@ namespace CRL
             {
                 return;
             }
-            var unionIndexItem = new UnionIndexItem();
+            var unionIndexItem = new UnionIndexItem() { FieldIndexType = fieldIndexType };
             for (int i = 0; i < fields.Count(); i++)
             {
                 var field = fields[i];
@@ -96,19 +92,7 @@ namespace CRL
         /// <returns></returns>
         public PropertyBuilder<T> AsIndex<Tresult>(Expression<Func<T, Tresult>> member)
         {
-            var m = member.Body as MemberExpression;
-            if (m == null)
-            {
-                throw new Exception("应为MemberExpression" + member);
-            }
-            var name = m.Member.Name;
-            var indexs = getTableIndex<T>();
-            if (indexs.Index.ContainsKey(name))
-            {
-                return this;
-            }
-            indexs.Index.TryAdd(name, IndexType.Normal);
-            return this;
+            return AsUniqueIndex(member, FieldIndexType.非聚集);
         }
         /// <summary>
         /// 设置非聚集唯一索引
@@ -117,6 +101,11 @@ namespace CRL
         /// <param name="member"></param>
         /// <returns></returns>
         public PropertyBuilder<T> AsUniqueIndex<Tresult>(Expression<Func<T, Tresult>> member)
+        {
+            return AsUniqueIndex(member, FieldIndexType.非聚集唯一);
+        }
+
+        PropertyBuilder<T> AsUniqueIndex<Tresult>(Expression<Func<T, Tresult>> member, FieldIndexType indexType)
         {
             var m = member.Body as MemberExpression;
             if (m == null)
@@ -129,9 +118,10 @@ namespace CRL
             {
                 return this;
             }
-            indexs.Index.TryAdd(name, IndexType.Unique);
+            indexs.Index.TryAdd(name, indexType);
             return this;
         }
+
         /// <summary>
         /// 设置联合索引
         /// </summary>
@@ -158,7 +148,7 @@ namespace CRL
             {
                 return this;
             }
-            var unionIndexItem = new UnionIndexItem();
+
             var fields = new List<string>();
             var table = TypeCache.GetTable(typeof(T));
             for (int i = 0; i < newExpression.Arguments.Count(); i++)
@@ -181,7 +171,7 @@ namespace CRL
                 table.FieldsDic.TryGetValue(m.Member.Name, out var f);
                 fields.Add(f.MapingName);
             }
-            AddUnionIndex<T>(indexName, fields, fieldIndexType);
+            SetUnionIndex<T>(indexName, fields, fieldIndexType);
             return this;
         }
     }

@@ -23,6 +23,11 @@ namespace CRL.EFCore.Extensions
         static DBHelper getDBHelper(DbContext dbContext)
         {
             var dbConnection = dbContext.Database.GetDbConnection();
+            var builder = DBConfigRegister.GetInstance();
+            builder.RegisterDBAccessBuild(dbLocation =>
+            {
+                return new DBAccessBuild(DBType.MSSQL, dbConnection);
+            });
             var dbConnectionTypeName = dbConnection.GetType().Name;
             DBType dBType = DBType.MSSQL;
             switch (dbConnectionTypeName)
@@ -119,7 +124,7 @@ namespace CRL.EFCore.Extensions
                     fields.Add(f.MapingName);
                 }
                 var indexName = string.Join("_", index.Properties.Select(b => b.Name));
-                AbsPropertyBuilder.AddUnionIndex<T>(indexName, fields, isUnique ? Attribute.FieldIndexType.非聚集唯一 : Attribute.FieldIndexType.非聚集);
+                AbsPropertyBuilder.SetUnionIndex<T>(indexName, fields, isUnique ? Attribute.FieldIndexType.非聚集唯一 : Attribute.FieldIndexType.非聚集);
             }
         }
     }

@@ -13,6 +13,8 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Collections;
 using CRL.LambdaQuery;
+using CRL.Core;
+
 namespace CRL
 {
     public static partial class ExtensionMethod

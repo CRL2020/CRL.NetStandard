@@ -8,8 +8,12 @@ namespace CRLTest
     {
         static TestRedis()
         {
-            var config = new CRL.Core.ConfigBuilder();
-            config.UseRedis("Server_204@127.0.0.1:6389");
+            var configBuilder = new CRL.Core.ConfigBuilder();
+            configBuilder.UseRedis(t =>
+            {
+                return "Server_204@127.0.0.1:6389";
+            });
+            configBuilder.UseRedisSession();
         }
         public static void Insert()
         {

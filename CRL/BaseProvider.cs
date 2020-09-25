@@ -108,70 +108,7 @@ namespace CRL
                 return all.Values;
             }
         }
-        #region 查询分布式缓存
-        #region 客户端
-        /// <summary>
-        /// 从服务端查询
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <param name="total"></param>
-        /// <param name="pageIndex"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
-        List<T> QueryFromCacheServer(Expression<Func<T, bool>> expression, out int total, int pageIndex = 0, int pageSize = 0)
-        {
-            var proxy = CacheServerSetting.GetCurrentClient(typeof(T));
-            if (proxy == null)
-            {
-                throw new Exception("未在服务器上找到对应的数据处理类型:" + typeof(T).FullName);
-            }
-            var data = proxy.Query(expression, out total, pageIndex, pageSize);
-            return data;
-        }
-        #endregion
 
-        #region 服务端
-        /// <summary>
-        /// 查询命令处理
-        /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
-        public CacheServer.ResultData DeaCacheCommand(CacheServer.Command command)
-        {
-            if (command.CommandType == CacheServer.CommandType.查询)
-            {
-                var expression = LambdaQuery.CRLExpression.CRLQueryExpression.FromJson(command.Data);
-                return QueryFromCache(expression);
-            }
-            else
-            {
-                //更新缓存
-                var item = (T)SerializeHelper.DeserializeFromJson<T>(command.Data);
-                var db = DBExtend as AbsDBExtend;
-                var updateModel = MemoryDataCache.CacheService.GetCacheTypeKey(typeof(T), db.__DbHelper.DatabaseName);
-                foreach (var key in updateModel)
-                {
-                    MemoryDataCache.CacheService.UpdateCacheItem(key, item, null);
-                }
-                return new CacheServer.ResultData();
-            }
-        }
-
-        /// <summary>
-        /// 使用CRLExpression从缓存中查询
-        /// 仅在缓存接口部署
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        CacheServer.ResultData QueryFromCache(LambdaQuery.CRLExpression.CRLQueryExpression expression)
-        {
-            var _CRLExpression = new CRL.LambdaQuery.CRLExpression.CRLExpressionVisitor<T>().CreateLambda(expression.Exp);
-            int total;
-            var data = QueryFromCacheBase(_CRLExpression, out total, expression.Page, expression.Size);
-            return new CacheServer.ResultData() { Total = total, JsonData = StringHelper.SerializerToJson(data) };
-        }
-        #endregion
-        #endregion
         /// <summary>
         /// 从对象缓存中进行查询
         /// 如果QueryCacheFromRemote为true,则从远端查询
@@ -242,10 +179,10 @@ namespace CRL
         public List<T> QueryFromCache(Expression<Func<T, bool>> expression, out int total, int pageIndex = 0, int pageSize = 0)
         {
             total = 0;
-            if (QueryCacheFromRemote)
-            {
-                return QueryFromCacheServer(expression, out total, pageIndex, pageSize);
-            }
+            //if (QueryCacheFromRemote)
+            //{
+            //    return QueryFromCacheServer(expression, out total, pageIndex, pageSize);
+            //}
             return QueryFromCacheBase(expression, out total, pageIndex, pageSize);
         }
         T QueryFormCacheById(object id)
