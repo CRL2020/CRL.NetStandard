@@ -307,7 +307,7 @@ namespace CRL.Core.Request
         /// <returns></returns>
         public string SendData(string url,string method, string data, out string now_url)
         {
-            string str = "";
+            string responseMsg = "";
             HttpWebResponse response;
             HttpWebRequest request = null;
             try
@@ -317,21 +317,18 @@ namespace CRL.Core.Request
             }
             catch (WebException ex)
             {
+                responseMsg = ex.Message;
                 response = (HttpWebResponse)ex.Response;
                 if (response != null && ContentType == "application/json")
                 {
                     using (StreamReader requestReader = new StreamReader(response.GetResponseStream(), ResponseEncoding))
                     {
-                        str = requestReader.ReadToEnd();
+                        responseMsg += requestReader.ReadToEnd();
                     }
-                }
-                else
-                {
-                    str = ex.Message;
                 }
                 response?.Close();
                 request?.Abort();
-                throw new RequestException(url, data, str);
+                throw new RequestException(url, data, responseMsg);
             }
             //var errorCodes = new int[] { 404, 500 };
             //if (errorCodes.Contains((int)response.StatusCode))
@@ -352,7 +349,7 @@ namespace CRL.Core.Request
                 }
                 using (StreamReader requestReader = new StreamReader(response.GetResponseStream(), ResponseEncoding))
                 {
-                    str = requestReader.ReadToEnd();
+                    responseMsg = requestReader.ReadToEnd();
                 }
             }
             catch(Exception ero)
@@ -363,7 +360,7 @@ namespace CRL.Core.Request
             }
             response?.Close();
             request?.Abort();
-            return str;
+            return responseMsg;
         }
         private static bool CheckValidationResult(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors errors)
         {

@@ -10,5 +10,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\CRL\CRL.csproj" />
+	  <ProjectReference Include="..\CRL.MySql\CRL.MySql.csproj" />
 	</ItemGroup>
 </Project>

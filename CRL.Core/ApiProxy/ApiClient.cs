@@ -171,20 +171,19 @@ namespace CRL.Core.ApiProxy
             Func<string, object> dataCall = (msg) =>
              {
                  apiClientConnect.OnAfterRequest?.Invoke(url, msg);
-                 object returnObj;
+                 object returnObj = msg;
                  try
                  {
-                     if (responseContentType == ContentType.JSON)
+                     if (generType != typeof(string))
                      {
-                         returnObj = SerializeHelper.DeserializeFromJson(msg, generType);
-                     }
-                     else if (responseContentType == ContentType.XML)
-                     {
-                         returnObj = SerializeHelper.XmlDeserialize(generType, msg, apiClientConnect.Encoding);
-                     }
-                     else
-                     {
-                         returnObj = msg;
+                         if (responseContentType == ContentType.JSON)
+                         {
+                             returnObj = SerializeHelper.DeserializeFromJson(msg, generType);
+                         }
+                         else if (responseContentType == ContentType.XML)
+                         {
+                             returnObj = SerializeHelper.XmlDeserialize(generType, msg, apiClientConnect.Encoding);
+                         }
                      }
                  }
                  catch (Exception ero)

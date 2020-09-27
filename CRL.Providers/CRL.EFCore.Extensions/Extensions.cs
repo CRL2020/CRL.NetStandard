@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+using CRL.MySql;
 using System.Linq;
 using System.Reflection;
 
@@ -18,6 +18,8 @@ namespace CRL.EFCore.Extensions
         static Extensions()
         {
             SettingConfig.StringFieldLength = 50;
+            var builder = DBConfigRegister.GetInstance();
+            builder.UseMySql();
         }
 
         static DBHelper getDBHelper(DbContext dbContext)

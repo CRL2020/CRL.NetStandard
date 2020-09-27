@@ -15,25 +15,37 @@ namespace CRL.Core.Remoting
             public string Error;
         }
         static System.Collections.Concurrent.ConcurrentDictionary<string, object> policies = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
-        public static PollyData<T> Invoke<T>(PollyAttribute atr, Func<PollyData<T>> task,string policyKey)
+        public static PollyData<T> Invoke<T>(PollyAttribute atr, Func<PollyData<T>> task, string policyKey)
         {
             if (atr == null)
             {
-                return task();
+                try
+                {
+                    return task();
+                }
+                catch (Exception ero)
+                {
+                    var msg = ero.Message;
+                    if (ero is Request.RequestException)
+                    {
+                        msg = (ero as Request.RequestException).ToString();
+                    }
+                    return new PollyData<T>() { Error = $"接口调用发生错误:{msg}" };
+                }
             }
             Policy<PollyData<T>> policy;
-            var a = policies.TryGetValue(policyKey,out object _policy);
+            var a = policies.TryGetValue(policyKey, out object _policy);
             if (_policy == null)
             {
-                 policy = Policy.NoOp<PollyData<T>>();
+                policy = Policy.NoOp<PollyData<T>>();
                 if (atr.CircuitBreakerCount > 0)//熔断
                 {
                     policy = policy.Wrap(Policy.Handle<Exception>().CircuitBreaker(atr.CircuitBreakerCount, atr.CircuitBreakerTime));
                     var policyFallBack = Policy<PollyData<T>>.Handle<Polly.CircuitBreaker.BrokenCircuitException>()
           .Fallback(() =>
-              {
-                  return new PollyData<T>() { Error = "接口调用被熔断" };
-              });
+          {
+              return new PollyData<T>() { Error = "接口调用被熔断" };
+          });
                     policy = policyFallBack.Wrap(policy);
                 }
                 if (atr.TimeOutTime > TimeSpan.Zero)//超时
@@ -60,7 +72,7 @@ namespace CRL.Core.Remoting
             {
                 return policy.Execute(task);
             }
-            catch(Exception ero)
+            catch (Exception ero)
             {
                 var msg = ero.Message;
                 if (ero is Request.RequestException)
@@ -71,11 +83,24 @@ namespace CRL.Core.Remoting
             }
         }
 
-        public static async Task<PollyData<T>> InvokeAsync<T>(PollyAttribute atr,  Func<Task<PollyData<T>>> task, string policyKey)
+        public static async Task<PollyData<T>> InvokeAsync<T>(PollyAttribute atr, Func<Task<PollyData<T>>> task, string policyKey)
         {
             if (atr == null)
             {
-                return await task();
+                try
+                {
+                    return await task();
+                }
+                catch (Exception ero)
+                {
+                    var msg = ero.Message;
+                    if (ero is Request.RequestException)
+                    {
+                        msg = (ero as Request.RequestException).ToString();
+                    }
+                    return new PollyData<T>() { Error = $"接口调用发生错误:{msg}" };
+                }
+
             }
             Policy<PollyData<T>> policy;
             var a = policies.TryGetValue(policyKey, out object _policy);
