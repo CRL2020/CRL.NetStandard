@@ -77,6 +77,13 @@ namespace CRLTest.Code
             get;
             set;
         }
+        public string InterFaceUser2
+        {
+            get
+            {
+                return InterFaceUser;
+            }
+        }
         public string OrderId
         {
             get;

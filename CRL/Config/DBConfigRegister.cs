@@ -192,7 +192,7 @@ namespace CRL
             var a = configBuilder.LambdaQueryTypeRegister.TryGetValue(dBType, out Type type);
             if (!a)
             {
-                throw new Exception("未引用CRL.MongoDB");
+                throw new Exception($"未找到对应的LambdaQueryType{dBType}");
             }
             return type;
         }

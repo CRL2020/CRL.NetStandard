@@ -15,8 +15,6 @@ using System.Text;
 
 namespace CRL.Core
 {
-
-
     public static class ReflectionHelper
     {
         static System.Collections.Concurrent.ConcurrentDictionary<Type, object> ReflectionInfoCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, object>();
@@ -46,7 +44,7 @@ namespace CRL.Core
         public string TableName { get; set; }
 
         public Func<TObject> CreateObjectInstance;
-        internal Dictionary<string, Accessor> accessorDict;
+        internal Dictionary<string, IAccessor> accessorDict;
         internal Dictionary<string, PropertyInfo> propertyInfo;
         public ReflectionInfo(Type modelType)
         {
@@ -57,12 +55,12 @@ namespace CRL.Core
 
         private void InitInfo(Type modelType)
         {
-            accessorDict = new Dictionary<string, Accessor>();
+            accessorDict = new Dictionary<string, IAccessor>();
             propertyInfo = new Dictionary<string, PropertyInfo>();
             var Properties = modelType.GetProperties();
             foreach (var prop in Properties)
             {
-                Accessor accessor = null;
+                IAccessor accessor = null;
                 //var prop = kv.GetPropertyInfo();
                 string propName = prop.Name;
                 var propType = prop.PropertyType;
@@ -187,9 +185,9 @@ namespace CRL.Core
             }
         }
 
-        public Accessor GetAccessor(string fieldName)
+        public IAccessor GetAccessor(string fieldName)
         {
-            Accessor accessor;
+            IAccessor accessor;
             if (accessorDict.TryGetValue(fieldName, out accessor))
             {
                 return accessor;
@@ -225,13 +223,29 @@ namespace CRL.Core
 
 
 
-
-        public abstract class Accessor
+        public interface IAccessor
+        {
+            void Set(TObject obj, object value);
+            object Get(TObject obj);
+        }
+        public abstract class Accessor<T>: IAccessor
         {
             internal PropertyInfo _prop;
+            Action<TObject, T> setter;
+            Func<TObject, T> getter;
             public Accessor(PropertyInfo prop)
             {
                 _prop = prop;
+                var setMethod = prop.GetSetMethod(true);
+                var getMethod = prop.GetGetMethod(true);
+                if (setMethod != null)
+                {
+                    setter = (Action<TObject, T>)Delegate.CreateDelegate(typeof(Action<TObject, T>), null, setMethod);
+                }
+                if (getMethod != null)
+                {
+                    getter = (Func<TObject, T>)Delegate.CreateDelegate(typeof(Func<TObject, T>), null, getMethod);
+                }
             }
             public void Set(TObject obj, object value)
             {
@@ -241,7 +255,7 @@ namespace CRL.Core
                 }
                 try
                 {
-                    DoSet(obj, value);
+                    setter?.Invoke(obj, (T)value);
                 }
                 catch(Exception ero)
                 {
@@ -251,596 +265,255 @@ namespace CRL.Core
 
             public object Get(TObject obj)
             {
-                return DoGet(obj);
+                if (getter == null)
+                {
+                    return null;
+                }
+                return getter.Invoke(obj);
             }
 
-            protected abstract void DoSet(TObject obj, object value);
-            protected abstract object DoGet(TObject obj);
+            //protected abstract void DoSet(TObject obj, object value);
+            //protected abstract object DoGet(TObject obj);
 
         }
 
         #region Accessor
-        public class EmptyAccessor : Accessor
+
+        public class StringAccessor : Accessor<string>
         {
-            public EmptyAccessor(PropertyInfo prop)
-                : base(prop)
-            {
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return null;
-            }
-
-            protected override void DoSet(TObject obj, object value)
-            {
-                return;
-            }
-        }
-
-        public class StringAccessor : Accessor
-        {
-            Action<TObject, string> setter;
-            Func<TObject, string> getter;
-
             public StringAccessor(PropertyInfo prop)
                 : base(prop)
             {
-                setter = (Action<TObject, string>)Delegate.CreateDelegate(typeof(Action<TObject, string>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, string>)Delegate.CreateDelegate(typeof(Func<TObject, string>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (string)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+                
             }
         }
 
-        public class IntAccessor : Accessor
+        public class IntAccessor : Accessor<int>
         {
-            Action<TObject, int> setter;
-            Func<TObject, int> getter;
             public IntAccessor(PropertyInfo prop)
-                : base(prop)
+         : base(prop)
             {
-                setter = (Action<TObject, int>)Delegate.CreateDelegate(typeof(Action<TObject, int>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, int>)Delegate.CreateDelegate(typeof(Func<TObject, int>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                try
-                {
-                    setter(obj, (int)value);
-                }
-                catch
-                {
-                    setter(obj,Convert.ToInt32(value));
-                }
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class IntNullableAccessor : Accessor
+        public class IntNullableAccessor : Accessor<int?>
         {
-            Action<TObject, int?> setter;
-            Func<TObject, int?> getter;
             public IntNullableAccessor(PropertyInfo prop)
-                : base(prop)
+         : base(prop)
             {
-                setter = (Action<TObject, int?>)Delegate.CreateDelegate(typeof(Action<TObject, int?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, int?>)Delegate.CreateDelegate(typeof(Func<TObject, int?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (int)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class DateTimeAccessor : Accessor
+        public class DateTimeAccessor : Accessor<DateTime>
         {
-            Action<TObject, DateTime> setter;
-            Func<TObject, DateTime> getter;
             public DateTimeAccessor(PropertyInfo prop)
-                : base(prop)
+     : base(prop)
             {
-                setter = (Action<TObject, DateTime>)Delegate.CreateDelegate(typeof(Action<TObject, DateTime>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, DateTime>)Delegate.CreateDelegate(typeof(Func<TObject, DateTime>), null, prop.GetGetMethod(true));
 
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (DateTime)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
             }
         }
 
-        public class DateTimeNullableAccessor : Accessor
+        public class DateTimeNullableAccessor : Accessor<DateTime?>
         {
-            Action<TObject, DateTime?> setter;
-            Func<TObject, DateTime?> getter;
             public DateTimeNullableAccessor(PropertyInfo prop)
-                : base(prop)
+   : base(prop)
             {
-                setter = (Action<TObject, DateTime?>)Delegate.CreateDelegate(typeof(Action<TObject, DateTime?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, DateTime?>)Delegate.CreateDelegate(typeof(Func<TObject, DateTime?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (DateTime?)value);
-            }
 
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
             }
         }
 
-        public class LongAccessor : Accessor
+        public class LongAccessor : Accessor<long>
         {
-            Action<TObject, long> setter;
-            Func<TObject, long> getter;
             public LongAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, long>)Delegate.CreateDelegate(typeof(Action<TObject, long>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, long>)Delegate.CreateDelegate(typeof(Func<TObject, long>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (long)value);
-            }
 
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
             }
         }
 
-        public class LongNullableAccessor : Accessor
+        public class LongNullableAccessor : Accessor<long?>
         {
-            Action<TObject, long?> setter;
-            Func<TObject, long?> getter;
             public LongNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, long?>)Delegate.CreateDelegate(typeof(Action<TObject, long?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, long?>)Delegate.CreateDelegate(typeof(Func<TObject, long?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (long)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class DoubleAccessor : Accessor
+        public class DoubleAccessor : Accessor<double>
         {
-            Action<TObject, double> setter;
-            Func<TObject, double> getter;
             public DoubleAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, double>)Delegate.CreateDelegate(typeof(Action<TObject, double>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, double>)Delegate.CreateDelegate(typeof(Func<TObject, double>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (double)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class DoubleNullableAccessor : Accessor
+        public class DoubleNullableAccessor : Accessor<double?>
         {
-            Action<TObject, double?> setter;
-            Func<TObject, double?> getter;
             public DoubleNullableAccessor(PropertyInfo prop)
-                : base(prop)
+   : base(prop)
             {
-                setter = (Action<TObject, double?>)Delegate.CreateDelegate(typeof(Action<TObject, double?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, double?>)Delegate.CreateDelegate(typeof(Func<TObject, double?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (double)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class FloatAccessor : Accessor
+        public class FloatAccessor : Accessor<float>
         {
-            Action<TObject, float> setter;
-            Func<TObject, float> getter;
             public FloatAccessor(PropertyInfo prop)
-                : base(prop)
+  : base(prop)
             {
-                setter = (Action<TObject, float>)Delegate.CreateDelegate(typeof(Action<TObject, float>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, float>)Delegate.CreateDelegate(typeof(Func<TObject, float>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (float)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class FloatNullableAccessor : Accessor
+        public class FloatNullableAccessor : Accessor<float?>
         {
-            Action<TObject, float?> setter;
-            Func<TObject, float?> getter;
             public FloatNullableAccessor(PropertyInfo prop)
-                : base(prop)
+  : base(prop)
             {
-                setter = (Action<TObject, float?>)Delegate.CreateDelegate(typeof(Action<TObject, float?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, float?>)Delegate.CreateDelegate(typeof(Func<TObject, float?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (float)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class GuidAccessor : Accessor
+        public class GuidAccessor : Accessor<Guid>
         {
-            Action<TObject, Guid> setter;
-            Func<TObject, Guid> getter;
             public GuidAccessor(PropertyInfo prop)
-                : base(prop)
+ : base(prop)
             {
-                setter = (Action<TObject, Guid>)Delegate.CreateDelegate(typeof(Action<TObject, Guid>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, Guid>)Delegate.CreateDelegate(typeof(Func<TObject, Guid>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (Guid)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class GuidNullableAccessor : Accessor
+        public class GuidNullableAccessor : Accessor<Guid?>
         {
-            Action<TObject, Guid?> setter;
-            Func<TObject, Guid?> getter;
             public GuidNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, Guid?>)Delegate.CreateDelegate(typeof(Action<TObject, Guid?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, Guid?>)Delegate.CreateDelegate(typeof(Func<TObject, Guid?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (Guid)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class ByteAccessor : Accessor
+        public class ByteAccessor : Accessor<byte>
         {
-            Action<TObject, byte> setter;
-            Func<TObject, byte> getter;
             public ByteAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, byte>)Delegate.CreateDelegate(typeof(Action<TObject, byte>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, byte>)Delegate.CreateDelegate(typeof(Func<TObject, byte>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                if (value is byte)
-                {
-                    setter(obj, (byte)value);
-                }
-                else
-                {
-                    setter(obj, Convert.ToByte(value));
-                }
 
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
             }
         }
-        public class ByteNullableAccessor : Accessor
+        public class ByteNullableAccessor : Accessor<byte?>
         {
-            Action<TObject, byte?> setter;
-            Func<TObject, byte?> getter;
-
             public ByteNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, byte?>)Delegate.CreateDelegate(typeof(Action<TObject, byte?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, byte?>)Delegate.CreateDelegate(typeof(Func<TObject, byte?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                if (value is byte)
-                {
-                    setter(obj, (byte)value);
-                }
-                else
-                {
-                    setter(obj, Convert.ToByte(value));
-                }
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class ShortAccessor : Accessor
+        public class ShortAccessor : Accessor<short>
         {
-            Action<TObject, short> setter;
-            Func<TObject, short> getter;
             public ShortAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, short>)Delegate.CreateDelegate(typeof(Action<TObject, short>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, short>)Delegate.CreateDelegate(typeof(Func<TObject, short>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (short)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
-        public class ShortNullableAccessor : Accessor
+        public class ShortNullableAccessor : Accessor<short?>
         {
-            Action<TObject, short?> setter;
-            Func<TObject, short?> getter;
             public ShortNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, short?>)Delegate.CreateDelegate(typeof(Action<TObject, short?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, short?>)Delegate.CreateDelegate(typeof(Func<TObject, short?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (short)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class CharAccessor : Accessor
+        public class CharAccessor : Accessor<char>
         {
-            Action<TObject, char> setter;
-            Func<TObject, char> getter;
             public CharAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, char>)Delegate.CreateDelegate(typeof(Action<TObject, char>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, char>)Delegate.CreateDelegate(typeof(Func<TObject, char>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (char)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class CharNullableAccessor : Accessor
+        public class CharNullableAccessor : Accessor<char?>
         {
-            Action<TObject, char?> setter;
-            Func<TObject, char?> getter;
             public CharNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, char?>)Delegate.CreateDelegate(typeof(Action<TObject, char?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, char?>)Delegate.CreateDelegate(typeof(Func<TObject, char?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (char)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class BoolAccessor : Accessor
+        public class BoolAccessor : Accessor<bool>
         {
-            Action<TObject, bool> setter;
-            Func<TObject, bool> getter;
             public BoolAccessor(PropertyInfo prop)
-                : base(prop)
+ : base(prop)
             {
-                setter = (Action<TObject, bool>)Delegate.CreateDelegate(typeof(Action<TObject, bool>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, bool>)Delegate.CreateDelegate(typeof(Func<TObject, bool>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                if (value is bool)
-                {
-                    setter(obj, (bool)value);
-                }
-                else
-                {
-                    setter(obj, Convert.ToUInt16(value) > 0);
-                }
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class BoolNullableAccessor : Accessor
+        public class BoolNullableAccessor : Accessor<bool?>
         {
-            Action<TObject, bool?> setter;
-            Func<TObject, bool?> getter;
             public BoolNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, bool?>)Delegate.CreateDelegate(typeof(Action<TObject, bool?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, bool?>)Delegate.CreateDelegate(typeof(Func<TObject, bool?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                if (value is bool)
-                {
-                    setter(obj, (bool)value);
-                }
-                else
-                {
-                    setter(obj, Convert.ToUInt16(value) > 0);
-                }
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class TimeSpanAccessor : Accessor
+        public class TimeSpanAccessor : Accessor<TimeSpan>
         {
-            Action<TObject, TimeSpan> setter;
-            Func<TObject, TimeSpan> getter;
             public TimeSpanAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, TimeSpan>)Delegate.CreateDelegate(typeof(Action<TObject, TimeSpan>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, TimeSpan>)Delegate.CreateDelegate(typeof(Func<TObject, TimeSpan>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (TimeSpan)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class TimeSpanNullableAccessor : Accessor
+        public class TimeSpanNullableAccessor : Accessor<TimeSpan?>
         {
-            Action<TObject, TimeSpan?> setter;
-            Func<TObject, TimeSpan?> getter;
             public TimeSpanNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, TimeSpan?>)Delegate.CreateDelegate(typeof(Action<TObject, TimeSpan?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, TimeSpan?>)Delegate.CreateDelegate(typeof(Func<TObject, TimeSpan?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (TimeSpan)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class DecimalAccessor : Accessor
+        public class DecimalAccessor : Accessor<decimal>
         {
-            Action<TObject, decimal> setter;
-            Func<TObject, decimal> getter;
             public DecimalAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, decimal>)Delegate.CreateDelegate(typeof(Action<TObject, decimal>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, decimal>)Delegate.CreateDelegate(typeof(Func<TObject, decimal>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (decimal)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class DecimalNullableAccessor : Accessor
+        public class DecimalNullableAccessor : Accessor<decimal?>
         {
-            Action<TObject, decimal?> setter;
-            Func<TObject, decimal?> getter;
             public DecimalNullableAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, decimal?>)Delegate.CreateDelegate(typeof(Action<TObject, decimal?>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, decimal?>)Delegate.CreateDelegate(typeof(Func<TObject, decimal?>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (decimal)value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
-        public class ByteArrayAccessor : Accessor
+        public class ByteArrayAccessor : Accessor<byte[]>
         {
-            Action<TObject, byte[]> setter;
-            Func<TObject, byte[]> getter;
             public ByteArrayAccessor(PropertyInfo prop)
-                : base(prop)
+: base(prop)
             {
-                setter = (Action<TObject, byte[]>)Delegate.CreateDelegate(typeof(Action<TObject, byte[]>), null, prop.GetSetMethod(true));
-                getter = (Func<TObject, byte[]>)Delegate.CreateDelegate(typeof(Func<TObject, byte[]>), null, prop.GetGetMethod(true));
-            }
-            protected override void DoSet(TObject obj, object value)
-            {
-                setter(obj, (byte[])value);
-            }
-            protected override object DoGet(TObject obj)
-            {
-                return getter(obj);
+
             }
         }
 
         #endregion
 
     }
-
-
 }
 
 

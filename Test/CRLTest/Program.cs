@@ -23,6 +23,7 @@ namespace CRLTest
             CRLInit.Init();
 
         label1:
+            //testReflection();
             //Code.TestAll.TestUpdate();
             TestAll();
             //TestRedis.Insert();
@@ -35,6 +36,13 @@ namespace CRLTest
             goto label1;
         }
 
+        static void testReflection()
+        {
+            var Reflection = CRL.Core.ReflectionHelper.GetInfo<Code.ProductData>();
+            var method = Reflection.GetAccessor("InterFaceUser");
+            var obj = new ProductData();
+            method.Set(obj,"222");
+        }
         static void TestAll()
         {
             var array = typeof(Code.TestAll).GetMethods(BindingFlags.Static | BindingFlags.Public).OrderBy(b => b.Name.Length);
