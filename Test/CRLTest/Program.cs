@@ -24,8 +24,8 @@ namespace CRLTest
 
         label1:
             //testReflection();
-            //Code.TestAll.TestUpdate();
-            TestAll();
+            Code.TestAll.TestUpdate();
+            //TestAll();
             //TestRedis.Insert();
             //Console.WriteLine("begin Remove");
             //Console.ReadLine();

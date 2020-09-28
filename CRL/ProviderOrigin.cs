@@ -16,6 +16,7 @@ using CRL.LambdaQuery;
 using CRL.Core;
 //using MongoDB.Driver.Linq;
 using System.Collections;
+using Newtonsoft.Json.Converters;
 
 namespace CRL
 {
@@ -24,7 +25,7 @@ namespace CRL
     /// </summary>
     /// <typeparam name="T">源对象</typeparam>
     public abstract class ProviderOrigin<T>: IProvider
-        where T : IModel, new()
+        where T : class, new()
     {
         /// <summary>
         /// 是否检查重复插入,默认为true
@@ -426,7 +427,7 @@ namespace CRL
         /// </summary>
         /// <param name="list"></param>
         /// <param name="keepIdentity"></param>
-        public virtual void Add<T2>(List<T2> list, bool keepIdentity = false) where T2 : IModel, new()
+        public virtual void Add<T2>(List<T2> list, bool keepIdentity = false) where T2 : class, new()
         {
             BatchInsert(list, keepIdentity);
         }
@@ -436,7 +437,7 @@ namespace CRL
         /// </summary>
         /// <param name="list"></param>
         /// <param name="keepIdentity">是否保持自增主键</param>
-        public virtual void BatchInsert<T2>(List<T2> list, bool keepIdentity = false) where T2 : IModel, new()
+        public virtual void BatchInsert<T2>(List<T2> list, bool keepIdentity = false) where T2 : class, new()
         {
             var db = DBExtend;
             if (list == null || list.Count == 0)
@@ -599,7 +600,7 @@ namespace CRL
         /// <param name="expression"></param>
         /// <returns></returns>
         public int Delete<TJoin>(Expression<Func<T, TJoin, bool>> expression)
-            where TJoin : IModel, new()
+            where TJoin : class, new()
         {
             //var db = DBExtend;
             var query = GetLambdaQuery();
@@ -615,7 +616,7 @@ namespace CRL
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int Update<T2>(T2 item) where T2 : IModel, new()
+        public int Update<T2>(T2 item) where T2 : class, new()
         {
             var db = DBExtend;
             var n = db.Update(item);
@@ -632,15 +633,11 @@ namespace CRL
         /// <typeparam name="T2"></typeparam>
         /// <param name="items"></param>
         /// <returns></returns>
-        public int Update<T2>(List<T2> items) where T2 : IModel, new()
+        public int Update<T2>(List<T2> items) where T2 : class, new()
         {
             if (items.Count == 0)
             {
                 return 0;
-            }
-            if (items.Count > 2000)
-            {
-                throw new Exception("更新数据行数不能超过2000");
             }
             var db = DBExtend;
             return db.Update(items);
@@ -654,9 +651,8 @@ namespace CRL
         /// <returns></returns>
         public int Update(Expression<Func<T, bool>> expression, T model)
         {
-            var query = GetLambdaQuery();
-            query.Where(expression);
-            int n = Update(query as LambdaQuery<T>, model.GetUpdateField());
+            var db = DBExtend;
+            int n = db.Update(expression, model);
             return n;
         }
 
@@ -669,19 +665,13 @@ namespace CRL
         /// <returns></returns>
         public int Update<TOjbect>(Expression<Func<T, bool>> expression, TOjbect updateValue) where TOjbect : class
         {
-            if(updateValue is IDictionary)
+            var db = DBExtend;
+            if (updateValue is IDictionary)
             {
-                return Update(expression, updateValue as IDictionary);
+                var c = new ParameCollection(updateValue as Dictionary<string, object>);
+                return db.Update(expression, c);
             }
-            var properties = updateValue.GetType().GetProperties();
-            var c = new ParameCollection();
-            foreach (var p in properties)
-            {
-                c.Add(p.Name, p.GetValue(updateValue));
-            }
-            var query = GetLambdaQuery();
-            query.Where(expression);
-            int n = Update(query as LambdaQuery<T>, c);
+            int n = db.Update(expression, updateValue);
             return n;
         }
 
@@ -694,9 +684,9 @@ namespace CRL
         /// <returns></returns>
         public int Update<TResult>(Expression<Func<T, bool>> expression, Expression<Func<T, TResult>> newExpress)
         {
-          
+
             var c = new ParameCollection();
-            if(newExpress.Body is NewExpression)
+            if (newExpress.Body is NewExpression)
             {
                 var newExp = newExpress.Body as NewExpression;
                 for (int i = 0; i < newExp.Members.Count; i++)
@@ -708,7 +698,7 @@ namespace CRL
                     c.Add(m.Name, value);
                 }
             }
-            else if(newExpress.Body is MemberInitExpression)
+            else if (newExpress.Body is MemberInitExpression)
             {
                 var memberInitExp = (newExpress.Body as MemberInitExpression);
 
@@ -719,10 +709,8 @@ namespace CRL
                     c.Add(m.Member.Name, value);
                 }
             }
-  
-            var query = GetLambdaQuery();
-            query.Where(expression);
-            int n = Update(query as LambdaQuery<T>, c);
+            var db = DBExtend;
+            var n = db.Update(expression, c);
             return n;
         }
 
@@ -730,17 +718,14 @@ namespace CRL
         /// 指定条件和参数进行更新[基本方法]
         /// </summary>
         /// <param name="expression">条件</param>
-        /// <param name="setValue">值</param>
+        /// <param name="updateValue">值</param>
         /// <returns></returns>
-        public int Update(Expression<Func<T, bool>> expression, IDictionary setValue)
+        public int Update(Expression<Func<T, bool>> expression, Dictionary<string, object> updateValue)
         {
-            var query = GetLambdaQuery();
-            query.Where(expression);
-            int n = Update(query as LambdaQuery<T>, setValue);
+            var db = DBExtend;
+            var c = new ParameCollection(updateValue);
+            int n = db.Update(expression, c);
             return n;
-            //var db = DBExtend;
-            //int n = db.Update(expression, setValue);
-            //return n;
         }
         /// <summary>
         /// 按完整查询条件更新
@@ -748,16 +733,11 @@ namespace CRL
         /// <param name="query"></param>
         /// <param name="updateValue">要按字段值更新,需加前辍$ 如 c["UserId"] = "$UserId"</param>
         /// <returns></returns>
-        public int Update(ILambdaQuery<T> query, IDictionary updateValue)
+        public int Update(ILambdaQuery<T> query, Dictionary<string, object> updateValue)
         {
             var db = DBExtend;
-            var iDic = updateValue as Dictionary<string, object>;
-            if (iDic == null)
-            {
-                throw new Exception("无法转换为Dictionary<string, object>");
-            }
-            var dic = new ParameCollection(iDic);
-            return db.Update(query as LambdaQuery<T>, dic);
+            var c = new ParameCollection(updateValue);
+            return db.Update(query, c);
         }
         /// <summary>
         /// 关联更新
@@ -766,13 +746,14 @@ namespace CRL
         /// <param name="expression"></param>
         /// <param name="updateValue">要按字段值更新,需加前辍$ 如 c["UserId"] = "$UserId"</param>
         /// <returns></returns>
-        public int Update<TJoin>(Expression<Func<T, TJoin, bool>> expression, IDictionary updateValue)
-            where TJoin : IModel, new()
+        public int Update<TJoin>(Expression<Func<T, TJoin, bool>> expression, Dictionary<string, object> updateValue)
+            where TJoin : class, new()
         {
-            //return DBExtend.Update(expression, updateValue);
+            var db = DBExtend;
+            var c = new ParameCollection(updateValue);
             var query = GetLambdaQuery();
             query.Join(expression);
-            return Update(query as LambdaQuery<T>, updateValue);
+            return db.Update(query, c);
         }
         #endregion
 

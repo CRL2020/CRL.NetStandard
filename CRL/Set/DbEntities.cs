@@ -20,7 +20,7 @@ namespace CRL.Set
     {
         //public abstract void Save(); 
     }
-    public class DbEntities<T> : DbSet<T> where T : IModel, new()
+    public class DbEntities<T> : DbSet<T> where T : class, new()
     {
         internal DbEntities(string name, DbContextInner dbContext, Expression<Func<T, bool>> relationExp) : base(name, dbContext)
         {

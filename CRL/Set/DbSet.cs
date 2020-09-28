@@ -16,7 +16,7 @@ namespace CRL.Set
     /// DbSet
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DbSet<T> : IDbSet where T : IModel, new()
+    public class DbSet<T> : IDbSet where T : class, new()
     {
         //#region inner
         //class DbSetProvider : BaseProvider<T>

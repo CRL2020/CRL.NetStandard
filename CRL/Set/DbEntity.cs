@@ -19,7 +19,7 @@ namespace CRL.Set
     /// 对象关联
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DbEntity<T> where T : IModel, new()
+    public class DbEntity<T> where T : class, new()
     {
         Expression<Func<T, bool>> _relationExp;
         DbContextInner _dbContext;

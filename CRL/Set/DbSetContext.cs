@@ -30,7 +30,7 @@ namespace CRL.Set
         }
         DbContextInner _dbContext;
         //Dictionary<Type, IDbSet> _DbSets = new Dictionary<Type, IDbSet>();
-        protected DbSet<T> GetDbSet<T>() where T : IModel, new()
+        protected DbSet<T> GetDbSet<T>() where T : class, new()
         {
             var name = $"set_{typeof(T)}";
             var a = _dbContext._DbSets.TryGetValue(name, out IDbSet set);

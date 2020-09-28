@@ -23,7 +23,7 @@ namespace CRL
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public abstract class BaseProvider<T> : ProviderOrigin<T>
-        where T : IModel, new()
+        where T : class, new()
     {
         internal override DbContextInner GetDbContext()
         {

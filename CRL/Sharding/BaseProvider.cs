@@ -17,7 +17,7 @@ namespace CRL.Sharding
     /// </summary>
     /// <typeparam name="TModel"></typeparam>
     public abstract class BaseProvider<TModel> : ProviderOrigin<TModel>
-        where TModel : IModel, new()
+        where TModel : class, new()
     {
         /// <summary>
         /// 设置定位

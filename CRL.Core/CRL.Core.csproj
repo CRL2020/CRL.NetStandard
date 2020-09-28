@@ -5,6 +5,9 @@
    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>5.0.5</Version>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="ConsulClient\ConsulGateway.cs" />
   </ItemGroup>

@@ -196,6 +196,7 @@ namespace CRL.DBExtend.RelationDB
             }
             return Update<TModel>(updateValue, conditions);
         }
+        int MaxSqlLength => 1024 * 100;
         public override int Update<TModel>(List<TModel> objs)
         {
             if(!objs.Any())
@@ -234,8 +235,18 @@ namespace CRL.DBExtend.RelationDB
                 var setString = string.Join(",", c2.Select(b => string.Format("{0}='{1}'", _DBAdapter.KeyWordFormat(b.Key), b.Value)));
                 string sql = _DBAdapter.GetUpdateSql(table.TableName, setString, where);
                 sb.AppendLine(sql + ";");
+
+                if (sb.Length > MaxSqlLength)
+                {
+                    db.Execute(sb.ToString());
+                    sb.Clear();
+                }
             }
-            return db.Execute(sb.ToString());
+            if (sb.Length > 1)
+            {
+                db.Execute(sb.ToString());
+            }
+            return objs.Count;
         }
         ///// <summary>
         ///// 关联更新
