@@ -181,47 +181,6 @@ namespace CRL.Core.Request
             }
         }
 
-        private MemoryStream CopyStream(Stream stream)
-        {
-            MemoryStream result = new MemoryStream();
-            byte[] buffer = new byte[0x1000];
-            while (true)
-            {
-                int size = stream.Read(buffer, 0, 0x1000);
-                if (size <= 0)
-                {
-                    result.Seek(0L, SeekOrigin.Begin);
-                    return result;
-                }
-                result.Write(buffer, 0, size);
-            }
-        }
-        /// <summary>
-        /// 请求内容
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public string GetSource(string url)
-        {
-            var dataStream = GetStream(url,out HttpWebRequest request);
-            string responseFromServer;
-            try
-            {
-                using (var reader = new StreamReader(dataStream, ResponseEncoding))
-                {
-                    responseFromServer = reader.ReadToEnd();
-                }
-                dataStream.Close();
-            }
-            catch (Exception ero)
-            {
-                dataStream.Close();
-                request?.Abort();
-                throw ero;
-            }
-            request?.Abort();
-            return responseFromServer;
-        }
         /// <summary>
         /// 请求内容
         /// </summary>
@@ -229,7 +188,7 @@ namespace CRL.Core.Request
         /// <returns></returns>
         public string Get(string url)
         {
-            return GetSource(url);
+            return SendData(url, "GET", "");
         }
         /// <summary>
         /// POST内容
@@ -239,13 +198,11 @@ namespace CRL.Core.Request
         /// <returns></returns>
         public string Post(string url, string data)
         {
-            string out_str;
-            return SendData(url,"POST", data, out out_str);
+            return SendData(url,"POST", data);
         }
         public string Put(string url, string data)
         {
-            string out_str;
-            return SendData(url, "PUT", data, out out_str);
+            return SendData(url, "PUT", data);
         }
         static SimplePool<HttpClient> httpClientPool = new SimplePool<HttpClient>(()=>
         {
@@ -263,6 +220,16 @@ namespace CRL.Core.Request
             foreach (var kv in heads)
             {
                 httpClient.DefaultRequestHeaders.Add(kv.Key, kv.Value.ToString());
+            }
+            if (RequestWidthCookie)
+            {
+                var cookies = new List<string>();
+                foreach(Cookie c in GetCurrentCookie())
+                {
+                    var str = $"{c.Name}={c.Value}";
+                    cookies.Add(str);
+                }
+                httpClient.DefaultRequestHeaders.Add("Cookie", string.Join("&", cookies));
             }
             var content = new StringContent(data, ContentEncoding);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentType);
@@ -283,10 +250,7 @@ namespace CRL.Core.Request
                     break;
             }
             httpClientPool.Return(httpClient);
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("服务器错误:" + response.StatusCode);
-            }
+
             string result;
             using (var myResponseStream = await response.Content.ReadAsStreamAsync())
             {
@@ -294,6 +258,10 @@ namespace CRL.Core.Request
                 {
                     result = myStreamReader.ReadToEnd();
                 }
+            }
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new RequestException(url, data, result);
             }
             //httpClientPool.Return(httpClient);
             return result;
@@ -305,66 +273,9 @@ namespace CRL.Core.Request
         /// <param name="data"></param>
         /// <param name="now_url"></param>
         /// <returns></returns>
-        public string SendData(string url,string method, string data, out string now_url)
+        public string SendData(string url,string method, string data)
         {
-            string responseMsg = "";
-            HttpWebResponse response;
-            HttpWebRequest request = null;
-            try
-            {
-                request = CreateWebRequest(url, method, data);
-                response = request.GetResponse() as HttpWebResponse;
-            }
-            catch (WebException ex)
-            {
-                responseMsg = ex.Message;
-                response = (HttpWebResponse)ex.Response;
-                if (response != null && ContentType == "application/json")
-                {
-                    using (StreamReader requestReader = new StreamReader(response.GetResponseStream(), ResponseEncoding))
-                    {
-                        responseMsg += requestReader.ReadToEnd();
-                    }
-                }
-                response?.Close();
-                request?.Abort();
-                throw new RequestException(url, data, responseMsg);
-            }
-            //var errorCodes = new int[] { 404, 500 };
-            //if (errorCodes.Contains((int)response.StatusCode))
-            //{
-            //    throw new Exception("服务器返回内部错误"+ response.StatusCode);
-            //}
-            SaveCookies(response.Cookies);
-            now_url = response.ResponseUri.ToString();
-
-            try
-            {
-                if (response.StatusCode == HttpStatusCode.Found)
-                {
-                    string url1 = response.Headers["Location"];
-                    now_url = url1;
-                    CurrentUrl = url1;
-                    return GetSource(url1);
-                }
-                using (StreamReader requestReader = new StreamReader(response.GetResponseStream(), ResponseEncoding))
-                {
-                    responseMsg = requestReader.ReadToEnd();
-                }
-            }
-            catch(Exception ero)
-            {
-                response?.Close();
-                request?.Abort();
-                throw new RequestException(url, data, ero.Message);
-            }
-            response?.Close();
-            request?.Abort();
-            return responseMsg;
-        }
-        private static bool CheckValidationResult(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors errors)
-        {
-            return true; //总是接受  
+            return SendDataAsync(url, method, data).Result;
         }
         string certPasswd, certFile;
         /// <summary>
@@ -377,137 +288,7 @@ namespace CRL.Core.Request
             certFile = _certFile;
             certPasswd = _certPasswd;
         }
-        /// <summary>
-        /// 创建请求
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="postData"></param>
-        /// <returns></returns>
-        public HttpWebRequest CreateWebRequest(string url, string method, string postData)
-        {
-            Uri URI = new Uri(url);
-            HttpWebRequest request;
-            if (url.StartsWith("https", StringComparison.OrdinalIgnoreCase))
-            {
-                ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(CheckValidationResult);
-                request = WebRequest.Create(url) as HttpWebRequest;
-                request.ProtocolVersion = HttpVersion.Version10;
 
-                if (!string.IsNullOrEmpty(certFile))
-                {
-                    request.ClientCertificates.Add(new System.Security.Cryptography.X509Certificates.X509Certificate2(this.certFile, this.certPasswd));
-                }
-
-            }
-            else
-            {
-                request = WebRequest.Create(url) as HttpWebRequest;
-            }
-
-            if (!string.IsNullOrEmpty(ProxyHost))
-            {
-                System.Net.WebProxy proxy = new WebProxy(ProxyHost);
-                request.Proxy = proxy;
-            }
-            else
-            {
-                //request.Proxy = WebRequest.GetSystemWebProxy();
-            }
-
-            request.KeepAlive = true;
-            request.AllowAutoRedirect = false;
-            //request.Timeout = 15000;
-            request.Accept = Accept;
-            request.UserAgent = "User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
-            //request.Referer = url;
-            foreach (var kv in heads)
-            {
-                //request.Headers.Add(kv.Key, kv.Value.ToString());
-                request.Headers[kv.Key] = kv.Value.ToString();
-            }
-            if (request.CookieContainer == null)
-            {
-                request.CookieContainer = new CookieContainer();
-            }
-            if (RequestWidthCookie)
-            {
-                //附加上Cookie
-                CookieCollection tmpCookies = GetCurrentCookie();
-                foreach (Cookie cookie in tmpCookies)
-                {
-                    cookie.Domain = URI.Host;
-                    if (cookie.Value.Length != 0)
-                    {
-                        request.CookieContainer.Add(cookie);
-                    }
-                }
-            }
-            //RequestWidthCookie = true;
-            if ((method!="GET") && (postData.Length > 0))
-            {
-                request.ContentType = ContentType;
-                request.Method = method;
-                request.ServicePoint.Expect100Continue = false;
-                //EventLog.Log(request.ToJson(), "post");
-                byte[] b = ContentEncoding.GetBytes(postData);
-                request.ContentLength = b.Length;
-                using (Stream sw = request.GetRequestStream())
-                {
-                    try
-                    {
-                        sw.Write(b, 0, b.Length);
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                }
-            }
-            return request;
-        }
-        /// <summary>
-        /// 重新定位后当前地址
-        /// </summary>
-        public string CurrentUrl;
-        /// <summary>
-        /// 获取请求Stream
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public Stream GetStream(string url, out HttpWebRequest request)
-        {
-            MemoryStream dataStream;
-            request = null;
-            try
-            {
-                request = CreateWebRequest(url, "GET",null);
-            }
-            catch (Exception ero)
-            {
-                request?.Abort();
-                throw new RequestException(url, "", ero.Message);
-            }
-            HttpWebResponse response = null;
-            try
-            {
-                response = (HttpWebResponse)request.GetResponse();
-                SaveCookies(response.Cookies);
-                if (response.StatusCode == HttpStatusCode.Found)
-                {
-                    string url1 = response.Headers["Location"];
-                    CurrentUrl = url1;
-                    return GetStream(url1, out request);
-                }
-                dataStream = CopyStream(response.GetResponseStream());
-            }
-            catch (Exception ero)
-            {
-                request?.Abort();
-                response?.Close();
-                throw new RequestException(url, "", ero.Message);
-            }
-            return dataStream;
-        }
     }
     public class RequestException : Exception
     {

@@ -51,6 +51,7 @@ namespace CRL.RabbitMQ
                  }
                  return connection.CreateModel();
              });
+            Log($"登录为 {host}@{user}");
         }
         object sync_root = new object();
         public void TryConnect()

@@ -94,7 +94,11 @@ namespace CRL.Oracle
         }
         protected override DbCommand createCmd_(string cmdText, DbConnection conn)
         {
-            return new OracleCommand(cmdText, (OracleConnection)conn);
+            var cmd = new OracleCommand(cmdText, (OracleConnection)conn)
+            {
+                BindByName = true
+            };
+            return cmd;
         }
         protected override DbCommand createCmd_()
         {

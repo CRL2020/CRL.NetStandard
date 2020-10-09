@@ -17,8 +17,16 @@ namespace CRL.Core.ApiProxy
         /// </summary>
         public string Name
         {
-            get;set;
+            get; set;
         }
+        /// <summary>
+        /// 主机名称
+        /// </summary>
+        public string HostName { get; set; }
+        /// <summary>
+        /// 主机地址
+        /// </summary>
+        public string HostUrl { get; set; }
         /// <summary>
         /// 发送内容类型
         /// </summary>
