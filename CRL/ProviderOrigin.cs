@@ -846,7 +846,7 @@ namespace CRL
         /// <param name="action"></param>
         public void PackageMethod(Action action)
         {
-            using (var context = new CRLDbConnectionScope())
+            using (var context = new DbConnectionScope())
             {
                 try
                 {
@@ -873,7 +873,7 @@ namespace CRL
         {
             error = "";
             var _useCRLContext = CallContext.GetData<bool>(Base.UseCRLContextFlagName);//事务已开启,内部事务不用处理
-            using (var context = new CRLDbConnectionScope())
+            using (var context = new DbConnectionScope())
             {
                 var db = GetDBExtend();
                 if (!_useCRLContext)

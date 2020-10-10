@@ -18,14 +18,14 @@ namespace CRL
     /// 使数据访问在同一个范围内
     /// 只能同一个库
     /// </summary>
-    public class CRLDbConnectionScope : IDisposable
+    public class DbConnectionScope : IDisposable
     {
         bool canClose = false;
         Guid name;
         /// <summary>
         /// 使数据访问在同一个范围内
         /// </summary>
-        public CRLDbConnectionScope()
+        public DbConnectionScope()
         {
             name = System.Guid.NewGuid();
             var _useCRLContext = CallContext.GetData<bool>(Base.UseCRLContextFlagName);//事务已开启,内部事务不用处理

@@ -10,7 +10,7 @@ using System.Text;
 namespace CRL.NetCore
 {
 #if NETSTANDARD
-    public static class CRLExtensions
+    public static class Extensions
     {
         public static void AddCRL<T>(this IServiceCollection services) where T : class, IDBLocationCreator
         {
