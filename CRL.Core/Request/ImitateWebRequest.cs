@@ -14,18 +14,17 @@ namespace CRL.Core.Request
     /// <summary>
     /// 模拟WEB请求,并附带上COOKIE
     /// </summary>
-    public class ImitateWebRequest
+    public class ImitateWebRequest : IDisposable
     {
         static ImitateWebRequest()
         {
             ServicePointManager.DefaultConnectionLimit = Int32.MaxValue;
         }
+        HttpClient _httpClient;
         /// <summary>
         /// 创建附带COOKIE的请求
         /// </summary>
-        /// <param name="_cookieName">指定识别同一网站的COOKIE名</param>
-        /// <param name="_encoding"></param>
-        public ImitateWebRequest(string _cookieName, Encoding _encoding = null)
+        public ImitateWebRequest(string _cookieName, Encoding _encoding = null, HttpClient httpClient = null)
         {
             if (_encoding == null)
             {
@@ -33,6 +32,7 @@ namespace CRL.Core.Request
             }
             cookieName = _cookieName;
             ContentEncoding = _encoding;
+            _httpClient = httpClient;
         }
         #region 请求属性
         /// <summary>
@@ -198,21 +198,25 @@ namespace CRL.Core.Request
         /// <returns></returns>
         public string Post(string url, string data)
         {
-            return SendData(url,"POST", data);
+            return SendData(url, "POST", data);
         }
         public string Put(string url, string data)
         {
             return SendData(url, "PUT", data);
         }
-        static SimplePool<HttpClient> httpClientPool = new SimplePool<HttpClient>(()=>
+        static SimplePool<HttpClient> httpClientPool = new SimplePool<HttpClient>(() =>
         {
             return new HttpClient();
-        },20,1);
-        public async Task<string> SendDataAsync(string url, string method, string data)
+        }, 20, 1);
+        public async Task<HttpResponseResult> SendDataAsyncBase(string url, string method, string data)
         {
             //httpclient的问题
             //https://www.cnblogs.com/jlion/p/12813692.html
-            var httpClient = httpClientPool.Rent();
+            HttpClient httpClient = _httpClient;
+            if (_httpClient == null)
+            {
+                httpClient = httpClientPool.Rent();
+            }
             httpClient.DefaultRequestHeaders.Clear();
             //httpClient.BaseAddress = new Uri(url);
             httpClient.DefaultRequestHeaders.Add("ContentType", ContentType);
@@ -224,7 +228,7 @@ namespace CRL.Core.Request
             if (RequestWidthCookie)
             {
                 var cookies = new List<string>();
-                foreach(Cookie c in GetCurrentCookie())
+                foreach (Cookie c in GetCurrentCookie())
                 {
                     var str = $"{c.Name}={c.Value}";
                     cookies.Add(str);
@@ -249,21 +253,30 @@ namespace CRL.Core.Request
                     response = await httpClient.GetAsync(url);
                     break;
             }
-            httpClientPool.Return(httpClient);
-
-            string result;
-            using (var myResponseStream = await response.Content.ReadAsStreamAsync())
+            if (_httpClient == null)
             {
-                using (var myStreamReader = new StreamReader(myResponseStream, ResponseEncoding))
+                httpClientPool.Return(httpClient);
+            }
+            var stream = await response.Content.ReadAsStreamAsync();
+            return new HttpResponseResult(stream, response.StatusCode);
+        }
+
+        public async Task<string> SendDataAsync(string url, string method, string data)
+        {
+            string result;
+            HttpStatusCode statusCode;
+            using (var responseResult = await SendDataAsyncBase(url, method, data))
+            {
+                statusCode = responseResult.StatusCode;
+                using (var myStreamReader = new StreamReader(responseResult.Stream, ResponseEncoding))
                 {
                     result = myStreamReader.ReadToEnd();
                 }
             }
-            if (response.StatusCode != HttpStatusCode.OK)
+            if (statusCode != HttpStatusCode.OK)
             {
-                throw new RequestException(url, data, result);
+                throw new RequestException(url, data, result, ((int)statusCode).ToString());
             }
-            //httpClientPool.Return(httpClient);
             return result;
         }
         /// <summary>
@@ -273,9 +286,9 @@ namespace CRL.Core.Request
         /// <param name="data"></param>
         /// <param name="now_url"></param>
         /// <returns></returns>
-        public string SendData(string url,string method, string data)
+        public string SendData(string url, string method, string data)
         {
-            return SendDataAsync(url, method, data).Result;
+            return AsyncInvoke.RunSync(() => SendDataAsync(url, method, data));
         }
         string certPasswd, certFile;
         /// <summary>
@@ -289,15 +302,35 @@ namespace CRL.Core.Request
             certPasswd = _certPasswd;
         }
 
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
+    }
+    public class HttpResponseResult : IDisposable
+    {
+        public Stream Stream;
+        public HttpStatusCode StatusCode;
+        public HttpResponseResult(Stream stream, HttpStatusCode code)
+        {
+            Stream = stream;
+            StatusCode = code;
+        }
+        public void Dispose()
+        {
+            Stream?.Dispose();
+        }
     }
     public class RequestException : Exception
     {
         public string Url;
         public string Args;
-        public RequestException(string url,string args,string ero):base(ero)
+        public string ErrorCode;
+        public RequestException(string url, string args, string ero, string code) : base(ero)
         {
             Url = url;
             Args = args;
+            ErrorCode = code;
         }
         public override string ToString()
         {

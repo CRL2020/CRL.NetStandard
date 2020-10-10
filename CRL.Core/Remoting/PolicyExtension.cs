@@ -13,6 +13,7 @@ namespace CRL.Core.Remoting
         {
             public T Data;
             public string Error;
+            public string ErrorCode;
         }
         static System.Collections.Concurrent.ConcurrentDictionary<string, object> policies = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
         public static PollyData<T> Invoke<T>(PollyAttribute atr, Func<PollyData<T>> task, string policyKey)
@@ -26,11 +27,14 @@ namespace CRL.Core.Remoting
                 catch (Exception ero)
                 {
                     var msg = ero.Message;
+                    var errorCode = "";
                     if (ero is Request.RequestException)
                     {
-                        msg = (ero as Request.RequestException).ToString();
+                        var requestException = ero as Request.RequestException;
+                        errorCode = requestException.ErrorCode;
+                        msg = requestException.ToString();
                     }
-                    return new PollyData<T>() { Error = $"接口调用发生错误:{msg}" };
+                    return new PollyData<T>() { Error = $"接口调用发生错误:{msg}", ErrorCode = errorCode };
                 }
             }
             Policy<PollyData<T>> policy;
@@ -94,11 +98,14 @@ namespace CRL.Core.Remoting
                 catch (Exception ero)
                 {
                     var msg = ero.Message;
+                    var errorCode = "";
                     if (ero is Request.RequestException)
                     {
-                        msg = (ero as Request.RequestException).ToString();
+                        var requestException = ero as Request.RequestException;
+                        errorCode = requestException.ErrorCode;
+                        msg = requestException.ToString();
                     }
-                    return new PollyData<T>() { Error = $"接口调用发生错误:{msg}" };
+                    return new PollyData<T>() { Error = $"接口调用发生错误:{msg}", ErrorCode = errorCode };
                 }
 
             }

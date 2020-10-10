@@ -10,6 +10,8 @@ namespace MqTest
     {
         static void Main(string[] args)
         {
+            DirectRabbitMQTest.test();
+            return;
             var config = new QueueConfig();
             //config.UseRabbitMQ("127.0.0.1", "guest", "guest");
             //config.UseRedis("Server_204@127.0.0.1:6389");

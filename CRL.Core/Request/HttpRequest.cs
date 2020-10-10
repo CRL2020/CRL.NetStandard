@@ -5,6 +5,8 @@ using System.Text;
 using System.Net;
 using System.IO;
 using System.Net.Security;
+using System.Threading.Tasks;
+
 namespace CRL.Core.Request
 {
 	public class HttpRequest
@@ -63,11 +65,12 @@ namespace CRL.Core.Request
         /// <param name="url"></param>
         /// <param name="proxyHost">代理地址</param>
         /// <returns></returns>
-        public static Stream HttpGet(string url, string proxyHost, out HttpWebRequest request)
+        public static async Task<Stream> HttpGet(string url, string proxyHost)
         {
             var requestInstance = new ImitateWebRequest(new Uri(url).Host, Encoding.UTF8);
             requestInstance.ProxyHost = proxyHost;
-            return requestInstance.GetStream(url, out request);
+            var result = await requestInstance.SendDataAsyncBase(url, "GET", "");
+            return result.Stream;
         }
-	}
+    }
 }

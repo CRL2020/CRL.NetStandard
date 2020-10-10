@@ -134,7 +134,7 @@ namespace CRL.Core.Remoting
             }, pollyKey);
             if (!string.IsNullOrEmpty(pollyData.Error))
             {
-                ThrowError(pollyData.Error, "500");
+                ThrowError(pollyData.Error, pollyData.ErrorCode);
             }
             //转换为指定的类型
             return dataCall(pollyData.Data);
@@ -144,12 +144,12 @@ namespace CRL.Core.Remoting
             //var pollyCtx = new Polly.Context();
             var pollyData = PollyExtension.Invoke(pollyAttr, () =>
             {
-                var res = request.SendData(url, httpMethod.ToString(), postArgs, out string url2);
+                var res = request.SendData(url, httpMethod.ToString(), postArgs);
                 return new PollyExtension.PollyData<string>() { Data = res };
             }, pollyKey);
             if (!string.IsNullOrEmpty(pollyData.Error))
             {
-                ThrowError(pollyData.Error, "500");
+                ThrowError(pollyData.Error, pollyData.ErrorCode);
             }
             //转换为指定的类型
             return dataCall(pollyData.Data);

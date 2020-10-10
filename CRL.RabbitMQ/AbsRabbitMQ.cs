@@ -113,7 +113,10 @@ namespace CRL.RabbitMQ
             var channel = channelPool.Rent();
             try
             {
-                channel.ExchangeDeclare(__exchangeName, exchangeType, false, false, null);
+                if (!string.IsNullOrEmpty(__exchangeName))
+                {
+                    channel.ExchangeDeclare(__exchangeName, exchangeType, false, false, null);
+                }
                 foreach (var msg in msgs)
                 {
                     var sendBytes = Encoding.UTF8.GetBytes(msg.ToJson());

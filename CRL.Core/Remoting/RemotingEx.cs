@@ -8,9 +8,13 @@ namespace CRL.Core.Remoting
 {
     public class RemotingEx : Exception
     {
-        public RemotingEx(string msg):base(msg)
+        public RemotingEx(string msg) : base(msg)
         {
         }
         public string Code { get; set; }
+        public override string ToString()
+        {
+            return $"{Code} {base.Message}";
+        }
     }
 }
