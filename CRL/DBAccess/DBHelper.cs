@@ -251,7 +251,7 @@ namespace CRL.DBAccess
         {
             if (dBAccessBuild._connection != null)
             {
-                AutoCloseConn = false;
+                AutoCloseConn = true;
                 currentConn = dBAccessBuild._connection;
                 return;
             }

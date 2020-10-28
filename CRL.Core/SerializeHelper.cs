@@ -15,14 +15,6 @@ namespace CRL.Core
 {
     public static class SerializeHelper
     {
-        static SerializeHelper()
-        {
-            JsonConvert.DefaultSettings = () =>
-            {
-                var jSetting = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
-                return jSetting;
-            };
-        }
         #region 二进制格式序列化和反序列化
 
         /// <summary>
