@@ -27,6 +27,10 @@ namespace CRL.Core
             var a = localDatas.TryGetValue(contextName, out AsyncLocal<object> v);
             if (a)
             {
+                if (v.Value == null)
+                {
+                    return default(T);
+                }
                 return (T)v.Value;
             }
             return default(T);
