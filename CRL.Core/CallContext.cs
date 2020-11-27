@@ -37,8 +37,15 @@ namespace CRL.Core
         }
         public static void SetData(string contextName, object data)
         {
-            localDatas.TryRemove(contextName, out AsyncLocal<object> v);
-            localDatas.TryAdd(contextName, new AsyncLocal<object>() { Value = data });
+            var a = localDatas.TryGetValue(contextName, out AsyncLocal<object> v);
+            if (a)
+            {
+                v.Value = data;
+            }
+            else
+            {
+                localDatas.TryAdd(contextName, new AsyncLocal<object>() { Value = data });
+            }
         }
 #else
 
