@@ -23,7 +23,16 @@ namespace CRL.LambdaQuery
         /// <param name="expressionBody"></param>
         internal void __Where(Expression expressionBody)
         {
-            string condition = FormatExpression(expressionBody).SqlOut;
+            var exp = FormatExpression(expressionBody);
+            if (exp.Type == CRLExpression.CRLExpressionType.Value)
+            {
+                return;
+            }
+            string condition = exp.SqlOut;
+            if (!string.IsNullOrEmpty(condition))
+            {
+                condition = $"({condition})";
+            }
             if (Condition.Length > 0)
             {
                 condition = " and " + condition;
