@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Net;
 using System.Collections;
 using System.Collections.Specialized;
@@ -23,11 +23,11 @@ namespace CRL.Core
         static EventLog()
         {
             thread = new ThreadWork();
-            thread.Start("eventLog",() =>
-            {
-                WriteLogFromCache();
-                return true;
-            }, 0.3);
+            thread.Start("eventLog", () =>
+             {
+                 WriteLogFromCache();
+                 return true;
+             }, 0.3);
         }
         /// <summary>
         /// 是否使用上下文信息写日志
@@ -46,17 +46,17 @@ namespace CRL.Core
         /// </summary>
         /// <param name="path"></param>
 		public static void CreateFolder(string path)
-		{
+        {
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
-		}
-		/// <summary>
+        }
+        /// <summary>
         /// 自定义文件名前辍写入日志
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="typeName"></param>
-		/// <param name="useContext"></param>
-		/// <returns></returns>
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="typeName"></param>
+        /// <param name="useContext"></param>
+        /// <returns></returns>
         public static bool Log(string message, string typeName, bool useContext)
         {
             LogItem logItem = new LogItem();
@@ -92,7 +92,7 @@ namespace CRL.Core
         /// <param name="typeName"></param>
         /// <param name="useContext">是否使用当前上下文信息</param>
         /// <returns></returns>
-        public static bool Log(LogItem logItem, string typeName,bool useContext)
+        public static bool Log(LogItem logItem, string typeName, bool useContext)
         {
             string fileName = DateTime.Now.ToString("yyyy-MM-dd");
             if (!string.IsNullOrEmpty(typeName))
@@ -113,56 +113,56 @@ namespace CRL.Core
                     logItem.Method = context.Method;
                 }
             }
-            var a= WriteLog(GetLogFolder(), logItem, fileName);
+            var a = WriteLog(GetLogFolder(), logItem, fileName);
             __LogCallBack?.Invoke(logItem);
             return a;
         }
-		/// <summary>
-		/// 生成日志,默认文件名
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static bool Log(string message)
-		{
-			return WriteLog(message);
-		}
-		/// <summary>
-		/// 生成日志,文件名以Error开头
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static bool Error(string message)
-		{
-			return Log(message,"Error");
-		}
-		/// <summary>
-		/// 生成日志,文件名以Info开头
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static bool Info(string message)
-		{
-			return Log(message, "Info");
-		}
-		/// <summary>
-		/// 生成日志,文件名以Debug开头
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static bool Debug(string message)
-		{
-			return Log(message, "Debug");
-		}
-		/// <summary>
-		/// 在当前网站目录生成日志
-		/// </summary>
+        /// <summary>
+        /// 生成日志,默认文件名
+        /// </summary>
         /// <param name="message"></param>
-		public static bool WriteLog(string message)
-		{
+        /// <returns></returns>
+        public static bool Log(string message)
+        {
+            return WriteLog(message);
+        }
+        /// <summary>
+        /// 生成日志,文件名以Error开头
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool Error(string message)
+        {
+            return Log(message, "Error");
+        }
+        /// <summary>
+        /// 生成日志,文件名以Info开头
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool Info(string message)
+        {
+            return Log(message, "Info");
+        }
+        /// <summary>
+        /// 生成日志,文件名以Debug开头
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool Debug(string message)
+        {
+            return Log(message, "Debug");
+        }
+        /// <summary>
+        /// 在当前网站目录生成日志
+        /// </summary>
+        /// <param name="message"></param>
+        public static bool WriteLog(string message)
+        {
             return Log(message, "");
-		}
+        }
 
-		static Dictionary<string, LogItem> logCaches = new Dictionary<string, LogItem>();
+        static Dictionary<string, LogItem> logCaches = new Dictionary<string, LogItem>();
 
         /// <summary>
         /// 指定路径,文件名,写入日志
@@ -191,7 +191,7 @@ namespace CRL.Core
                 return false;
             }
         }
-		public static string LastError;
+        public static string LastError;
         public static void WriteLogFromCache()
         {
             lock (lockObj)
@@ -223,29 +223,29 @@ namespace CRL.Core
             }
         }
 
-		private static void WriteLine(string message, string filePath)
-		{
+        private static void WriteLine(string message, string filePath)
+        {
             message += Environment.NewLine;//"\r\n";
             using (FileStream fs = File.OpenWrite(filePath))
-			{
-				//根据上面创建的文件流创建写数据流
-				StreamWriter w = new StreamWriter(fs, System.Text.Encoding.Default);
-				//设置写数据流的起始位置为文件流的末尾
-				w.BaseStream.Seek(0, SeekOrigin.End);
-				//w.Write(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
-				w.Write(message);
-				w.Flush();
-				w.Close();
-			}
-			//Console.WriteLine(message);
-		}
+            {
+                //根据上面创建的文件流创建写数据流
+                StreamWriter w = new StreamWriter(fs, System.Text.Encoding.Default);
+                //设置写数据流的起始位置为文件流的末尾
+                w.BaseStream.Seek(0, SeekOrigin.End);
+                //w.Write(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
+                w.Write(message);
+                w.Flush();
+                w.Close();
+            }
+            //Console.WriteLine(message);
+        }
         static string rootPath = null;
-		/// <summary>
-		/// 获取日志绝对目录
-		/// </summary>
-		/// <returns></returns>
-		public static string GetLogFolder()
-		{
+        /// <summary>
+        /// 获取日志绝对目录
+        /// </summary>
+        /// <returns></returns>
+        public static string GetLogFolder()
+        {
             if (rootPath == null)
             {
                 //rootPath = System.Web.Hosting.HostingEnvironment.MapPath(@"\log\");
@@ -255,10 +255,10 @@ namespace CRL.Core
                 //}
                 rootPath = Request.RequestHelper.GetFilePath("log/");
                 //rootPath += @"\";
-                
+
             }
-			return rootPath;
-		}
+            return rootPath;
+        }
         public static void Stop()
         {
             if (thread != null)
@@ -270,23 +270,24 @@ namespace CRL.Core
         /// <summary>
         /// 项集合
         /// </summary>
-		class LogItemArry 
-		{
-			public string savePath;
+		class LogItemArry
+        {
+            public string savePath;
             internal List<LogItem> logs = new List<LogItem>();
             public void Add(LogItem log)
-			{
-				logs.Add(log);
-			}
-			public override string ToString()
-			{
-				StringBuilder sb = new StringBuilder();
-                foreach (LogItem item in logs)
-				{
+            {
+                logs.Add(log);
+            }
+            public override string ToString()
+            {
+                StringBuilder sb = new StringBuilder();
+                var list = logs.OrderBy(b => b.Time).ToList();
+                foreach (LogItem item in list)
+                {
                     sb.Append(item.ToString());
-				}
-				return sb.ToString();
-			}
-		}
-	}
+                }
+                return sb.ToString();
+            }
+        }
+    }
 }
